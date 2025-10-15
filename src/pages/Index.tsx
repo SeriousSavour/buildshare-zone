@@ -1,45 +1,9 @@
 import { Sparkles, Gamepad2, Users, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const sessionToken = localStorage.getItem("session_token");
-    setIsLoggedIn(!!sessionToken);
-  }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
-      {/* Navigation Bar */}
-      <nav className="bg-card/50 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="text-2xl font-bold text-primary">
-              Learning Hub
-            </Link>
-            <div className="flex items-center space-x-4">
-              {isLoggedIn ? (
-                <Link to="/games">
-                  <Button>Go to Games</Button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/login">
-                    <Button variant="ghost">Login</Button>
-                  </Link>
-                  <Link to="/register">
-                    <Button>Get Started</Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4">
         {/* Floating Icons */}
@@ -51,7 +15,7 @@ const Index = () => {
         </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-orange-400 to-primary bg-clip-text text-transparent animate-fade-in">
+          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
             Welcome Home!
           </h1>
           
@@ -65,33 +29,12 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay-3">
-            {isLoggedIn ? (
-              <>
-                <Link to="/games">
-                  <Button size="lg" className="text-lg px-8 w-full sm:w-auto">
-                    Browse Games
-                  </Button>
-                </Link>
-                <Link to="/friends">
-                  <Button size="lg" variant="outline" className="text-lg px-8 w-full sm:w-auto">
-                    Find Friends
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/register">
-                  <Button size="lg" className="text-lg px-8 w-full sm:w-auto">
-                    Get Started
-                  </Button>
-                </Link>
-                <Link to="/login">
-                  <Button size="lg" variant="outline" className="text-lg px-8 w-full sm:w-auto">
-                    Login
-                  </Button>
-                </Link>
-              </>
-            )}
+            <Button size="lg" className="text-lg px-8">
+              Get Started
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8">
+              Explore Games
+            </Button>
           </div>
 
           {/* Trust Badges */}
@@ -120,7 +63,7 @@ const Index = () => {
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
+            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow">
               <Gamepad2 className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-2xl font-semibold mb-3">Epic Games</h3>
               <p className="text-muted-foreground">
@@ -128,7 +71,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
+            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow">
               <Users className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-2xl font-semibold mb-3">Connect Friends</h3>
               <p className="text-muted-foreground">
@@ -136,7 +79,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
+            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow">
               <MessageCircle className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-2xl font-semibold mb-3">Live Chat</h3>
               <p className="text-muted-foreground">
@@ -146,13 +89,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-8 px-4 mt-20">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <p>&copy; 2025 Learning Hub. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };
