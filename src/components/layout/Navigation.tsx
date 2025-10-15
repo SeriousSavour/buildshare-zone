@@ -1,91 +1,97 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Settings, Shield, LogOut } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkAdminStatus();
+    checkAuth();
   }, []);
 
-  const checkAdminStatus = async () => {
+  const checkAuth = () => {
     const sessionToken = localStorage.getItem("session_token");
-    if (!sessionToken) return;
-
-    try {
-      const { data: userData } = await supabase.rpc("get_user_by_session", {
-        _session_token: sessionToken,
-      });
-
-      if (userData && userData.length > 0) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userData[0].user_id)
-          .single();
-
-        setIsAdmin(roleData?.role === "admin");
-      }
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-    }
+    setIsAuthenticated(!!sessionToken);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("session_token");
-    navigate("/login");
+    setIsAuthenticated(false);
+    navigate("/");
   };
 
-  const navItems = [
-    { path: "/", icon: Home, label: "Home" },
-    { path: "/games", icon: Gamepad2, label: "Games" },
-    { path: "/friends", icon: Users, label: "Friends" },
-    { path: "/chat", icon: MessageCircle, label: "Chat" },
-    { path: "/settings", icon: Settings, label: "Settings" },
-  ];
-
-  if (isAdmin) {
-    navItems.push({ path: "/admin", icon: Shield, label: "Admin" });
-  }
-
   return (
-    <nav className="bg-card border-b border-border">
+    <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-8">
-            <Link to="/" className="text-2xl font-bold text-primary">
-              Learning Hub
-            </Link>
-            <div className="hidden md:flex space-x-4">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+        <div className="flex items-center justify-between h-16 gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors">
+            <Gamepad2 className="w-8 h-8" />
+          </Link>
+
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-md relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search the vault..." 
+              className="pl-10 bg-muted/50 border-border focus:border-primary/50"
+            />
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-1">
+            <Link to="/" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Link>
+            <Link to="/games" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <Gamepad2 className="w-4 h-4" />
+              <span>Games</span>
+            </Link>
+            <Link to="/tools" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <Wrench className="w-4 h-4" />
+              <span>Tools</span>
+            </Link>
+            <Link to="/friends" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <Users className="w-4 h-4" />
+              <span>Friends</span>
+            </Link>
+            <Link to="/chat" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <MessageCircle className="w-4 h-4" />
+              <span>Chat</span>
+            </Link>
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <Button className="gap-2 bg-primary hover:bg-primary/90">
+                  <Plus className="w-4 h-4" />
+                  Create
+                </Button>
+                <Button variant="outline" onClick={handleLogout}>
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
+                  <Plus className="w-4 h-4" />
+                  Create
+                </Button>
+                <Button variant="outline" className="gap-2" onClick={() => navigate("/auth")}>
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
