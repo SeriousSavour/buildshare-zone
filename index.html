@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learning Hub - Educational Tools & Interactive Apps</title>
+    <meta name="description" content="Discover educational tools, productivity apps, and interactive learning experiences. Safe, moderated platform for students and professionals.">
+    <meta name="author" content="Lovable" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; frame-src 'self' https: http: data: blob:; child-src 'self' https: http: data: blob:; connect-src 'self' https: http: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: blob:;">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <meta property="og:title" content="Learning Hub - Educational Platform" />
+    <meta property="og:description" content="Educational tools and interactive apps for learning and productivity" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/WNETjOaKhfZppplLvocUv9JuKrz2/social-images/social-1758071962505-download (4).jfif">
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/WNETjOaKhfZppplLvocUv9JuKrz2/social-images/social-1758071962505-download (4).jfif">
+    <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/WNETjOaKhfZppplLvocUv9JuKrz2/uploads/1758071967714-download (5).jfif">
+</head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Anti-embedding protection -->
+    <script>
+      // Prevent iframe embedding
+      if (window.top !== window.self) {
+        window.top.location = window.self.location;
+      }
+      
+      // Basic referrer protection
+      const allowedDomains = [
+        'localhost',
+        '127.0.0.1',
+        'lovable.app',
+        // Add your custom domain here when you set it up
+        // 'yourdomain.com'
+      ];
+      
+      if (document.referrer) {
+        const referrerHost = new URL(document.referrer).hostname;
+        const currentHost = window.location.hostname;
+        
+        if (referrerHost !== currentHost && !allowedDomains.some(domain => 
+          referrerHost.includes(domain) || currentHost.includes(domain)
+        )) {
+          // Optionally redirect or show warning
+          console.warn('Unauthorized referrer detected:', referrerHost);
+        }
+      }
+      
+      // Disable right-click context menu (basic protection)
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+      });
+      
+      // Disable common keyboard shortcuts for viewing source
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+            (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+            (e.ctrlKey && e.key === 'U')) {
+          e.preventDefault();
+        }
+      });
+    </script>
+  </body>
+</html>
