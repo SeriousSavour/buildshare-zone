@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import GameCard from "@/components/games/GameCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ interface Game {
 }
 
 const Games = () => {
+  const navigate = useNavigate();
   const [games, setGames] = useState<Game[]>([]);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
@@ -237,9 +239,8 @@ const Games = () => {
             }`}
           >
             {filteredGames.map((game) => (
-              <GameCard
-                key={game.id}
-                id={game.id}
+              <div key={game.id} onClick={() => navigate(`/games/${game.id}`)} className="cursor-pointer">
+                <GameCard
                 title={game.title}
                 description={game.description}
                 imageUrl={game.image_url}
@@ -251,7 +252,9 @@ const Games = () => {
                 gameUrl={game.game_url}
                 isLiked={likedGames.has(game.id)}
                 onLikeToggle={fetchLikedGames}
+                id={game.id}
               />
+              </div>
             ))}
           </div>
         )}

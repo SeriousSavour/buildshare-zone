@@ -71,7 +71,7 @@ const Navigation = () => {
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Button className="gap-2 bg-primary hover:bg-primary/90">
+                <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/create")}>
                   <Plus className="w-4 h-4" />
                   Create
                 </Button>
