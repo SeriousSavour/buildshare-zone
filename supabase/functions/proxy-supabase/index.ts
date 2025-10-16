@@ -1,10 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-api-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-proxy-key, x-signature, x-timestamp',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
 };
+
+// Rate limiting store (in-memory, resets on function restart)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX = 100; // 100 requests per minute per IP
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -13,6 +19,75 @@ serve(async (req) => {
   }
 
   try {
+    // Security Layer 1: API Key Authentication
+    const proxyApiKey = Deno.env.get('PROXY_API_KEY');
+    const clientApiKey = req.headers.get('x-proxy-key');
+    
+    if (!proxyApiKey) {
+      console.error('❌ PROXY_API_KEY not configured in environment');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    if (!clientApiKey || clientApiKey !== proxyApiKey) {
+      console.warn('⚠️ Invalid or missing API key');
+      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid API key' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Security Layer 2: Request Signature Verification (HMAC)
+    const signature = req.headers.get('x-signature');
+    const timestamp = req.headers.get('x-timestamp');
+    
+    if (!signature || !timestamp) {
+      console.warn('⚠️ Missing signature or timestamp');
+      return new Response(JSON.stringify({ error: 'Unauthorized: Missing signature' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Verify timestamp is recent (within 5 minutes)
+    const requestTime = parseInt(timestamp);
+    const currentTime = Date.now();
+    if (Math.abs(currentTime - requestTime) > 300000) {
+      console.warn('⚠️ Request timestamp too old or invalid');
+      return new Response(JSON.stringify({ error: 'Unauthorized: Request expired' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Verify HMAC signature
+    const url = new URL(req.url);
+    const targetPath = url.searchParams.get('path') || '';
+    const signaturePayload = `${req.method}:${targetPath}:${timestamp}`;
+    const expectedSignature = await computeHmac(signaturePayload, proxyApiKey);
+    
+    if (signature !== expectedSignature) {
+      console.warn('⚠️ Invalid request signature');
+      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid signature' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Security Layer 3: IP-based Rate Limiting
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    
+    if (!checkRateLimit(clientIp)) {
+      console.warn(`⚠️ Rate limit exceeded for IP: ${clientIp}`);
+      return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    console.log(`✅ Security checks passed for IP: ${clientIp}`);
     // Get encrypted proxy list from environment (never exposed to client)
     const proxyList = Deno.env.get('DECODO_PROXY_LIST');
     
@@ -167,3 +242,44 @@ serve(async (req) => {
     });
   }
 });
+
+// Helper function to compute HMAC-SHA256 signature
+async function computeHmac(message: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const messageData = encoder.encode(message);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Helper function for rate limiting
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(identifier);
+  
+  if (!record || now > record.resetTime) {
+    // Create new rate limit window
+    rateLimitStore.set(identifier, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW,
+    });
+    return true;
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  record.count++;
+  return true;
+}
