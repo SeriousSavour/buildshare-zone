@@ -58,10 +58,9 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", data[0].user_id)
-          .single();
+          .eq("user_id", data[0].user_id);
 
-        setIsAdmin(roleData?.role === "admin");
+        setIsAdmin(roleData?.some(r => r.role === "admin") || false);
       }
     } catch (error) {
       console.error("Auth check failed:", error);

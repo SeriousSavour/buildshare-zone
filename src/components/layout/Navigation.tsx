@@ -36,13 +36,12 @@ const Navigation = () => {
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', userId)
-            .single();
+            .eq('user_id', userId);
 
           console.log('Role data:', roleData);
           console.log('Role error:', roleError);
 
-          const isAdminUser = roleData?.role === 'admin';
+          const isAdminUser = roleData?.some(r => r.role === 'admin') || false;
           console.log('Is admin:', isAdminUser);
           setIsAdmin(isAdminUser);
         }
