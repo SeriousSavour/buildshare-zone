@@ -348,61 +348,69 @@ const Games = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-12 relative z-10">
-        {/* Header */}
-        <div className="mb-8 space-y-4 animate-fade-in text-center">
-          <h1 className="text-5xl font-bold tracking-tight">
-            Spooky <StyledKeyword keyword="Games" className="text-primary" /> 🎃 👻
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Discover spine-chilling games this October! 🎃✨
-          </p>
-          <p className="text-sm text-muted-foreground">
-            🦇 {games.length} haunted games waiting for you 🦇
-          </p>
+        {/* Header with enhanced design */}
+        <div className="mb-12 space-y-6 animate-fade-in text-center">
+          <div className="space-y-4">
+            <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text leading-tight">
+              Spooky Games 🎃 👻
+            </h1>
+            <p className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              Discover spine-chilling games this October! 🎃✨
+            </p>
+          </div>
+          <div className="flex justify-center gap-3 flex-wrap">
+            <div className="px-5 py-2 bg-card/60 border border-primary/30 rounded-full backdrop-blur-sm">
+              <p className="text-base font-medium">
+                🦇 {games.length} haunted games waiting 🦇
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Featured Game Banner */}
+        {/* Featured Game Banner with enhanced design */}
         {featuredGame && (
-          <div className="mb-12 animate-fade-in-delay-1">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30">
+          <div className="mb-16 animate-fade-in-delay-1">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-accent/5 to-background border-2 border-primary/40 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/30 group">
               <div className="absolute inset-0">
                 {featuredGame.image_url && (
                   <img
                     src={featuredGame.image_url}
                     alt={featuredGame.title}
-                    className="w-full h-full object-cover opacity-30"
+                    className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/50" />
               </div>
-              <div className="relative p-8 md:p-12">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="px-3 py-1 bg-primary/90 text-primary-foreground rounded-full text-xs font-medium">
+              <div className="relative p-10 md:p-14">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="px-4 py-2 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground rounded-full text-sm font-bold shadow-lg glow-orange">
                     👑 Featured Game (2/5)
                   </span>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <h2 className="text-5xl md:text-6xl font-bold mb-6 gradient-text">
                   {featuredGame.title}
                 </h2>
-                <p className="text-lg text-muted-foreground mb-6 max-w-2xl line-clamp-2">
+                <p className="text-xl md:text-2xl text-muted-foreground/90 mb-8 max-w-3xl line-clamp-2 leading-relaxed">
                   {featuredGame.description || "No description available"}
                 </p>
-                <div className="flex items-center gap-6 mb-6 text-sm">
-                  <span className="flex items-center gap-2">
-                    <Play className="w-4 h-4" />
-                    {featuredGame.plays} plays
+                <div className="flex items-center gap-8 mb-8 text-lg">
+                  <span className="flex items-center gap-3 px-4 py-2 bg-card/50 rounded-full border border-border/50">
+                    <Play className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{featuredGame.plays}</span>
+                    <span className="text-muted-foreground">plays</span>
                   </span>
-                  <span className="flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    {featuredGame.likes} likes
+                  <span className="flex items-center gap-3 px-4 py-2 bg-card/50 rounded-full border border-border/50">
+                    <Heart className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{featuredGame.likes}</span>
+                    <span className="text-muted-foreground">likes</span>
                   </span>
                 </div>
                 <Button
                   size="lg"
-                  className="gap-2 glow-orange"
+                  className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange hover-lift shadow-xl font-semibold"
                   onClick={() => navigate(`/games/${featuredGame.id}`)}
                 >
-                  <Play className="w-4 h-4" />
+                  <Play className="w-5 h-5" />
                   Play Now! 🎮
                 </Button>
               </div>
@@ -410,47 +418,47 @@ const Games = () => {
           </div>
         )}
 
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4 animate-fade-in-delay-2">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
+        {/* Search and Filters with better styling */}
+        <div className="mb-10 space-y-5 animate-fade-in-delay-2">
+          <div className="flex flex-col md:flex-row gap-5">
+            {/* Search with enhanced design */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Find your next favorite game... 🎮"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 bg-card border-border"
+                className="pl-12 h-14 text-lg bg-card/60 border-2 border-border/50 hover:border-primary/40 focus:border-primary/60 rounded-xl backdrop-blur-sm transition-colors"
               />
             </div>
 
-            {/* Sort Dropdown */}
+            {/* Sort Dropdown with better styling */}
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full md:w-52 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer pr-10"
+                className="w-full md:w-56 h-14 px-5 bg-card/60 border-2 border-border/50 hover:border-primary/40 rounded-xl text-foreground appearance-none cursor-pointer pr-12 font-medium backdrop-blur-sm transition-colors"
               >
                 <option value="newest">📅 Sort: Newest</option>
                 <option value="popular">🔥 Sort: Most Popular</option>
                 <option value="likes">❤️ Sort: Most Liked</option>
               </select>
-              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
 
-            {/* View Dropdown */}
+            {/* View Dropdown with better styling */}
             <div className="relative">
               <select
                 value={cardSize}
                 onChange={(e) => setCardSize(e.target.value as any)}
-                className="w-full md:w-44 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer pr-10"
+                className="w-full md:w-48 h-14 px-5 bg-card/60 border-2 border-border/50 hover:border-primary/40 rounded-xl text-foreground appearance-none cursor-pointer pr-12 font-medium backdrop-blur-sm transition-colors"
               >
                 <option value="small">⬜ View: Compact</option>
                 <option value="medium">🟧 View: Comfy</option>
                 <option value="large">🟥 View: Spacious</option>
               </select>
-              <Grid3x3 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Grid3x3 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 

@@ -102,49 +102,53 @@ const Index = () => {
       )}
 
       {/* Hero Section with Halloween Icons */}
-      <section className="relative overflow-hidden py-20 px-4">
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          {/* Hero Icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-8 animate-pulse">
-            <Users className="w-12 h-12 text-primary" />
+      <section className="relative overflow-hidden py-24 px-4">
+        {/* Gradient background overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          {/* Hero Icon with glow */}
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-primary/25 to-accent/25 mb-10 animate-pulse glow-orange">
+            <Users className="w-14 h-14 text-primary drop-shadow-lg" />
           </div>
 
-          {/* Hero Title */}
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
+          {/* Hero Title with enhanced gradient */}
+          <h1 className="text-7xl md:text-8xl font-bold mb-8 gradient-text animate-fade-in leading-tight">
             Welcome Home!
           </h1>
           
-          {/* Subtitle */}
-          <p className="text-2xl md:text-3xl text-muted-foreground mb-4 flex items-center justify-center gap-2">
-            <span>🎮</span>
-            <span>Your friendly gǟming community awaits</span>
+          {/* Subtitle with better spacing */}
+          <p className="text-3xl md:text-4xl font-semibold mb-6 flex items-center justify-center gap-3 animate-fade-in-delay-1">
+            <span className="text-4xl animate-bounce-slow">🎮</span>
+            <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              Your friendly gǟming community awaits
+            </span>
           </p>
           
-          {/* Description */}
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          {/* Description with improved readability */}
+          <p className="text-xl md:text-2xl text-muted-foreground/90 max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in-delay-2">
             Connect with amazing people, discover incredible gǟmes, and create memories that last forever. Join thousands of gǟmers in a safe, welcoming space designed just for you.
           </p>
           
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+          {/* CTA Buttons with enhanced styling */}
+          <div className="flex flex-col sm:flex-row gap-5 justify-center mb-10 animate-fade-in-delay-3">
           {isAuthenticated ? (
               <>
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 hover-scale hover-glow transition-all duration-300 animate-pulse-glow"
+                  className="text-xl px-10 py-7 gap-3 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 hover-lift glow-orange shadow-xl font-semibold"
                   onClick={() => navigate("/games")}
                 >
-                  <UserPlus className="w-5 h-5" />
+                  <UserPlus className="w-6 h-6" />
                   Browse Games! 🚀
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="text-lg px-8 gap-2 hover-scale hover-glow transition-all duration-300"
+                  className="text-xl px-10 py-7 gap-3 hover-lift border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/10 font-semibold"
                   onClick={() => navigate("/friends")}
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <MessageCircle className="w-6 h-6" />
                   View Friends
                 </Button>
               </>
@@ -152,82 +156,90 @@ const Index = () => {
               <>
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 hover-scale hover-glow transition-all duration-300 animate-pulse-glow"
+                  className="text-xl px-10 py-7 gap-3 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 hover-lift glow-orange shadow-xl font-semibold"
                   onClick={() => navigate("/register")}
                 >
-                  <UserPlus className="w-5 h-5" />
+                  <UserPlus className="w-6 h-6" />
                   Join the Fun! 🚀
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="text-lg px-8 gap-2 hover:scale-105 transition-all duration-300"
+                  className="text-xl px-10 py-7 gap-3 hover-lift border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/10 font-semibold"
                   onClick={() => navigate("/login")}
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <MessageCircle className="w-6 h-6" />
                   Sign In
                 </Button>
               </>
             )}
           </div>
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <span>✨</span>
-              <span>Free forever</span>
+          {/* Trust Badges with enhanced design */}
+          <div className="flex flex-wrap justify-center gap-6 text-base animate-fade-in-delay-4">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border/50 hover:border-primary/50 transition-colors">
+              <span className="text-2xl">✨</span>
+              <span className="font-medium">Free forever</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span>•</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border/50 hover:border-primary/50 transition-colors">
+              <span className="text-2xl">🛡️</span>
+              <span className="font-medium">Safe & moderated</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span>🛡️</span>
-              <span>Safe & moderated</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>•</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>🎯</span>
-              <span>No ads or spam</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border/50 hover:border-primary/50 transition-colors">
+              <span className="text-2xl">🎯</span>
+              <span className="font-medium">No ads or spam</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-4">
-            Why You'll Love It Here
-          </h2>
-          <p className="text-center text-muted-foreground mb-16">
-            Everything you need for an amazing gǟming social experience
-          </p>
+      {/* Features Section with enhanced design */}
+      <section className="py-24 px-4 bg-gradient-to-b from-muted/20 to-background relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-20 space-y-4">
+            <h2 className="text-5xl md:text-6xl font-bold gradient-text">
+              Why You'll Love It Here
+            </h2>
+            <p className="text-xl md:text-2xl text-muted-foreground/80 max-w-3xl mx-auto">
+              Everything you need for an amazing gǟming social experience ✨
+            </p>
+          </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-500 hover:scale-110 hover:-translate-y-3 hover:shadow-2xl hover:shadow-primary/30 animate-bounce-in cursor-pointer">
-              <div className="text-4xl mb-4 transition-transform duration-300 hover:scale-125">👥</div>
-              <h3 className="text-2xl font-semibold mb-3">Find Your Tribe</h3>
-              <p className="text-muted-foreground">
-                Discover amazing people who share your gǟming passions. Search by username and build meaningful friendships.
-              </p>
+          <div className="grid md:grid-cols-3 gap-10">
+            <div className="group p-10 rounded-2xl bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 transition-all duration-500 hover:scale-105 hover:-translate-y-4 hover:shadow-2xl hover:shadow-primary/40 animate-bounce-in cursor-pointer relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative">
+                <div className="text-6xl mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">👥</div>
+                <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">Find Your Tribe</h3>
+                <p className="text-lg text-muted-foreground/90 leading-relaxed">
+                  Discover amazing people who share your gǟming passions. Search by username and build meaningful friendships.
+                </p>
+              </div>
             </div>
             
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-500 hover:scale-110 hover:-translate-y-3 hover:shadow-2xl hover:shadow-primary/30 animate-bounce-in stagger-2 cursor-pointer">
-              <div className="text-4xl mb-4 transition-transform duration-300 hover:scale-125">💬</div>
-              <h3 className="text-2xl font-semibold mb-3">Chat Safely</h3>
-              <p className="text-muted-foreground">
-                Private conversations with friends, protected by smart content moderation. Express yourself freely and safely.
-              </p>
+            <div className="group p-10 rounded-2xl bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-accent/60 transition-all duration-500 hover:scale-105 hover:-translate-y-4 hover:shadow-2xl hover:shadow-accent/40 animate-bounce-in stagger-2 cursor-pointer relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative">
+                <div className="text-6xl mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">💬</div>
+                <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">Chat Safely</h3>
+                <p className="text-lg text-muted-foreground/90 leading-relaxed">
+                  Private conversations with friends, protected by smart content moderation. Express yourself freely and safely.
+                </p>
+              </div>
             </div>
             
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-500 hover:scale-110 hover:-translate-y-3 hover:shadow-2xl hover:shadow-primary/30 animate-bounce-in stagger-4 cursor-pointer">
-              <div className="text-4xl mb-4 transition-transform duration-300 hover:scale-125">💝</div>
-              <h3 className="text-2xl font-semibold mb-3">Feel Welcome</h3>
-              <p className="text-muted-foreground">
-                A warm, inclusive community where everyone belongs. Automatic content filtering keeps conversations positive.
-              </p>
+            <div className="group p-10 rounded-2xl bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 transition-all duration-500 hover:scale-105 hover:-translate-y-4 hover:shadow-2xl hover:shadow-primary/40 animate-bounce-in stagger-4 cursor-pointer relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative">
+                <div className="text-6xl mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">💝</div>
+                <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">Feel Welcome</h3>
+                <p className="text-lg text-muted-foreground/90 leading-relaxed">
+                  A warm, inclusive community where everyone belongs. Automatic content filtering keeps conversations positive.
+                </p>
+              </div>
             </div>
           </div>
         </div>
