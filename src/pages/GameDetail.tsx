@@ -77,11 +77,50 @@ const GameDetail = () => {
     }
   };
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (game?.game_url) {
+      // Increment play count
+      try {
+        await supabase
+          .from('games')
+          .update({ plays: game.plays + 1 })
+          .eq('id', id);
+        
+        setGame(prev => prev ? { ...prev, plays: prev.plays + 1 } : null);
+      } catch (error) {
+        console.error('Error updating play count:', error);
+      }
+      
       window.open(game.game_url, '_blank');
     } else {
       toast.error("Game URL not available");
+    }
+  };
+
+  const handleLike = async () => {
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) {
+      toast.error("Please login to like games");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const { data: result } = await supabase.rpc('toggle_game_like', {
+        _game_id: id,
+        _user_id: (await supabase.rpc('get_user_by_session', {
+          _session_token: sessionToken
+        })).data[0].user_id
+      });
+
+      if (result) {
+        setIsLiked(result.is_liked);
+        setGame(prev => prev ? { ...prev, likes: result.like_count } : null);
+        toast.success(result.is_liked ? "Game liked!" : "Like removed");
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast.error("Failed to update like");
     }
   };
 
@@ -160,6 +199,7 @@ const GameDetail = () => {
                 variant={isLiked ? "default" : "outline"}
                 size="lg"
                 className="h-14"
+                onClick={handleLike}
               >
                 <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
               </Button>

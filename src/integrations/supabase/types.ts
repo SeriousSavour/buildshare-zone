@@ -689,6 +689,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tools: {
+        Row: {
+          category: string
+          clicks: number
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          name: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string
+          clicks?: number
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          name: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string
+          clicks?: number
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       user_auth: {
         Row: {
           created_at: string

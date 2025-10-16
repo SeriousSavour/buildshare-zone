@@ -1,59 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wrench, Search, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Tool {
+  id: string;
+  name: string;
+  description: string | null;
+  url: string;
+  icon: string;
+  category: string;
+  clicks: number;
+}
 
 const Tools = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tools = [
-    {
-      id: 1,
-      name: "Unblocked Games 76",
-      description: "A collection of unblocked games for school and work",
-      url: "https://ubg76.github.io/",
-      icon: "🎮",
-      category: "Games"
-    },
-    {
-      id: 2,
-      name: "Cool Math Games",
-      description: "Educational games and puzzles",
-      url: "https://www.coolmathgames.com/",
-      icon: "🧮",
-      category: "Educational"
-    },
-    {
-      id: 3,
-      name: "Y8 Games",
-      description: "Free online games platform",
-      url: "https://www.y8.com/",
-      icon: "🕹️",
-      category: "Games"
-    },
-    {
-      id: 4,
-      name: "Armor Games",
-      description: "Premium flash and browser games",
-      url: "https://armorgames.com/",
-      icon: "🛡️",
-      category: "Games"
-    },
-    {
-      id: 5,
-      name: "Kongregate",
-      description: "Browser and mobile games community",
-      url: "https://www.kongregate.com/",
-      icon: "👾",
-      category: "Games"
+  useEffect(() => {
+    fetchTools();
+  }, []);
+
+  const fetchTools = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tools')
+        .select('*')
+        .order('clicks', { ascending: false });
+
+      if (error) throw error;
+      setTools(data || []);
+    } catch (error) {
+      console.error('Error fetching tools:', error);
+      toast.error("Failed to load tools");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleToolClick = async (tool: Tool) => {
+    try {
+      // Increment click count
+      await supabase
+        .from('tools')
+        .update({ clicks: tool.clicks + 1 })
+        .eq('id', tool.id);
+
+      window.open(tool.url, '_blank');
+    } catch (error) {
+      console.error('Error updating tool clicks:', error);
+      window.open(tool.url, '_blank');
+    }
+  };
 
   const filteredTools = tools.filter(tool =>
     tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tool.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (tool.description && tool.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -96,37 +103,50 @@ const Tools = () => {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading tools...</p>
+          </div>
+        )}
+
         {/* Tools Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-fade-in-delay-2">
-          {filteredTools.map((tool) => (
-            <Card 
-              key={tool.id}
-              className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-2 hover:border-primary/50"
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="text-5xl mb-3">{tool.icon}</div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
-                    {tool.category}
-                  </span>
-                </div>
-                <CardTitle className="group-hover:text-primary transition-colors">
-                  {tool.name}
-                </CardTitle>
-                <CardDescription>{tool.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full gap-2"
-                  onClick={() => window.open(tool.url, '_blank')}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Visit Website
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {!loading && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-fade-in-delay-2">
+            {filteredTools.map((tool) => (
+              <Card 
+                key={tool.id}
+                className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-2 hover:border-primary/50"
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="text-5xl mb-3">{tool.icon}</div>
+                    <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
+                      {tool.category}
+                    </span>
+                  </div>
+                  <CardTitle className="group-hover:text-primary transition-colors">
+                    {tool.name}
+                  </CardTitle>
+                  <CardDescription>{tool.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    className="w-full gap-2"
+                    onClick={() => handleToolClick(tool)}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Visit Website
+                  </Button>
+                  <div className="text-xs text-muted-foreground text-center">
+                    {tool.clicks} visits
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {filteredTools.length === 0 && (
           <div className="text-center py-20 space-y-4">
