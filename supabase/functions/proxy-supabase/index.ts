@@ -18,9 +18,14 @@ serve(async (req) => {
   }
 
   try {
-    // Rate limiting (server-side only)
+    // Parse URL once at the beginning
+    const url = new URL(req.url);
+    const targetPath = url.searchParams.get('path');
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     
+    console.log(`📥 Incoming request: ${req.method} ${targetPath} from ${clientIp}`);
+    
+    // Rate limiting (server-side only)
     if (!checkRateLimit(clientIp)) {
       console.warn(`⚠️ Rate limit exceeded for IP: ${clientIp}`);
       return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
@@ -28,24 +33,24 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    if (!targetPath) {
+      console.error('❌ Missing target path parameter');
+      return new Response(JSON.stringify({ error: 'Missing target path' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     // Get encrypted proxy list from environment (never exposed to client)
     const proxyList = Deno.env.get('DECODO_PROXY_LIST');
     
     if (!proxyList) {
       console.warn('⚠️ DECODO_PROXY_LIST not configured, using direct connection');
       
-      // Fallback to direct connection
-      const url = new URL(req.url);
-      const targetPath = url.searchParams.get('path');
-      
-      if (!targetPath) {
-        return new Response(JSON.stringify({ error: 'Missing target path' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
       const supabaseUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co${targetPath}`;
+      console.log(`🔗 Direct connection to: ${supabaseUrl}`);
+      
       const headers = new Headers();
       req.headers.forEach((value, key) => {
         if (key.toLowerCase() !== 'host') {
@@ -56,6 +61,7 @@ serve(async (req) => {
       let body = null;
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         body = await req.text();
+        console.log(`📤 Request body length: ${body.length} bytes`);
       }
       
       const response = await fetch(supabaseUrl, {
@@ -63,6 +69,8 @@ serve(async (req) => {
         headers: headers,
         body: body,
       });
+      
+      console.log(`✅ Direct connection completed: ${response.status} ${response.statusText}`);
       
       const responseHeaders = new Headers(corsHeaders);
       response.headers.forEach((value, key) => {
@@ -78,6 +86,8 @@ serve(async (req) => {
 
     // Parse and randomly select proxy for rotation (credentials never sent to client)
     const proxies = proxyList.trim().split('\n').filter(line => line.trim());
+    console.log(`🎲 Available proxies: ${proxies.length}`);
+    
     const selectedProxy = proxies[Math.floor(Math.random() * proxies.length)];
     
     // Parse format: gate.decodo.com:10001:username:password
@@ -86,18 +96,8 @@ serve(async (req) => {
     
     console.log(`🔄 Proxy selected: ${proxyHost}:${proxyPort} (credentials hidden)`);
 
-    // Get target path
-    const url = new URL(req.url);
-    const targetPath = url.searchParams.get('path');
-    
-    if (!targetPath) {
-      return new Response(JSON.stringify({ error: 'Missing target path' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const supabaseUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co${targetPath}`;
+    console.log(`🌐 Target URL: ${supabaseUrl}`);
     
     // Forward headers
     const headers = new Headers();
@@ -111,9 +111,10 @@ serve(async (req) => {
     let body = null;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       body = await req.text();
+      console.log(`📤 Request body length: ${body.length} bytes`);
     }
 
-    console.log(`🌐 Routing ${req.method} through secure proxy...`);
+    console.log(`🌐 Routing ${req.method} through secure proxy to ${proxyHost}:${proxyPort}...`);
 
     // Create HTTP client with proxy configuration
     const proxyUrl = `http://${username}:${password}@${proxyHost}:${proxyPort}`;
@@ -130,7 +131,7 @@ serve(async (req) => {
         client: client,
       });
 
-      console.log(`✅ Request completed: ${supabaseResponse.status}`);
+      console.log(`✅ Proxy request completed: ${supabaseResponse.status} ${supabaseResponse.statusText}`);
 
       // Forward response with CORS
       const responseHeaders = new Headers(corsHeaders);
@@ -148,7 +149,8 @@ serve(async (req) => {
         headers: responseHeaders,
       });
     } catch (proxyError) {
-      console.error('⚠️ Proxy failed, attempting direct connection:', proxyError.message);
+      console.error('⚠️ Proxy failed, attempting direct connection fallback:', proxyError.message);
+      console.error(`❌ Proxy error details: ${proxyError.stack}`);
       
       // Fallback to direct connection
       const directResponse = await fetch(supabaseUrl, {
@@ -157,7 +159,7 @@ serve(async (req) => {
         body: body,
       });
 
-      console.log(`✅ Direct connection completed: ${directResponse.status}`);
+      console.log(`✅ Fallback direct connection completed: ${directResponse.status} ${directResponse.statusText}`);
 
       const responseHeaders = new Headers(corsHeaders);
       directResponse.headers.forEach((value, key) => {
@@ -172,10 +174,14 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('❌ Fatal error:', error);
+    console.error('❌ Fatal error in proxy function:', error);
+    console.error(`❌ Error stack: ${error.stack}`);
+    console.error(`❌ Error type: ${error.constructor.name}`);
+    
     return new Response(JSON.stringify({ 
       error: 'Request failed', 
-      details: error.message 
+      details: error.message,
+      type: error.constructor.name
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
