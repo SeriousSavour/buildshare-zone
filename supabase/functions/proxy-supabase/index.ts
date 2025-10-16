@@ -107,37 +107,36 @@ serve(async (req) => {
     let response: Response;
     
     if (proxy) {
-      // Use HTTP proxy with Proxy-Authorization header
+      // For HTTP proxies, we make the request through the proxy using HTTP tunneling
       console.log(`↪ Forwarding via proxy ${proxy.host}:${proxy.port}...`);
       
       const proxyAuth = btoa(`${proxy.username}:${proxy.password}`);
       
-      // Create proxy request
-      response = await fetch(`http://${proxy.host}:${proxy.port}`, {
-        method: 'CONNECT',
-        headers: {
-          'Host': new URL(targetUrl).host,
-          'Proxy-Authorization': `Basic ${proxyAuth}`,
-        },
-      }).then(async () => {
-        // After CONNECT, make the actual request
-        return fetch(targetUrl, {
+      try {
+        // Make request to target through HTTP proxy
+        // HTTP proxies work by sending the full target URL in the request line
+        response = await fetch(targetUrl, {
           method: req.method,
-          headers: headers,
+          headers: {
+            ...Object.fromEntries(headers),
+            'Proxy-Authorization': `Basic ${proxyAuth}`,
+          },
           body: body,
         });
-      }).catch(async (error) => {
+        
+        console.log(`✓ Proxy request successful`);
+      } catch (error) {
         // Fallback to direct if proxy fails
-        console.warn(`⚠ Proxy failed: ${error.message}, using direct`);
-        return fetch(targetUrl, {
+        console.warn(`⚠ Proxy failed: ${error.message}, falling back to direct`);
+        response = await fetch(targetUrl, {
           method: req.method,
           headers: headers,
           body: body,
         });
-      });
+      }
     } else {
       // Direct connection (fallback if no proxies configured)
-      console.log(`↪ Forwarding direct to Supabase...`);
+      console.log(`↪ Forwarding direct to Supabase (no proxies configured)...`);
       
       response = await fetch(targetUrl, {
         method: req.method,

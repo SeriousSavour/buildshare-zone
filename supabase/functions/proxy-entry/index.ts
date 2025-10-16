@@ -86,42 +86,46 @@ serve(async (req) => {
       }
     }
     
-    // For now, skip the entry-level proxy and go direct to proxy-supabase
-    // (Browser-level proxy requires browser extension or system settings)
+    // Forward to proxy-supabase function (which handles the DECODO proxy)
     console.log(`↪ [ENTRY] Forwarding to proxy-supabase...`);
     
-    const response = await fetch(proxyUrl, {
-      method: req.method,
-      headers: headers,
-      body: body,
-    });
-    
-    const duration = Date.now() - startTime;
-    console.log(`✓ [ENTRY] ${response.status} (${duration}ms)`);
-    
-    // Build response headers with CORS
-    const responseHeaders = new Headers(corsHeaders);
-    
-    // Copy important headers
-    const headersToKeep = [
-      'content-type',
-      'content-range',
-      'x-supabase-api-version',
-      'sb-gateway-version',
-    ];
-    
-    headersToKeep.forEach(header => {
-      const value = response.headers.get(header);
-      if (value) {
-        responseHeaders.set(header, value);
-      }
-    });
-    
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: responseHeaders,
-    });
+    try {
+      const response = await fetch(proxyUrl, {
+        method: req.method,
+        headers: headers,
+        body: body,
+      });
+      
+      const duration = Date.now() - startTime;
+      console.log(`✓ [ENTRY] ${response.status} (${duration}ms)`);
+      
+      // Build response headers with CORS
+      const responseHeaders = new Headers(corsHeaders);
+      
+      // Copy important headers
+      const headersToKeep = [
+        'content-type',
+        'content-range',
+        'x-supabase-api-version',
+        'sb-gateway-version',
+      ];
+      
+      headersToKeep.forEach(header => {
+        const value = response.headers.get(header);
+        if (value) {
+          responseHeaders.set(header, value);
+        }
+      });
+      
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      });
+    } catch (error) {
+      console.error(`✗ [ENTRY] Error forwarding:`, error.message);
+      throw error;
+    }
     
   } catch (error) {
     console.error('✗ [ENTRY] Fatal error:', error.message);
