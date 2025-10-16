@@ -217,65 +217,61 @@ const GameDetail = () => {
   const handleFullscreen = () => {
     if (!game?.game_url) return;
 
-    const fullscreenHTML = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${game.title}</title>
-          <link rel="icon" href="${game.image_url || '/favicon.ico'}" type="image/png">
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              background: #0a0a0a; 
-              font-family: system-ui, -apple-system, sans-serif;
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              padding: 1rem 2rem;
-              color: white;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            }
-            .header h1 { font-size: 1.5rem; font-weight: 700; }
-            .header button {
-              background: rgba(255,255,255,0.2);
-              border: 1px solid rgba(255,255,255,0.3);
-              color: white;
-              padding: 0.5rem 1rem;
-              border-radius: 0.5rem;
-              cursor: pointer;
-              font-size: 0.9rem;
-              transition: all 0.2s;
-            }
-            .header button:hover {
-              background: rgba(255,255,255,0.3);
-            }
-            iframe {
-              width: 100%;
-              height: calc(100vh - 72px);
-              border: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>🎮 ${game.title}</h1>
-            <button onclick="window.close()">✕ Close</button>
-          </div>
-          <iframe src="${game.game_url}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </body>
-      </html>
-    `;
-
-    const blob = new Blob([fullscreenHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    
-    // Clean up the blob URL after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    const newTab = window.open('about:blank', '_blank');
+    if (newTab) {
+      newTab.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title></title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { 
+                background: #0a0a0a; 
+                font-family: system-ui, -apple-system, sans-serif;
+                overflow: hidden;
+              }
+              .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 1rem 2rem;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+              }
+              .header h1 { font-size: 1.5rem; font-weight: 700; }
+              .header button {
+                background: rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+              }
+              .header button:hover {
+                background: rgba(255,255,255,0.3);
+              }
+              iframe {
+                width: 100%;
+                height: calc(100vh - 72px);
+                border: none;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>🎮 ${game.title}</h1>
+              <button onclick="window.close()">✕ Close</button>
+            </div>
+            <iframe src="${game.game_url}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </body>
+        </html>
+      `);
+      newTab.document.close();
+    }
   };
 
   const fetchComments = async () => {
