@@ -3,9 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Heart, Share2, User, Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Heart, Share2, User, Play, ChevronLeft, ChevronRight, Maximize2, Send } from "lucide-react";
 
 interface Game {
   id: string;
@@ -20,6 +21,17 @@ interface Game {
   game_url: string | null;
 }
 
+interface Comment {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: {
+    username: string;
+    avatar_url: string | null;
+  };
+}
+
 const GameDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -28,12 +40,18 @@ const GameDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [iframeSize, setIframeSize] = useState({ width: 900, height: 600 });
-  const resizingRef = useRef<string | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState<string | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchGame();
       checkIfLiked();
+      fetchComments();
+      subscribeToComments();
     }
   }, [id]);
 
@@ -89,31 +107,37 @@ const GameDetail = () => {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!resizingRef.current) return;
+      if (!isResizing || !resizeDirection) return;
       
-      const direction = resizingRef.current;
-      
-      if (direction.includes('right')) {
-        setIframeSize(prev => ({ ...prev, width: Math.max(400, prev.width + e.movementX) }));
-      }
-      if (direction.includes('left')) {
-        setIframeSize(prev => ({ ...prev, width: Math.max(400, prev.width - e.movementX) }));
-      }
-      if (direction.includes('bottom')) {
-        setIframeSize(prev => ({ ...prev, height: Math.max(300, prev.height + e.movementY) }));
-      }
-      if (direction.includes('top')) {
-        setIframeSize(prev => ({ ...prev, height: Math.max(300, prev.height - e.movementY) }));
-      }
+      setIframeSize(prev => {
+        let newWidth = prev.width;
+        let newHeight = prev.height;
+
+        if (resizeDirection.includes('right')) {
+          newWidth = Math.max(400, prev.width + e.movementX);
+        }
+        if (resizeDirection.includes('left')) {
+          newWidth = Math.max(400, prev.width - e.movementX);
+        }
+        if (resizeDirection.includes('bottom')) {
+          newHeight = Math.max(300, prev.height + e.movementY);
+        }
+        if (resizeDirection.includes('top')) {
+          newHeight = Math.max(300, prev.height - e.movementY);
+        }
+
+        return { width: newWidth, height: newHeight };
+      });
     };
 
     const handleMouseUp = () => {
-      resizingRef.current = null;
+      setIsResizing(false);
+      setResizeDirection(null);
       document.body.style.cursor = 'default';
       document.body.style.userSelect = 'auto';
     };
 
-    if (resizingRef.current) {
+    if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       document.body.style.userSelect = 'none';
@@ -123,13 +147,25 @@ const GameDetail = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizingRef.current]);
+  }, [isResizing, resizeDirection]);
 
-  const handleResizeStart = (direction: string) => {
-    resizingRef.current = direction;
-    document.body.style.cursor = direction.includes('right') || direction.includes('left') ? 'ew-resize' : 'ns-resize';
-    if (direction === 'top-left' || direction === 'bottom-right') document.body.style.cursor = 'nwse-resize';
-    if (direction === 'top-right' || direction === 'bottom-left') document.body.style.cursor = 'nesw-resize';
+  const handleResizeStart = (direction: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    setResizeDirection(direction);
+    
+    if (direction.includes('right') || direction.includes('left')) {
+      document.body.style.cursor = 'ew-resize';
+    } else if (direction.includes('top') || direction.includes('bottom')) {
+      document.body.style.cursor = 'ns-resize';
+    }
+    
+    if (direction === 'top-left' || direction === 'bottom-right') {
+      document.body.style.cursor = 'nwse-resize';
+    }
+    if (direction === 'top-right' || direction === 'bottom-left') {
+      document.body.style.cursor = 'nesw-resize';
+    }
   };
 
   const incrementPlayCount = async () => {
@@ -178,6 +214,149 @@ const GameDetail = () => {
     toast.success("Link copied to clipboard!");
   };
 
+  const handleFullscreen = () => {
+    if (!game?.game_url) return;
+
+    const fullscreenWindow = window.open('', '_blank', 'width=1200,height=800');
+    if (fullscreenWindow) {
+      fullscreenWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${game.title}</title>
+            <link rel="icon" href="${game.image_url || '/favicon.ico'}" type="image/png">
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { 
+                background: #0a0a0a; 
+                font-family: system-ui, -apple-system, sans-serif;
+                overflow: hidden;
+              }
+              .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 1rem 2rem;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+              }
+              .header h1 { font-size: 1.5rem; font-weight: 700; }
+              .header button {
+                background: rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+              }
+              .header button:hover {
+                background: rgba(255,255,255,0.3);
+              }
+              iframe {
+                width: 100%;
+                height: calc(100vh - 72px);
+                border: none;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>🎮 ${game.title}</h1>
+              <button onclick="window.close()">✕ Close</button>
+            </div>
+            <iframe src="${game.game_url}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </body>
+        </html>
+      `);
+      fullscreenWindow.document.close();
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('game_comments')
+        .select(`
+          id,
+          user_id,
+          content,
+          created_at,
+          profiles!game_comments_user_id_fkey (username, avatar_url)
+        `)
+        .eq('game_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedComments = (data || []).map((comment: any) => ({
+        id: comment.id,
+        user_id: comment.user_id,
+        content: comment.content,
+        created_at: comment.created_at,
+        profiles: Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles
+      }));
+      
+      setComments(formattedComments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  const subscribeToComments = () => {
+    const channel = supabase
+      .channel('game-comments')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'game_comments',
+          filter: `game_id=eq.${id}`
+        },
+        () => {
+          fetchComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) return;
+
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) {
+      toast.error("Please login to comment");
+      navigate('/login');
+      return;
+    }
+
+    setSubmittingComment(true);
+    try {
+      const { error } = await supabase.rpc('insert_game_comment', {
+        _session_token: sessionToken,
+        _game_id: id,
+        _content: newComment.trim()
+      });
+
+      if (error) throw error;
+
+      setNewComment("");
+      toast.success("Comment posted!");
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      toast.error("Failed to post comment");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -218,26 +397,38 @@ const GameDetail = () => {
           </Button>
         </div>
 
-        {/* Header with Toggle Sidebar Button */}
+        {/* Header with Buttons */}
         <div className="w-full max-w-7xl mb-4 flex items-center justify-between">
           <h1 className="text-3xl font-bold">{game.title}</h1>
-          <Button
-            onClick={() => setShowSidebar(!showSidebar)}
-            size="lg"
-            className="gap-2 bg-primary hover:bg-primary/90 text-lg px-6 py-6 shadow-lg"
-          >
-            {showSidebar ? (
-              <>
-                <ChevronRight className="w-5 h-5" />
-                Hide Info
-              </>
-            ) : (
-              <>
-                <ChevronLeft className="w-5 h-5" />
-                Show Info
-              </>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleFullscreen}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              disabled={!game.game_url}
+            >
+              <Maximize2 className="w-5 h-5" />
+              Fullscreen
+            </Button>
+            <Button
+              onClick={() => setShowSidebar(!showSidebar)}
+              size="lg"
+              className="gap-2 bg-primary hover:bg-primary/90 text-lg px-6 py-6 shadow-lg"
+            >
+              {showSidebar ? (
+                <>
+                  <ChevronRight className="w-5 h-5" />
+                  Hide Info
+                </>
+              ) : (
+                <>
+                  <ChevronLeft className="w-5 h-5" />
+                  Show Info
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-8 w-full max-w-7xl">
@@ -245,40 +436,40 @@ const GameDetail = () => {
           <div className="flex-1 flex justify-center items-start">
             {game.game_url ? (
               <div className="relative inline-block">
-                {/* Resize Handles */}
+                {/* Edge Resize Handles */}
                 <div
                   className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                  onMouseDown={() => handleResizeStart('left')}
+                  onMouseDown={handleResizeStart('left')}
                 />
                 <div
                   className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                  onMouseDown={() => handleResizeStart('right')}
+                  onMouseDown={handleResizeStart('right')}
                 />
                 <div
                   className="absolute left-0 right-0 -top-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
-                  onMouseDown={() => handleResizeStart('top')}
+                  onMouseDown={handleResizeStart('top')}
                 />
                 <div
                   className="absolute left-0 right-0 -bottom-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
-                  onMouseDown={() => handleResizeStart('bottom')}
+                  onMouseDown={handleResizeStart('bottom')}
                 />
                 
                 {/* Corner Handles */}
                 <div
-                  className="absolute -left-1 -top-1 w-3 h-3 cursor-nwse-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
-                  onMouseDown={() => handleResizeStart('top-left')}
+                  className="absolute -left-1 -top-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                  onMouseDown={handleResizeStart('top-left')}
                 />
                 <div
-                  className="absolute -right-1 -top-1 w-3 h-3 cursor-nesw-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
-                  onMouseDown={() => handleResizeStart('top-right')}
+                  className="absolute -right-1 -top-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                  onMouseDown={handleResizeStart('top-right')}
                 />
                 <div
-                  className="absolute -left-1 -bottom-1 w-3 h-3 cursor-nesw-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
-                  onMouseDown={() => handleResizeStart('bottom-left')}
+                  className="absolute -left-1 -bottom-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                  onMouseDown={handleResizeStart('bottom-left')}
                 />
                 <div
-                  className="absolute -right-1 -bottom-1 w-3 h-3 cursor-nwse-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
-                  onMouseDown={() => handleResizeStart('bottom-right')}
+                  className="absolute -right-1 -bottom-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                  onMouseDown={handleResizeStart('bottom-right')}
                 />
 
                 <iframe
@@ -371,6 +562,56 @@ const GameDetail = () => {
                       <Play className="w-4 h-4" />
                       {game.plays}
                     </span>
+                  </div>
+                </div>
+
+                {/* Comments Section */}
+                <div className="pt-6 border-t border-border">
+                  <h3 className="font-semibold mb-4">Comments ({comments.length})</h3>
+                  
+                  {/* Comment Input */}
+                  <div className="mb-4 space-y-2">
+                    <Textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="resize-none"
+                      rows={3}
+                    />
+                    <Button
+                      onClick={handleSubmitComment}
+                      disabled={!newComment.trim() || submittingComment}
+                      className="w-full gap-2"
+                    >
+                      <Send className="w-4 h-4" />
+                      {submittingComment ? 'Posting...' : 'Post Comment'}
+                    </Button>
+                  </div>
+
+                  {/* Comments List */}
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {comments.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No comments yet. Be the first to comment!
+                      </p>
+                    ) : (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="p-3 rounded-lg bg-muted/50">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                              <User className="w-3 h-3 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium">
+                              {comment.profiles?.username || 'Anonymous'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm">{comment.content}</p>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </CardContent>
