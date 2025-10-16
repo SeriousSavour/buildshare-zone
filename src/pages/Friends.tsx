@@ -12,11 +12,16 @@ interface Friend {
   user_id: string;
   friend_id: string;
   status: string;
+  user_profile: {
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
   friend_profile: {
     username: string;
     display_name: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 const Friends = () => {
@@ -201,42 +206,47 @@ const Friends = () => {
               <CardDescription>Accept or reject friend requests</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {pendingRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-primary" />
+              {pendingRequests.map((request) => {
+                const profile = request.user_profile || request.friend_profile;
+                if (!profile) return null;
+                
+                return (
+                  <div
+                    key={request.id}
+                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{profile.username}</p>
+                        <p className="text-sm text-muted-foreground">Friend request</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{request.friend_profile.username}</p>
-                      <p className="text-sm text-muted-foreground">Friend request</p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => acceptFriendRequest(request.id)}
+                        className="gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        Accept
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => rejectFriendRequest(request.id)}
+                        className="gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Reject
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => acceptFriendRequest(request.id)}
-                      className="gap-2"
-                    >
-                      <Check className="w-4 h-4" />
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => rejectFriendRequest(request.id)}
-                      className="gap-2"
-                    >
-                      <X className="w-4 h-4" />
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         )}
@@ -258,32 +268,37 @@ const Friends = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {acceptedFriends.map((friend) => (
-                  <div
-                    key={friend.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{friend.friend_profile.username}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {friend.friend_profile.display_name || "Gamer"}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="gap-2 text-muted-foreground hover:text-destructive"
+                {acceptedFriends.map((friend) => {
+                  const profile = friend.user_profile || friend.friend_profile;
+                  if (!profile) return null;
+                  
+                  return (
+                    <div
+                      key={friend.id}
+                      className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                     >
-                      <UserMinus className="w-4 h-4" />
-                      Remove
-                    </Button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{profile.username}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {profile.display_name || "Gamer"}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-2 text-muted-foreground hover:text-destructive"
+                      >
+                        <UserMinus className="w-4 h-4" />
+                        Remove
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>
