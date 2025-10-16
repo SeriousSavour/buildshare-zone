@@ -92,21 +92,24 @@ const GameCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-card border-border glow-purple">
+    <Card className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 bg-card border-border hover:-translate-y-2 hover:border-primary/50">
       <CardHeader className="p-0">
         <div className="relative aspect-video overflow-hidden bg-muted">
           {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
+            <>
+              <img
+                src={imageUrl}
+                alt={title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
-              <Play className="w-16 h-16 text-muted-foreground" />
+              <Play className="w-16 h-16 text-muted-foreground animate-pulse" />
             </div>
           )}
-          <div className="absolute top-3 right-3 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">
+          <div className="absolute top-3 right-3 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm shadow-lg">
             {genre}
           </div>
         </div>
