@@ -51,7 +51,10 @@ const GameDetail = () => {
       fetchGame();
       checkIfLiked();
       fetchComments();
-      subscribeToComments();
+      
+      // Set up realtime subscription
+      const cleanup = subscribeToComments();
+      return cleanup;
     }
   }, [id]);
 
@@ -283,24 +286,40 @@ const GameDetail = () => {
           user_id,
           content,
           created_at,
-          profiles!game_comments_user_id_fkey (username, avatar_url)
+          is_deleted
         `)
         .eq('game_id', id)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching comments:', error);
+        throw error;
+      }
+
+      console.log('Fetched comments:', data);
       
-      const formattedComments = (data || []).map((comment: any) => ({
-        id: comment.id,
-        user_id: comment.user_id,
-        content: comment.content,
-        created_at: comment.created_at,
-        profiles: Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles
-      }));
+      // Fetch user profiles separately for each comment
+      const commentsWithProfiles = await Promise.all(
+        (data || []).map(async (comment) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('user_id', comment.user_id)
+            .single();
+
+          return {
+            ...comment,
+            profiles: profile || { username: 'Unknown User', avatar_url: null }
+          };
+        })
+      );
       
-      setComments(formattedComments);
+      console.log('Comments with profiles:', commentsWithProfiles);
+      setComments(commentsWithProfiles);
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.error('Error in fetchComments:', error);
+      toast.error("Failed to load comments");
     }
   };
 
