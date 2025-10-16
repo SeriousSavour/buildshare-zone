@@ -14,6 +14,32 @@ const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60000;
 const RATE_LIMIT_MAX = 200;
 
+// Parse proxy list from environment
+interface ProxyServer {
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+}
+
+let proxyList: ProxyServer[] = [];
+const proxyListEnv = Deno.env.get('DECODO_PROXY_LIST');
+if (proxyListEnv) {
+  proxyList = proxyListEnv.split('\n').filter(line => line.trim()).map(line => {
+    const [host, port, username, password] = line.split(':');
+    return { host, port, username, password };
+  });
+  console.log(`✓ Loaded ${proxyList.length} proxy servers`);
+} else {
+  console.warn('⚠ DECODO_PROXY_LIST not configured - direct connection will be used');
+}
+
+// Get random proxy from list
+function getRandomProxy(): ProxyServer | null {
+  if (proxyList.length === 0) return null;
+  return proxyList[Math.floor(Math.random() * proxyList.length)];
+}
+
 serve(async (req) => {
   const startTime = Date.now();
   
@@ -75,14 +101,38 @@ serve(async (req) => {
       }
     }
     
-    // Make the proxied request
-    console.log(`↪ Forwarding to Supabase...`);
+    // Get a random proxy server
+    const proxy = getRandomProxy();
     
-    const response = await fetch(targetUrl, {
-      method: req.method,
-      headers: headers,
-      body: body,
-    });
+    let response: Response;
+    
+    if (proxy) {
+      // Route through proxy server with authentication
+      console.log(`↪ Forwarding via proxy ${proxy.host}:${proxy.port}...`);
+      
+      const proxyUrl = `http://${proxy.host}:${proxy.port}`;
+      const proxyAuth = btoa(`${proxy.username}:${proxy.password}`);
+      
+      response = await fetch(targetUrl, {
+        method: req.method,
+        headers: {
+          ...Object.fromEntries(headers),
+          'Proxy-Authorization': `Basic ${proxyAuth}`,
+        },
+        body: body,
+        // @ts-ignore - Deno supports proxy option
+        proxy: proxyUrl,
+      });
+    } else {
+      // Direct connection (fallback if no proxies configured)
+      console.log(`↪ Forwarding direct to Supabase...`);
+      
+      response = await fetch(targetUrl, {
+        method: req.method,
+        headers: headers,
+        body: body,
+      });
+    }
     
     const duration = Date.now() - startTime;
     console.log(`✓ ${response.status} ${response.statusText} (${duration}ms)`);
