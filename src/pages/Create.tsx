@@ -21,11 +21,50 @@ const Create = () => {
     max_players: "1-4 players",
     category: "game"
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [gameFile, setGameFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const genres = [
     "Action", "Adventure", "Puzzle", "Strategy", 
     "Simulation", "Survival", "Horror", "RPG"
   ];
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Image size must be less than 10MB");
+        return;
+      }
+      setImageFile(file);
+    }
+  };
+
+  const handleGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error("Game file size must be less than 100MB");
+        return;
+      }
+      setGameFile(file);
+    }
+  };
+
+  const uploadFile = async (file: File, bucket: string, path: string): Promise<string> => {
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(path);
+
+    return publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,20 +77,46 @@ const Create = () => {
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
+
     try {
+      let imageUrl = formData.image_url;
+      let gameUrl = formData.game_url;
+
+      // Upload image if selected
+      if (imageFile) {
+        setUploadProgress(25);
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        imageUrl = await uploadFile(imageFile, 'game-images', fileName);
+        setUploadProgress(50);
+      }
+
+      // Upload game file if selected
+      if (gameFile) {
+        setUploadProgress(60);
+        const fileExt = gameFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        gameUrl = await uploadFile(gameFile, 'game-files', fileName);
+        setUploadProgress(80);
+      }
+
+      setUploadProgress(90);
+
       const { data, error } = await supabase.rpc('create_game_with_context', {
         _session_token: sessionToken,
         _title: formData.title,
         _description: formData.description,
         _genre: formData.genre,
         _max_players: formData.max_players,
-        _game_url: formData.game_url,
-        _image_url: formData.image_url,
+        _game_url: gameUrl,
+        _image_url: imageUrl,
         _category: formData.category
       });
 
       if (error) throw error;
 
+      setUploadProgress(100);
       toast.success("Game created successfully!");
       navigate('/games');
     } catch (error) {
@@ -59,6 +124,7 @@ const Create = () => {
       toast.error("Failed to create game");
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -140,16 +206,62 @@ const Create = () => {
 
               <div className="space-y-2">
                 <label htmlFor="image_url" className="text-sm font-medium">
-                  Image URL
+                  Game Image
                 </label>
-                <Input
-                  id="image_url"
-                  type="url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  placeholder="https://example.com/image.jpg"
-                  className="bg-muted/50"
-                />
+                <div className="space-y-3">
+                  <Input
+                    id="image_url"
+                    type="url"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                    placeholder="https://example.com/image.jpg"
+                    className="bg-muted/50"
+                  />
+                  <div className="relative">
+                    <input
+                      id="image-file"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="image-file"
+                      className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/30"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span className="text-sm">
+                        {imageFile ? imageFile.name : "Or upload an image"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="game_file" className="text-sm font-medium">
+                  Game File (Optional)
+                </label>
+                <div className="relative">
+                  <input
+                    id="game_file"
+                    type="file"
+                    onChange={handleGameFileChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="game_file"
+                    className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/30"
+                  >
+                    <Upload className="w-5 h-5" />
+                    <span className="text-sm">
+                      {gameFile ? gameFile.name : "Upload game file (HTML, ZIP, etc.)"}
+                    </span>
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Max 100MB. Supports HTML, ZIP, and other game files.
+                  </p>
+                </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -183,6 +295,20 @@ const Create = () => {
                   />
                 </div>
               </div>
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="space-y-2">
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Uploading... {uploadProgress}%
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-4">
                 <Button

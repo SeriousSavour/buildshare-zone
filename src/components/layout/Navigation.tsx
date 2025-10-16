@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -73,6 +73,14 @@ const Navigation = () => {
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/profile")}
+                  title="Profile"
+                >
+                  <User className="w-5 h-5" />
+                </Button>
                 <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/create")}>
                   <Plus className="w-4 h-4" />
                   Create

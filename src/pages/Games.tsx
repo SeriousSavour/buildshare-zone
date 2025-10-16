@@ -5,7 +5,7 @@ import GameCard from "@/components/games/GameCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Grid3x3, List } from "lucide-react";
+import { Search, Filter, Grid3x3, List, Play } from "lucide-react";
 import { toast } from "sonner";
 
 interface Game {
@@ -16,10 +16,13 @@ interface Game {
   genre: string;
   max_players: string;
   creator_name: string;
+  creator_id: string;
   likes: number;
   plays: number;
   game_url: string | null;
   category: string;
+  created_at: string;
+  creator_avatar?: string | null;
 }
 
 const Games = () => {
@@ -30,16 +33,20 @@ const Games = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [cardSize, setCardSize] = useState<"small" | "medium" | "large">("medium");
+  const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("newest");
   const [likedGames, setLikedGames] = useState<Set<string>>(new Set());
+  const [popularGames, setPopularGames] = useState<Game[]>([]);
 
   useEffect(() => {
     fetchGames();
     fetchLikedGames();
+    fetchPopularGames();
   }, []);
 
   useEffect(() => {
-    filterGames();
-  }, [games, searchQuery, selectedGenre]);
+    filterAndSortGames();
+  }, [games, searchQuery, selectedGenre, sortBy]);
 
   const fetchGames = async () => {
     try {
@@ -51,13 +58,65 @@ const Games = () => {
 
       if (error) throw error;
 
-      setGames(data || []);
-      setFilteredGames(data || []);
+      // Fetch creator profiles
+      if (data && data.length > 0) {
+        const creatorIds = [...new Set(data.map(g => g.creator_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, avatar_url')
+          .in('user_id', creatorIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.avatar_url]) || []);
+        
+        const gamesWithAvatars = data.map(game => ({
+          ...game,
+          creator_avatar: profileMap.get(game.creator_id)
+        }));
+
+        setGames(gamesWithAvatars);
+        setFilteredGames(gamesWithAvatars);
+      } else {
+        setGames([]);
+        setFilteredGames([]);
+      }
     } catch (error) {
       console.error('Error fetching games:', error);
       toast.error("Failed to load games");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPopularGames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('games')
+        .select('*')
+        .eq('category', 'game')
+        .order('plays', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+
+      // Fetch creator profiles for popular games
+      if (data && data.length > 0) {
+        const creatorIds = [...new Set(data.map(g => g.creator_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, avatar_url')
+          .in('user_id', creatorIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.avatar_url]) || []);
+        
+        const gamesWithAvatars = data.map(game => ({
+          ...game,
+          creator_avatar: profileMap.get(game.creator_id)
+        }));
+
+        setPopularGames(gamesWithAvatars);
+      }
+    } catch (error) {
+      console.error('Error fetching popular games:', error);
     }
   };
 
@@ -87,7 +146,7 @@ const Games = () => {
     }
   };
 
-  const filterGames = () => {
+  const filterAndSortGames = () => {
     let filtered = [...games];
 
     // Filter by search query
@@ -104,10 +163,35 @@ const Games = () => {
       filtered = filtered.filter(game => game.genre === selectedGenre);
     }
 
+    // Sort games
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "popular":
+          return b.plays - a.plays;
+        case "likes":
+          return b.likes - a.likes;
+        case "newest":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
     setFilteredGames(filtered);
   };
 
   const genres = Array.from(new Set(games.map(game => game.genre)));
+
+  const getGridCols = () => {
+    switch (cardSize) {
+      case "small":
+        return "grid-cols-1 md:grid-cols-3 lg:grid-cols-4";
+      case "large":
+        return "grid-cols-1 md:grid-cols-2";
+      case "medium":
+      default:
+        return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+    }
+  };
 
   if (loading) {
     return (
@@ -154,7 +238,7 @@ const Games = () => {
       
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
-        <div className="mb-12 space-y-4 animate-fade-in">
+        <div className="mb-8 space-y-4 animate-fade-in">
           <h1 className="text-5xl font-bold tracking-tight">
             Game <span className="text-primary">Library</span>
           </h1>
@@ -163,8 +247,46 @@ const Games = () => {
           </p>
         </div>
 
+        {/* Popular Games Banner */}
+        {popularGames.length > 0 && (
+          <div className="mb-12 animate-fade-in-delay-1">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="text-2xl">🔥</span>
+              Popular Games
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {popularGames.map((game) => (
+                <div
+                  key={game.id}
+                  onClick={() => navigate(`/games/${game.id}`)}
+                  className="group cursor-pointer relative overflow-hidden rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1"
+                >
+                  <div className="aspect-square relative overflow-hidden">
+                    {game.image_url ? (
+                      <img
+                        src={game.image_url}
+                        alt={game.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <Play className="w-12 h-12 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <p className="font-bold text-white text-sm line-clamp-2">{game.title}</p>
+                      <p className="text-xs text-white/80">{game.plays} plays</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
-        <div className="mb-8 space-y-4 animate-fade-in-delay-1">
+        <div className="mb-8 space-y-4 animate-fade-in-delay-2">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
@@ -195,6 +317,50 @@ const Games = () => {
               <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
 
+            {/* Sort */}
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="w-full md:w-40 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer"
+              >
+                <option value="newest">Newest</option>
+                <option value="popular">Most Played</option>
+                <option value="likes">Most Liked</option>
+              </select>
+            </div>
+
+            {/* Card Size */}
+            <div className="flex gap-2">
+              <Button
+                variant={cardSize === "small" ? "default" : "outline"}
+                size="lg"
+                onClick={() => setCardSize("small")}
+                className="h-12"
+                title="Small cards"
+              >
+                S
+              </Button>
+              <Button
+                variant={cardSize === "medium" ? "default" : "outline"}
+                size="lg"
+                onClick={() => setCardSize("medium")}
+                className="h-12"
+                title="Medium cards"
+              >
+                M
+              </Button>
+              <Button
+                variant={cardSize === "large" ? "default" : "outline"}
+                size="lg"
+                onClick={() => setCardSize("large")}
+                className="h-12"
+                title="Large cards"
+              >
+                L
+              </Button>
+            </div>
+
             {/* View Mode Toggle */}
             <div className="flex gap-2">
               <Button
@@ -219,6 +385,7 @@ const Games = () => {
           {/* Results count */}
           <p className="text-sm text-muted-foreground">
             Showing {filteredGames.length} of {games.length} games
+            {sortBy !== "newest" && ` • Sorted by ${sortBy === "popular" ? "most played" : "most liked"}`}
           </p>
         </div>
 
@@ -232,9 +399,9 @@ const Games = () => {
           </div>
         ) : (
           <div
-            className={`grid gap-8 animate-fade-in-delay-2 ${
+            className={`grid gap-8 animate-fade-in-delay-3 ${
               viewMode === "grid"
-                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                ? getGridCols()
                 : "grid-cols-1"
             }`}
           >
@@ -247,6 +414,7 @@ const Games = () => {
                 genre={game.genre}
                 maxPlayers={game.max_players}
                 creatorName={game.creator_name}
+                creatorAvatar={game.creator_avatar}
                 likes={game.likes}
                 plays={game.plays}
                 gameUrl={game.game_url}
