@@ -77,27 +77,24 @@ const GameDetail = () => {
     }
   };
 
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const handlePlay = async () => {
-    if (!game?.game_url) {
-      toast.error("Game URL not available");
-      return;
+  useEffect(() => {
+    // Increment play count when game loads
+    if (game?.id) {
+      incrementPlayCount();
     }
+  }, [game?.id]);
 
-    // Increment play count
+  const incrementPlayCount = async () => {
     try {
       await supabase
         .from('games')
-        .update({ plays: game.plays + 1 })
+        .update({ plays: (game?.plays || 0) + 1 })
         .eq('id', id);
       
       setGame(prev => prev ? { ...prev, plays: prev.plays + 1 } : null);
     } catch (error) {
       console.error('Error updating play count:', error);
     }
-
-    setIsPlaying(true);
   };
 
   const handleLike = async () => {
@@ -172,17 +169,24 @@ const GameDetail = () => {
         </Button>
 
         {/* Game Player Section */}
-        {isPlaying && game.game_url ? (
+        {game.game_url ? (
           <div className="mb-8 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Now Playing: {game.title}</h2>
-              <Button
-                variant="outline"
-                onClick={() => setIsPlaying(false)}
-                className="gap-2"
-              >
-                Close Game
-              </Button>
+              <h2 className="text-2xl font-bold">{game.title}</h2>
+              <div className="flex gap-2">
+                <Button
+                  variant={isLiked ? "default" : "outline"}
+                  onClick={handleLike}
+                >
+                  <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleShare}
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             <div className="relative">
               <iframe
@@ -203,53 +207,25 @@ const GameDetail = () => {
               </div>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="mb-8 p-8 border-2 border-dashed border-border rounded-lg text-center">
+            <Play className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-lg text-muted-foreground">No game URL available</p>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Game Preview */}
           <div className="space-y-6">
-            <Card className="overflow-hidden">
-              {game.image_url ? (
+            {game.image_url && (
+              <Card className="overflow-hidden">
                 <img
                   src={game.image_url}
                   alt={game.title}
                   className="w-full aspect-video object-cover"
                 />
-              ) : (
-                <div className="w-full aspect-video bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <Play className="w-24 h-24 text-muted-foreground" />
-                </div>
-              )}
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button
-                onClick={handlePlay}
-                className="flex-1 gap-2 h-14 text-lg"
-                size="lg"
-                disabled={!game.game_url}
-              >
-                <Play className="w-5 h-5" />
-                {isPlaying ? 'Playing' : 'Play Now'}
-              </Button>
-              <Button
-                variant={isLiked ? "default" : "outline"}
-                size="lg"
-                className="h-14"
-                onClick={handleLike}
-              >
-                <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleShare}
-                size="lg"
-                className="h-14"
-              >
-                <Share2 className="w-5 h-5" />
-              </Button>
-            </div>
+              </Card>
+            )}
           </div>
 
           {/* Game Info */}
