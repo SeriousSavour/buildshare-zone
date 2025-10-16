@@ -1143,6 +1143,18 @@ export type Database = {
           username: string
         }[]
       }
+      get_profile_by_session: {
+        Args: { _session_token: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_room_members: {
         Args: { room_id: string }
         Returns: {

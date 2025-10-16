@@ -85,24 +85,21 @@ const Profile = () => {
         return;
       }
 
-      const userId = userData[0].user_id;
-
-      // Fetch profile (should always exist due to automatic creation on signup)
-      const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Fetch profile using RPC function
+      const { data: profileData, error: fetchError } = await supabase.rpc('get_profile_by_session', {
+        _session_token: sessionToken
+      });
 
       if (fetchError) {
         throw fetchError;
       }
 
-      if (!profile) {
+      if (!profileData || profileData.length === 0) {
         toast.error("Profile not found. Please contact support.");
         return;
       }
 
+      const profile = profileData[0];
       setProfile(profile);
       setDisplayName(profile.display_name || "");
     } catch (error: any) {
