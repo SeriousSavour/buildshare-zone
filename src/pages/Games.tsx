@@ -5,7 +5,7 @@ import GameCard from "@/components/games/GameCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Grid3x3, List, Play } from "lucide-react";
+import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 interface Game {
@@ -35,18 +35,38 @@ const Games = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [cardSize, setCardSize] = useState<"small" | "medium" | "large">("medium");
   const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("newest");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "favorites" | "popular" | "new" | string>("all");
   const [likedGames, setLikedGames] = useState<Set<string>>(new Set());
   const [popularGames, setPopularGames] = useState<Game[]>([]);
+  const [featuredGame, setFeaturedGame] = useState<Game | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGames();
     fetchLikedGames();
     fetchPopularGames();
+    fetchCurrentUser();
   }, []);
 
   useEffect(() => {
     filterAndSortGames();
-  }, [games, searchQuery, selectedGenre, sortBy]);
+  }, [games, searchQuery, selectedGenre, sortBy, categoryFilter, likedGames, currentUserId]);
+
+  const fetchCurrentUser = async () => {
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) return;
+
+    try {
+      const { data } = await supabase.rpc('get_user_by_session', {
+        _session_token: sessionToken
+      });
+      if (data && data.length > 0) {
+        setCurrentUserId(data[0].user_id);
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
 
   const fetchGames = async () => {
     try {
@@ -75,6 +95,10 @@ const Games = () => {
 
         setGames(gamesWithAvatars);
         setFilteredGames(gamesWithAvatars);
+        
+        // Set featured game (most played)
+        const featured = [...gamesWithAvatars].sort((a, b) => b.plays - a.plays)[0];
+        setFeaturedGame(featured || null);
       } else {
         setGames([]);
         setFilteredGames([]);
@@ -163,6 +187,23 @@ const Games = () => {
       filtered = filtered.filter(game => game.genre === selectedGenre);
     }
 
+    // Filter by category
+    switch (categoryFilter) {
+      case "favorites":
+        if (currentUserId) {
+          filtered = filtered.filter(game => likedGames.has(game.id));
+        }
+        break;
+      case "popular":
+        filtered = filtered.filter(game => game.plays > 20);
+        break;
+      case "new":
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        filtered = filtered.filter(game => new Date(game.created_at) > weekAgo);
+        break;
+    }
+
     // Sort games
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -238,54 +279,68 @@ const Games = () => {
       
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
-        <div className="mb-8 space-y-4 animate-fade-in">
+        <div className="mb-8 space-y-4 animate-fade-in text-center">
           <h1 className="text-5xl font-bold tracking-tight">
-            Game <span className="text-primary">Library</span>
+            Spooky <span className="text-primary">Games</span> 🎃 👻
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl">
-            Explore {games.length} amazing games created by our community
+          <p className="text-xl text-muted-foreground">
+            Discover spine-chilling games this October! 🎃✨
+          </p>
+          <p className="text-sm text-muted-foreground">
+            🦇 {games.length} haunted games waiting for you 🦇
           </p>
         </div>
 
-        {/* Popular Games Banner */}
-        {popularGames.length > 0 && (
+        {/* Featured Game Banner */}
+        {featuredGame && (
           <div className="mb-12 animate-fade-in-delay-1">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <span className="text-2xl">🔥</span>
-              Popular Games
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {popularGames.map((game) => (
-                <div
-                  key={game.id}
-                  onClick={() => navigate(`/games/${game.id}`)}
-                  className="group cursor-pointer relative overflow-hidden rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1"
-                >
-                  <div className="aspect-square relative overflow-hidden">
-                    {game.image_url ? (
-                      <img
-                        src={game.image_url}
-                        alt={game.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                        <Play className="w-12 h-12 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <p className="font-bold text-white text-sm line-clamp-2">{game.title}</p>
-                      <p className="text-xs text-white/80">{game.plays} plays</p>
-                    </div>
-                  </div>
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30">
+              <div className="absolute inset-0">
+                {featuredGame.image_url && (
+                  <img
+                    src={featuredGame.image_url}
+                    alt={featuredGame.title}
+                    className="w-full h-full object-cover opacity-30"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+              </div>
+              <div className="relative p-8 md:p-12">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="px-3 py-1 bg-primary/90 text-primary-foreground rounded-full text-xs font-medium">
+                    👑 Featured Game (2/5)
+                  </span>
                 </div>
-              ))}
+                <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                  {featuredGame.title}
+                </h2>
+                <p className="text-lg text-muted-foreground mb-6 max-w-2xl line-clamp-2">
+                  {featuredGame.description || "No description available"}
+                </p>
+                <div className="flex items-center gap-6 mb-6 text-sm">
+                  <span className="flex items-center gap-2">
+                    <Play className="w-4 h-4" />
+                    {featuredGame.plays} plays
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Heart className="w-4 h-4" />
+                    {featuredGame.likes} likes
+                  </span>
+                </div>
+                <Button
+                  size="lg"
+                  className="gap-2 glow-orange"
+                  onClick={() => navigate(`/games/${featuredGame.id}`)}
+                >
+                  <Play className="w-4 h-4" />
+                  Play Now! 🎮
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Filters */}
+        {/* Search and Filters */}
         <div className="mb-8 space-y-4 animate-fade-in-delay-2">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
@@ -293,99 +348,91 @@ const Games = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search games, creators..."
+                placeholder="Find your next favorite game... 🎮"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-12 bg-card border-border"
               />
             </div>
 
-            {/* Genre Filter */}
-            <div className="relative">
-              <select
-                value={selectedGenre}
-                onChange={(e) => setSelectedGenre(e.target.value)}
-                className="w-full md:w-48 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer"
-              >
-                <option value="all">All Genres</option>
-                {genres.map(genre => (
-                  <option key={genre} value={genre}>
-                    {genre}
-                  </option>
-                ))}
-              </select>
-              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            </div>
-
-            {/* Sort */}
+            {/* Sort Dropdown */}
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full md:w-40 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer"
+                className="w-full md:w-52 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer pr-10"
               >
-                <option value="newest">Newest</option>
-                <option value="popular">Most Played</option>
-                <option value="likes">Most Liked</option>
+                <option value="newest">📅 Sort: Newest</option>
+                <option value="popular">🔥 Sort: Most Popular</option>
+                <option value="likes">❤️ Sort: Most Liked</option>
               </select>
+              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
 
-            {/* Card Size */}
-            <div className="flex gap-2">
-              <Button
-                variant={cardSize === "small" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setCardSize("small")}
-                className="h-12"
-                title="Small cards"
+            {/* View Dropdown */}
+            <div className="relative">
+              <select
+                value={cardSize}
+                onChange={(e) => setCardSize(e.target.value as any)}
+                className="w-full md:w-44 h-12 px-4 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer pr-10"
               >
-                S
-              </Button>
-              <Button
-                variant={cardSize === "medium" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setCardSize("medium")}
-                className="h-12"
-                title="Medium cards"
-              >
-                M
-              </Button>
-              <Button
-                variant={cardSize === "large" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setCardSize("large")}
-                className="h-12"
-                title="Large cards"
-              >
-                L
-              </Button>
+                <option value="small">⬜ View: Compact</option>
+                <option value="medium">🟧 View: Comfy</option>
+                <option value="large">🟥 View: Spacious</option>
+              </select>
+              <Grid3x3 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
+          </div>
 
-            {/* View Mode Toggle */}
-            <div className="flex gap-2">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+            <Button
+              variant={categoryFilter === "all" ? "default" : "outline"}
+              onClick={() => setCategoryFilter("all")}
+              className="gap-2 whitespace-nowrap"
+            >
+              🎮 All Games
+            </Button>
+            <Button
+              variant={categoryFilter === "favorites" ? "default" : "outline"}
+              onClick={() => setCategoryFilter("favorites")}
+              className="gap-2 whitespace-nowrap"
+            >
+              ❤️ Favorites
+            </Button>
+            <Button
+              variant={categoryFilter === "popular" ? "default" : "outline"}
+              onClick={() => setCategoryFilter("popular")}
+              className="gap-2 whitespace-nowrap"
+            >
+              🔥 Popular
+            </Button>
+            <Button
+              variant={categoryFilter === "new" ? "default" : "outline"}
+              onClick={() => setCategoryFilter("new")}
+              className="gap-2 whitespace-nowrap"
+            >
+              ✨ New
+            </Button>
+            {genres.map(genre => (
               <Button
-                variant={viewMode === "grid" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setViewMode("grid")}
-                className="h-12"
+                key={genre}
+                variant={selectedGenre === genre ? "default" : "outline"}
+                onClick={() => {
+                  setSelectedGenre(genre);
+                  setCategoryFilter("all");
+                }}
+                className="whitespace-nowrap"
               >
-                <Grid3x3 className="w-4 h-4" />
+                {genre}
               </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="lg"
-                onClick={() => setViewMode("list")}
-                className="h-12"
-              >
-                <List className="w-4 h-4" />
-              </Button>
-            </div>
+            ))}
           </div>
 
           {/* Results count */}
           <p className="text-sm text-muted-foreground">
             Showing {filteredGames.length} of {games.length} games
-            {sortBy !== "newest" && ` • Sorted by ${sortBy === "popular" ? "most played" : "most liked"}`}
+            {categoryFilter !== "all" && ` in ${categoryFilter}`}
           </p>
         </div>
 
