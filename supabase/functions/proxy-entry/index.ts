@@ -9,24 +9,26 @@ const corsHeaders = {
 
 const PROXY_SUPABASE_URL = 'https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/proxy-supabase';
 
-// Parse proxy list from environment
+// BrightData proxy configuration
 interface ProxyServer {
   host: string;
-  port: string;
+  port: number;
   username: string;
   password: string;
 }
 
 let proxyList: ProxyServer[] = [];
-const proxyListEnv = Deno.env.get('DECODO_PROXY_LIST');
+const proxyListEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
 if (proxyListEnv) {
-  proxyList = proxyListEnv.split('\n').filter(line => line.trim()).map(line => {
-    const [host, port, username, password] = line.split(':');
-    return { host, port, username, password };
-  });
-  console.log(`✓ Entry proxy loaded ${proxyList.length} proxy servers`);
+  try {
+    // Parse JSON format: [{"host":"brd.superproxy.io","port":33335,"username":"brd-customer-hl_b2z2czbc-zone-flowtation","password":"c9yil9ln5cq4"}]
+    proxyList = JSON.parse(proxyListEnv);
+    console.log(`✓ BrightData loaded ${proxyList.length} proxy servers`);
+  } catch (e) {
+    console.error('✗ Failed to parse BRIGHTDATA_PROXY_LIST:', e);
+  }
 } else {
-  console.warn('⚠ DECODO_PROXY_LIST not configured - direct connection will be used');
+  console.warn('⚠ BRIGHTDATA_PROXY_LIST not configured - direct connection will be used');
 }
 
 // Get random proxy from list
@@ -86,7 +88,7 @@ serve(async (req) => {
       }
     }
     
-    // Forward to proxy-supabase function (which handles the DECODO proxy)
+    // Forward to proxy-supabase function (which handles the BrightData proxy)
     console.log(`↪ [ENTRY] Forwarding to proxy-supabase...`);
     
     try {
