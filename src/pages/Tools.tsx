@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface Tool {
 }
 
 const Tools = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,19 +45,8 @@ const Tools = () => {
     }
   };
 
-  const handleToolClick = async (tool: Tool) => {
-    try {
-      // Increment click count
-      await supabase
-        .from('tools')
-        .update({ clicks: tool.clicks + 1 })
-        .eq('id', tool.id);
-
-      window.open(tool.url, '_blank');
-    } catch (error) {
-      console.error('Error updating tool clicks:', error);
-      window.open(tool.url, '_blank');
-    }
+  const handleToolClick = (toolId: string) => {
+    navigate(`/tools/${toolId}`);
   };
 
   const filteredTools = tools.filter(tool =>
@@ -134,10 +125,10 @@ const Tools = () => {
                 <CardContent className="space-y-3">
                   <Button 
                     className="w-full gap-2"
-                    onClick={() => handleToolClick(tool)}
+                    onClick={() => handleToolClick(tool.id)}
                   >
                     <ExternalLink className="w-4 h-4" />
-                    Visit Website
+                    View Details
                   </Button>
                   <div className="text-xs text-muted-foreground text-center">
                     {tool.clicks} visits
