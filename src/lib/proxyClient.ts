@@ -8,47 +8,36 @@ const PROXY_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/proxy-supabase`;
 const proxyFetch: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
   
-  // Only proxy Supabase API calls (excluding storage and edge functions)
-  if (url.includes('supabase.co') && !url.includes('/storage/') && !url.includes('/functions/')) {
+  // Only proxy Supabase REST API calls (not storage or other edge functions)
+  if (url.includes('supabase.co') && !url.includes('/storage/') && !url.includes('/functions/v1/')) {
+    const targetUrl = new URL(url);
+    const targetPath = targetUrl.pathname + targetUrl.search;
+    
+    const proxyUrl = `${PROXY_FUNCTION_URL}?path=${encodeURIComponent(targetPath)}`;
+    
+    console.log(`[PROXY] ${init?.method || 'GET'} ${targetPath}`);
+    
     try {
-      const targetUrl = new URL(url);
-      const targetPath = targetUrl.pathname + targetUrl.search;
+      // Route through proxy edge function
+      const response = await fetch(proxyUrl, init);
       
-      const proxyUrl = `${PROXY_FUNCTION_URL}?path=${encodeURIComponent(targetPath)}`;
-      
-      console.log('[Proxy] Routing:', targetPath);
-      
-      // Make request with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-      
-      const response = await fetch(proxyUrl, {
-        ...init,
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok && response.status >= 500) {
-        throw new Error(`Proxy server error: ${response.status}`);
+      if (response.ok || response.status < 500) {
+        console.log(`[PROXY] ✓ ${response.status}`);
+        return response;
       }
       
-      console.log('[Proxy] Success:', response.status);
-      return response;
+      // Only fall back on 500+ errors
+      console.warn(`[PROXY] ✗ ${response.status}, falling back`);
+      return await fetch(input, init);
+      
     } catch (error) {
-      console.warn('[Proxy] Failed, using direct connection:', error.message);
-      
-      // Fallback to direct connection
-      try {
-        return await fetch(input, init);
-      } catch (directError) {
-        console.error('[Direct] Also failed:', directError);
-        throw directError;
-      }
+      console.error(`[PROXY] Failed:`, error);
+      // Last resort: direct connection
+      return await fetch(input, init);
     }
   }
   
-  // For non-Supabase requests or storage/functions, use normal fetch
+  // For storage, functions, and non-Supabase requests: direct
   return fetch(input, init);
 };
 
