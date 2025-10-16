@@ -1,10 +1,18 @@
 import { Users, MessageCircle, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 
 const Index = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const sessionToken = localStorage.getItem("session_token");
+    setIsAuthenticated(!!sessionToken);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,14 +72,47 @@ const Index = () => {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <Button size="lg" className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90">
-              <UserPlus className="w-5 h-5" />
-              Join the Fun! 🚀
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 gap-2">
-              <MessageCircle className="w-5 h-5" />
-              Sign In
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button 
+                  size="lg" 
+                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90"
+                  onClick={() => navigate("/games")}
+                >
+                  <UserPlus className="w-5 h-5" />
+                  Browse Games! 🚀
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="text-lg px-8 gap-2"
+                  onClick={() => navigate("/friends")}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  View Friends
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  size="lg" 
+                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90"
+                  onClick={() => navigate("/register")}
+                >
+                  <UserPlus className="w-5 h-5" />
+                  Join the Fun! 🚀
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="text-lg px-8 gap-2"
+                  onClick={() => navigate("/login")}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Sign In
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Trust Badges */}

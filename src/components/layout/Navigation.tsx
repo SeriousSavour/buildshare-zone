@@ -81,11 +81,11 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
+                <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/register")}>
                   <Plus className="w-4 h-4" />
                   Create
                 </Button>
-                <Button variant="outline" className="gap-2" onClick={() => navigate("/auth")}>
+                <Button variant="outline" className="gap-2" onClick={() => navigate("/login")}>
                   <LogIn className="w-4 h-4" />
                   Sign In
                 </Button>
