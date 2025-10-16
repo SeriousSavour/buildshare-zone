@@ -95,7 +95,7 @@ const GameCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 bg-card border-border hover:-translate-y-2 hover:border-primary/50">
+    <Card className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-500 bg-card border-border hover:-translate-y-3 hover:scale-[1.02] hover:border-primary/50 animate-slide-up">
       <CardHeader className="p-0">
         <div className="relative aspect-video overflow-hidden bg-muted">
           {imageUrl ? (
@@ -159,7 +159,7 @@ const GameCard = ({
       <CardFooter className="p-6 pt-0 flex gap-2">
         <Button
           onClick={handlePlay}
-          className="flex-1 glow-orange"
+          className="flex-1 glow-orange hover:scale-105 transition-transform duration-300"
           size="lg"
         >
           <Play className="w-4 h-4 mr-2" />
@@ -171,15 +171,16 @@ const GameCard = ({
           disabled={isLiking}
           variant={localLiked ? "default" : "outline"}
           size="lg"
-          className={localLiked ? "glow-orange" : ""}
+          className={`transition-all duration-300 hover:scale-110 ${localLiked ? "glow-orange animate-pulse-glow" : ""}`}
         >
-          <Heart className={`w-4 h-4 ${localLiked ? "fill-current" : ""}`} />
+          <Heart className={`w-4 h-4 transition-transform duration-300 ${localLiked ? "fill-current scale-110" : ""}`} />
         </Button>
         
         <Button
           onClick={handleShare}
           variant="outline"
           size="lg"
+          className="hover:scale-110 transition-transform duration-300"
         >
           <Share2 className="w-4 h-4" />
         </Button>

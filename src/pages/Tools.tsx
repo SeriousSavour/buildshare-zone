@@ -105,11 +105,11 @@ const Tools = () => {
 
         {/* Tools Grid */}
         {!loading && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-fade-in-delay-2">
-            {filteredTools.map((tool) => (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredTools.map((tool, index) => (
               <Card 
                 key={tool.id}
-                className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-2 hover:border-primary/50"
+                className={`group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-500 hover:-translate-y-3 hover:scale-[1.02] hover:border-primary/50 animate-slide-up stagger-${Math.min(index % 6 + 1, 6)}`}
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -125,7 +125,7 @@ const Tools = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button 
-                    className="w-full gap-2"
+                    className="w-full gap-2 hover:scale-105 transition-transform duration-300"
                     onClick={() => handleToolClick(tool.id)}
                   >
                     <ExternalLink className="w-4 h-4" />
