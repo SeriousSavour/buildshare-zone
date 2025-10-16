@@ -79,6 +79,8 @@ const Games = () => {
 
       if (error) throw error;
 
+      console.log(`Fetched ${data?.length || 0} games from database`);
+
       // Fetch creator profiles
       if (data && data.length > 0) {
         const creatorIds = [...new Set(data.map(g => g.creator_id))];
@@ -94,6 +96,7 @@ const Games = () => {
           creator_avatar: profileMap.get(game.creator_id)
         }));
 
+        console.log(`Displaying ${gamesWithAvatars.length} games with avatars`);
         setGames(gamesWithAvatars);
         setFilteredGames(gamesWithAvatars);
         
