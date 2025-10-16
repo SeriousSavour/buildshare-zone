@@ -4,14 +4,50 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 
+interface Particle {
+  id: number;
+  emoji: string;
+  left: number;
+  animationDuration: number;
+  size: number;
+}
+
 const Index = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
     const sessionToken = localStorage.getItem("session_token");
     setIsAuthenticated(!!sessionToken);
+  }, []);
+
+  useEffect(() => {
+    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
+    let particleId = 0;
+
+    const generateParticle = () => {
+      const particle: Particle = {
+        id: particleId++,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        left: Math.random() * 100,
+        animationDuration: 3 + Math.random() * 4,
+        size: 1.5 + Math.random() * 2,
+      };
+      
+      setParticles(prev => [...prev, particle]);
+
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => p.id !== particle.id));
+      }, particle.animationDuration * 1000);
+    };
+
+    const interval = setInterval(() => {
+      generateParticle();
+    }, 400);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -38,24 +74,32 @@ const Index = () => {
 
       {/* Hero Section with Halloween Icons */}
       <section className="relative overflow-hidden py-20 px-4">
-        {/* Floating Halloween Icons */}
+        {/* Falling Particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-[10%] text-4xl animate-bounce" style={{ animationDelay: '0s' }}>🎃</div>
-          <div className="absolute top-40 right-[15%] text-3xl animate-bounce" style={{ animationDelay: '0.5s' }}>👻</div>
-          <div className="absolute bottom-32 left-[20%] text-3xl animate-bounce" style={{ animationDelay: '1s' }}>🍁</div>
-          <div className="absolute bottom-20 right-[25%] text-2xl animate-bounce" style={{ animationDelay: '1.5s' }}>🦇</div>
-          <div className="absolute top-60 left-[30%] text-3xl animate-bounce" style={{ animationDelay: '2s' }}>🍂</div>
-          <div className="absolute top-80 right-[30%] text-2xl animate-bounce" style={{ animationDelay: '2.5s' }}>🦇</div>
+          {particles.map((particle) => (
+            <div
+              key={particle.id}
+              className="absolute animate-fall"
+              style={{
+                left: `${particle.left}%`,
+                top: '-50px',
+                fontSize: `${particle.size}rem`,
+                animation: `fall ${particle.animationDuration}s linear forwards`,
+              }}
+            >
+              {particle.emoji}
+            </div>
+          ))}
         </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           {/* Hero Icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-8">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-8 animate-pulse">
             <Users className="w-12 h-12 text-primary" />
           </div>
 
           {/* Hero Title */}
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">
+          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
             Welcome Home!
           </h1>
           
@@ -150,7 +194,7 @@ const Index = () => {
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300">
+            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 animate-fade-in">
               <div className="text-4xl mb-4">👥</div>
               <h3 className="text-2xl font-semibold mb-3">Find Your Tribe</h3>
               <p className="text-muted-foreground">
@@ -158,7 +202,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300">
+            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 animate-fade-in-delay-1">
               <div className="text-4xl mb-4">💬</div>
               <h3 className="text-2xl font-semibold mb-3">Chat Safely</h3>
               <p className="text-muted-foreground">
@@ -166,7 +210,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300">
+            <div className="p-8 rounded-lg bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 animate-fade-in-delay-2">
               <div className="text-4xl mb-4">💝</div>
               <h3 className="text-2xl font-semibold mb-3">Feel Welcome</h3>
               <p className="text-muted-foreground">
