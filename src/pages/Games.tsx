@@ -132,6 +132,22 @@ const Games = () => {
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-secondary/8 rounded-full blur-3xl animate-float" />
       </div>
       
+      {/* Halloween decorative elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
+        <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
+        <div className="absolute top-[20%] left-[15%] text-4xl animate-float opacity-15">🦇</div>
+        <div className="absolute top-[40%] right-[12%] text-5xl animate-float-delayed opacity-20">🎃</div>
+        <div className="absolute top-[60%] left-[8%] text-4xl animate-float opacity-15">💀</div>
+        <div className="absolute bottom-[20%] right-[15%] text-6xl animate-float-delayed opacity-20">👻</div>
+        <div className="absolute bottom-[40%] left-[20%] text-3xl animate-float opacity-10">🕷️</div>
+        <div className="absolute top-[25%] right-[25%] text-4xl animate-float opacity-15">🍂</div>
+        <div className="absolute bottom-[30%] right-[5%] text-5xl animate-float-delayed opacity-20">🎃</div>
+        <div className="absolute top-[50%] left-[3%] text-4xl animate-float opacity-15">🦇</div>
+        <div className="absolute bottom-10 left-[12%] text-3xl animate-float-delayed opacity-10">🕸️</div>
+        <div className="absolute top-[15%] right-[35%] text-3xl animate-float opacity-12">💀</div>
+      </div>
+      
       <Navigation />
       
       <div className="container mx-auto px-4 py-12 relative z-10">
