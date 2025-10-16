@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Play, Heart, Share2, User } from "lucide-react";
+import { ArrowLeft, Heart, Share2, User, Play, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Game {
   id: string;
@@ -26,6 +26,9 @@ const GameDetail = () => {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [iframeSize, setIframeSize] = useState({ width: 900, height: 600 });
+  const resizingRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -83,6 +86,51 @@ const GameDetail = () => {
       incrementPlayCount();
     }
   }, [game?.id]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizingRef.current) return;
+      
+      const direction = resizingRef.current;
+      
+      if (direction.includes('right')) {
+        setIframeSize(prev => ({ ...prev, width: Math.max(400, prev.width + e.movementX) }));
+      }
+      if (direction.includes('left')) {
+        setIframeSize(prev => ({ ...prev, width: Math.max(400, prev.width - e.movementX) }));
+      }
+      if (direction.includes('bottom')) {
+        setIframeSize(prev => ({ ...prev, height: Math.max(300, prev.height + e.movementY) }));
+      }
+      if (direction.includes('top')) {
+        setIframeSize(prev => ({ ...prev, height: Math.max(300, prev.height - e.movementY) }));
+      }
+    };
+
+    const handleMouseUp = () => {
+      resizingRef.current = null;
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    };
+
+    if (resizingRef.current) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizingRef.current]);
+
+  const handleResizeStart = (direction: string) => {
+    resizingRef.current = direction;
+    document.body.style.cursor = direction.includes('right') || direction.includes('left') ? 'ew-resize' : 'ns-resize';
+    if (direction === 'top-left' || direction === 'bottom-right') document.body.style.cursor = 'nwse-resize';
+    if (direction === 'top-right' || direction === 'bottom-left') document.body.style.cursor = 'nesw-resize';
+  };
 
   const incrementPlayCount = async () => {
     try {
@@ -157,120 +205,173 @@ const GameDetail = () => {
 
       <Navigation />
       
-      <div className="container mx-auto px-4 py-12 relative z-10 max-w-7xl">
+      <div className="container mx-auto px-4 py-12 relative z-10 max-w-[100vw] flex flex-col items-center">
         {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/games')}
-          className="mb-8 gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Games
-        </Button>
+        <div className="w-full max-w-7xl mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/games')}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Games
+          </Button>
+        </div>
 
-        {/* Game Player Section */}
-        {game.game_url ? (
-          <div className="mb-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">{game.title}</h2>
-              <div className="flex gap-2">
-                <Button
-                  variant={isLiked ? "default" : "outline"}
-                  onClick={handleLike}
-                >
-                  <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                >
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="relative">
-              <iframe
-                src={game.game_url}
-                title={game.title}
-                className="w-full border-2 border-primary/20 rounded-lg shadow-2xl resize overflow-auto"
-                style={{
-                  minHeight: '400px',
-                  height: '600px',
-                  maxHeight: '90vh',
-                  resize: 'both'
-                }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded pointer-events-none">
-                Drag corner to resize
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-8 p-8 border-2 border-dashed border-border rounded-lg text-center">
-            <Play className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg text-muted-foreground">No game URL available</p>
-          </div>
-        )}
+        {/* Header with Toggle Sidebar Button */}
+        <div className="w-full max-w-7xl mb-4 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">{game.title}</h1>
+          <Button
+            onClick={() => setShowSidebar(!showSidebar)}
+            size="lg"
+            className="gap-2 bg-primary hover:bg-primary/90 text-lg px-6 py-6 shadow-lg"
+          >
+            {showSidebar ? (
+              <>
+                <ChevronRight className="w-5 h-5" />
+                Hide Info
+              </>
+            ) : (
+              <>
+                <ChevronLeft className="w-5 h-5" />
+                Show Info
+              </>
+            )}
+          </Button>
+        </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Game Preview */}
-          <div className="space-y-6">
-            {game.image_url && (
-              <Card className="overflow-hidden">
-                <img
-                  src={game.image_url}
-                  alt={game.title}
-                  className="w-full aspect-video object-cover"
+        <div className="flex gap-8 w-full max-w-7xl">
+          {/* Game Player - Centered */}
+          <div className="flex-1 flex justify-center items-start">
+            {game.game_url ? (
+              <div className="relative inline-block">
+                {/* Resize Handles */}
+                <div
+                  className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                  onMouseDown={() => handleResizeStart('left')}
                 />
-              </Card>
+                <div
+                  className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                  onMouseDown={() => handleResizeStart('right')}
+                />
+                <div
+                  className="absolute left-0 right-0 -top-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
+                  onMouseDown={() => handleResizeStart('top')}
+                />
+                <div
+                  className="absolute left-0 right-0 -bottom-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
+                  onMouseDown={() => handleResizeStart('bottom')}
+                />
+                
+                {/* Corner Handles */}
+                <div
+                  className="absolute -left-1 -top-1 w-3 h-3 cursor-nwse-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
+                  onMouseDown={() => handleResizeStart('top-left')}
+                />
+                <div
+                  className="absolute -right-1 -top-1 w-3 h-3 cursor-nesw-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
+                  onMouseDown={() => handleResizeStart('top-right')}
+                />
+                <div
+                  className="absolute -left-1 -bottom-1 w-3 h-3 cursor-nesw-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
+                  onMouseDown={() => handleResizeStart('bottom-left')}
+                />
+                <div
+                  className="absolute -right-1 -bottom-1 w-3 h-3 cursor-nwse-resize hover:bg-primary z-20 rounded-full border-2 border-primary"
+                  onMouseDown={() => handleResizeStart('bottom-right')}
+                />
+
+                <iframe
+                  src={game.game_url}
+                  title={game.title}
+                  className="border-2 border-primary/20 rounded-lg shadow-2xl"
+                  style={{
+                    width: `${iframeSize.width}px`,
+                    height: `${iframeSize.height}px`,
+                  }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="p-8 border-2 border-dashed border-border rounded-lg text-center">
+                <Play className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-lg text-muted-foreground">No game URL available</p>
+              </div>
             )}
           </div>
 
-          {/* Game Info */}
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
-                  {game.genre}
-                </span>
-              </div>
-              <h1 className="text-5xl font-bold mb-4">{game.title}</h1>
-              <p className="text-xl text-muted-foreground">
-                {game.description || "No description available"}
-              </p>
-            </div>
+          {/* Sliding Sidebar */}
+          <div
+            className={`transition-all duration-300 ease-in-out ${
+              showSidebar ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+            }`}
+          >
+            <Card className="h-full">
+              <CardContent className="pt-6 space-y-6">
+                {/* Action Buttons */}
+                <div className="flex gap-2 pb-4 border-b border-border">
+                  <Button
+                    variant={isLiked ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={handleLike}
+                  >
+                    <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleShare}
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                </div>
 
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center justify-between pb-4 border-b border-border">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <User className="w-5 h-5" />
-                    <span>Creator</span>
+                {/* Genre Badge */}
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
+                    {game.genre}
+                  </span>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h3 className="font-semibold mb-2">Description</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {game.description || "No description available"}
+                  </p>
+                </div>
+
+                {/* Stats */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-3 border-b border-border">
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <User className="w-4 h-4" />
+                      <span>Creator</span>
+                    </div>
+                    <span className="text-sm font-medium">{game.creator_name}</span>
                   </div>
-                  <span className="font-medium">{game.creator_name}</span>
-                </div>
 
-                <div className="flex items-center justify-between pb-4 border-b border-border">
-                  <span className="text-muted-foreground">Max Players</span>
-                  <span className="font-medium">{game.max_players}</span>
-                </div>
+                  <div className="flex items-center justify-between pb-3 border-b border-border">
+                    <span className="text-sm text-muted-foreground">Max Players</span>
+                    <span className="text-sm font-medium">{game.max_players}</span>
+                  </div>
 
-                <div className="flex items-center justify-between pb-4 border-b border-border">
-                  <span className="text-muted-foreground">Likes</span>
-                  <span className="font-medium flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    {game.likes}
-                  </span>
-                </div>
+                  <div className="flex items-center justify-between pb-3 border-b border-border">
+                    <span className="text-sm text-muted-foreground">Likes</span>
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      {game.likes}
+                    </span>
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Plays</span>
-                  <span className="font-medium flex items-center gap-2">
-                    <Play className="w-4 h-4" />
-                    {game.plays}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Plays</span>
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <Play className="w-4 h-4" />
+                      {game.plays}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
