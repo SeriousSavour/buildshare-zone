@@ -299,24 +299,39 @@ const GameDetail = () => {
 
       console.log('Fetched comments:', data);
       
-      // Fetch user profiles separately for each comment
-      const commentsWithProfiles = await Promise.all(
-        (data || []).map(async (comment) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
-            .eq('user_id', comment.user_id)
-            .single();
-
-          return {
-            ...comment,
-            profiles: profile || { username: 'Unknown User', avatar_url: null }
-          };
-        })
-      );
+      // Fetch all user profiles in one query
+      const userIds = [...new Set((data || []).map(c => c.user_id))];
       
-      console.log('Comments with profiles:', commentsWithProfiles);
-      setComments(commentsWithProfiles);
+      if (userIds.length > 0) {
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('user_id, username, avatar_url')
+          .in('user_id', userIds);
+
+        if (profileError) {
+          console.error('Error fetching profiles:', profileError);
+        }
+
+        console.log('Fetched profiles:', profiles);
+
+        // Map profiles to comments
+        const profileMap = new Map(
+          (profiles || []).map(p => [p.user_id, p])
+        );
+
+        const commentsWithProfiles = (data || []).map(comment => ({
+          ...comment,
+          profiles: profileMap.get(comment.user_id) || { 
+            username: 'Unknown User', 
+            avatar_url: null 
+          }
+        }));
+        
+        console.log('Comments with profiles:', commentsWithProfiles);
+        setComments(commentsWithProfiles);
+      } else {
+        setComments([]);
+      }
     } catch (error) {
       console.error('Error in fetchComments:', error);
       toast.error("Failed to load comments");
@@ -566,9 +581,17 @@ const GameDetail = () => {
                         comments.map((comment) => (
                           <div key={comment.id} className="p-4 rounded-lg bg-muted/50 border border-border">
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                                <User className="w-4 h-4 text-primary" />
-                              </div>
+                              {comment.profiles?.avatar_url ? (
+                                <img
+                                  src={comment.profiles.avatar_url}
+                                  alt={comment.profiles.username}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                  <User className="w-4 h-4 text-primary" />
+                                </div>
+                              )}
                               <span className="font-medium">
                                 {comment.profiles?.username || 'Anonymous'}
                               </span>
