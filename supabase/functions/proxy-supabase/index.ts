@@ -12,8 +12,11 @@ const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const RATE_LIMIT_MAX = 200; // 200 requests per minute per IP
 
 serve(async (req) => {
+  console.log('🚀 Edge function invoked');
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log('✅ CORS preflight handled');
     return new Response(null, { headers: corsHeaders });
   }
 

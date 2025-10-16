@@ -8,6 +8,8 @@ const PROXY_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/proxy-supabase`;
 const proxyFetch: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
   
+  console.log('🔍 proxyFetch called with URL:', url);
+  
   // Only proxy Supabase API calls
   if (url.includes('supabase.co')) {
     try {
@@ -16,14 +18,20 @@ const proxyFetch: typeof fetch = async (input, init) => {
       
       const proxyUrl = `${PROXY_FUNCTION_URL}?path=${encodeURIComponent(targetPath)}`;
       
-      return fetch(proxyUrl, init);
+      console.log('🔄 Routing through proxy:', proxyUrl);
+      console.log('📦 Request init:', init);
+      
+      const response = await fetch(proxyUrl, init);
+      console.log('✅ Proxy response:', response.status, response.statusText);
+      return response;
     } catch (error) {
-      console.error('Proxy routing failed, using direct connection:', error);
+      console.error('❌ Proxy routing failed, using direct connection:', error);
       return fetch(input, init);
     }
   }
   
   // For non-Supabase requests, use normal fetch
+  console.log('➡️ Direct fetch (non-Supabase)');
   return fetch(input, init);
 };
 
