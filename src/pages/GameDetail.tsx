@@ -4,7 +4,7 @@ import Navigation from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { ArrowLeft, Heart, Share2, User, Play, ChevronLeft, ChevronRight, Maximize2, Send } from "lucide-react";
 

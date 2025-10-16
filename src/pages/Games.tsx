@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import GameCard from "@/components/games/GameCard";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";

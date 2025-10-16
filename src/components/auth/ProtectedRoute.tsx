@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 
 interface ProtectedRouteProps {
   children: ReactNode;

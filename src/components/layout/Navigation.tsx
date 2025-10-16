@@ -3,7 +3,7 @@ import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
