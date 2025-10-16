@@ -93,7 +93,7 @@ const GameCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-2xl hover:shadow-primary/20 transition-all duration-500 bg-card border-border hover:-translate-y-3 hover:scale-[1.02] hover:border-primary/50 animate-slide-up">
+    <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-card border-border hover:border-primary/50 animate-slide-up">
       <CardHeader className="p-0">
         <div className="relative aspect-video overflow-hidden bg-muted">
           {imageUrl ? (
@@ -110,7 +110,7 @@ const GameCard = ({
               <Play className="w-16 h-16 text-muted-foreground animate-pulse" />
             </div>
           )}
-          <div className="absolute top-3 right-3 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm shadow-lg">
+          <div className="absolute top-3 right-3 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm shadow-lg hover-scale">
             <StyledText text={genre} weirdLetterIndex={genre === "Action" ? 2 : 0} />
           </div>
         </div>
@@ -157,7 +157,7 @@ const GameCard = ({
       <CardFooter className="p-6 pt-0 flex gap-2">
         <Button
           onClick={handlePlay}
-          className="flex-1 glow-orange hover:scale-105 transition-transform duration-300"
+          className="flex-1 glow-orange hover-scale transition-all duration-300"
           size="lg"
         >
           <Play className="w-4 h-4 mr-2" />
@@ -169,7 +169,7 @@ const GameCard = ({
           disabled={isLiking}
           variant={localLiked ? "default" : "outline"}
           size="lg"
-          className={`transition-all duration-300 hover:scale-110 ${localLiked ? "glow-orange animate-pulse-glow" : ""}`}
+          className={`transition-all duration-300 hover-scale ${localLiked ? "glow-orange animate-pulse-glow" : "hover-glow"}`}
         >
           <Heart className={`w-4 h-4 transition-transform duration-300 ${localLiked ? "fill-current scale-110" : ""}`} />
         </Button>
@@ -178,7 +178,7 @@ const GameCard = ({
           onClick={handleShare}
           variant="outline"
           size="lg"
-          className="hover:scale-110 transition-transform duration-300"
+          className="hover-scale hover-glow transition-all duration-300"
         >
           <Share2 className="w-4 h-4" />
         </Button>

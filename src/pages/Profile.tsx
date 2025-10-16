@@ -238,6 +238,15 @@ const Profile = () => {
         ))}
       </div>
 
+      {/* Bouncing decorations */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[12%] left-[8%] text-5xl animate-bounce-slow opacity-30">🎃</div>
+        <div className="absolute top-[28%] right-[10%] text-4xl animate-bounce-delayed opacity-25">👻</div>
+        <div className="absolute top-[18%] right-[82%] text-3xl animate-sway opacity-20">🦇</div>
+        <div className="absolute top-[48%] left-[6%] text-4xl animate-sway-delayed opacity-25">💀</div>
+        <div className="absolute top-[68%] right-[14%] text-5xl animate-bounce-slow opacity-30">🎃</div>
+      </div>
+
       {/* Halloween decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
@@ -338,7 +347,7 @@ const Profile = () => {
                 <Button
                   onClick={handleUpdateProfile}
                   disabled={uploading}
-                  className="w-full gap-2"
+                  className="w-full gap-2 hover-scale hover-glow"
                   size="lg"
                 >
                   <Settings className="w-4 h-4" />

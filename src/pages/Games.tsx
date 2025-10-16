@@ -263,6 +263,18 @@ const Games = () => {
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-secondary/8 rounded-full blur-3xl animate-float" />
       </div>
       
+      {/* Bouncing Halloween decorations */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[10%] left-[8%] text-5xl animate-bounce-slow opacity-30">🎃</div>
+        <div className="absolute top-[25%] right-[12%] text-4xl animate-bounce-delayed opacity-25">👻</div>
+        <div className="absolute top-[15%] left-[85%] text-3xl animate-sway opacity-20">🦇</div>
+        <div className="absolute top-[45%] left-[5%] text-4xl animate-sway-delayed opacity-25">💀</div>
+        <div className="absolute top-[60%] right-[10%] text-5xl animate-bounce-slow opacity-30">🎃</div>
+        <div className="absolute top-[35%] right-[88%] text-3xl animate-bounce-delayed opacity-20">🕷️</div>
+        <div className="absolute top-[75%] left-[15%] text-4xl animate-sway opacity-25">🍂</div>
+        <div className="absolute top-[50%] right-[45%] text-3xl animate-bounce-slow opacity-15">👻</div>
+      </div>
+      
       {/* Halloween decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>

@@ -70,6 +70,17 @@ const Index = () => {
         ))}
       </div>
       
+      {/* Bouncing decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-40">
+        <div className="absolute top-[15%] left-[10%] text-5xl animate-bounce-slow opacity-30">🎃</div>
+        <div className="absolute top-[30%] right-[8%] text-4xl animate-bounce-delayed opacity-25">👻</div>
+        <div className="absolute top-[20%] right-[85%] text-3xl animate-sway opacity-20">🦇</div>
+        <div className="absolute top-[50%] left-[5%] text-4xl animate-sway-delayed opacity-25">💀</div>
+        <div className="absolute top-[65%] right-[12%] text-5xl animate-bounce-slow opacity-30">🎃</div>
+        <div className="absolute top-[40%] left-[88%] text-3xl animate-bounce-delayed opacity-20">🕷️</div>
+        <div className="absolute top-[80%] left-[20%] text-4xl animate-sway opacity-25">🍂</div>
+      </div>
+      
       <Navigation />
       
       {/* Announcement Banner */}
@@ -117,11 +128,11 @@ const Index = () => {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            {isAuthenticated ? (
+          {isAuthenticated ? (
               <>
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 hover:scale-110 transition-all duration-300 animate-pulse-glow"
+                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 hover-scale hover-glow transition-all duration-300 animate-pulse-glow"
                   onClick={() => navigate("/games")}
                 >
                   <UserPlus className="w-5 h-5" />
@@ -130,7 +141,7 @@ const Index = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="text-lg px-8 gap-2 hover:scale-105 transition-all duration-300"
+                  className="text-lg px-8 gap-2 hover-scale hover-glow transition-all duration-300"
                   onClick={() => navigate("/friends")}
                 >
                   <MessageCircle className="w-5 h-5" />
@@ -141,7 +152,7 @@ const Index = () => {
               <>
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 hover:scale-110 transition-all duration-300 animate-pulse-glow"
+                  className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 hover-scale hover-glow transition-all duration-300 animate-pulse-glow"
                   onClick={() => navigate("/register")}
                 >
                   <UserPlus className="w-5 h-5" />
