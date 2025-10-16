@@ -454,8 +454,8 @@ const Games = () => {
             }`}
           >
             {filteredGames.map((game) => (
-              <div key={game.id} onClick={() => navigate(`/games/${game.id}`)} className="cursor-pointer">
-                <GameCard
+              <GameCard
+                key={game.id}
                 title={game.title}
                 description={game.description}
                 imageUrl={game.image_url}
@@ -470,7 +470,6 @@ const Games = () => {
                 onLikeToggle={fetchLikedGames}
                 id={game.id}
               />
-              </div>
             ))}
           </div>
         )}

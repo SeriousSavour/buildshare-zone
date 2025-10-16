@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Heart, Play, MessageSquare, Share2, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { StyledText } from "@/components/ui/styled-text";
@@ -36,6 +37,7 @@ const GameCard = ({
   isLiked = false,
   onLikeToggle,
 }: GameCardProps) => {
+  const navigate = useNavigate();
   const [isLiking, setIsLiking] = useState(false);
   const [localLiked, setLocalLiked] = useState(isLiked);
   const [localLikes, setLocalLikes] = useState(likes);
@@ -81,11 +83,7 @@ const GameCard = ({
   };
 
   const handlePlay = () => {
-    if (gameUrl) {
-      window.location.href = gameUrl;
-    } else {
-      toast.error("Game URL not available");
-    }
+    navigate(`/games/${id}`);
   };
 
   const handleShare = () => {
