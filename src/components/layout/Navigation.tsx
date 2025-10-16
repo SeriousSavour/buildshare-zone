@@ -9,14 +9,36 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
     const sessionToken = localStorage.getItem("session_token");
     setIsAuthenticated(!!sessionToken);
+
+    if (sessionToken) {
+      try {
+        const { data: userData } = await supabase.rpc('get_user_by_session', {
+          _session_token: sessionToken
+        });
+
+        if (userData && userData.length > 0) {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userData[0].user_id)
+            .single();
+
+          setIsAdmin(roleData?.role === 'admin');
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    }
   };
   const handleLogout = () => {
     localStorage.removeItem("session_token");
@@ -66,9 +88,11 @@ const Navigation = () => {
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
             {isAuthenticated ? <>
-                <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin Panel">
-                  <Shield className="w-5 h-5 text-primary" />
-                </Button>
+                {isAdmin && (
+                  <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin Panel">
+                    <Shield className="w-5 h-5 text-primary" />
+                  </Button>
+                )}
                 <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
                   <User className="w-5 h-5" />
                 </Button>
