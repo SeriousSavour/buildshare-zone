@@ -1,19 +1,51 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     checkAuth();
+    checkAdminStatus();
   }, []);
+
   const checkAuth = () => {
     const sessionToken = localStorage.getItem("session_token");
     setIsAuthenticated(!!sessionToken);
+  };
+
+  const checkAdminStatus = async () => {
+    const sessionToken = localStorage.getItem("session_token");
+    if (!sessionToken) {
+      setIsAdmin(false);
+      return;
+    }
+
+    try {
+      const { data: userData } = await supabase.rpc('get_user_by_session', {
+        _session_token: sessionToken
+      });
+
+      if (userData && userData.length > 0) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userData[0].user_id)
+          .single();
+
+        setIsAdmin(roleData?.role === 'admin');
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
   };
   const handleLogout = () => {
     localStorage.removeItem("session_token");
@@ -63,6 +95,11 @@ const Navigation = () => {
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
             {isAuthenticated ? <>
+                {isAdmin && (
+                  <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin Panel">
+                    <Shield className="w-5 h-5 text-primary" />
+                  </Button>
+                )}
                 <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
                   <User className="w-5 h-5" />
                 </Button>
