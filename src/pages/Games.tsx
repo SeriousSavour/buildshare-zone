@@ -35,7 +35,7 @@ const Games = () => {
   const [selectedGenre, setSelectedGenre] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [cardSize, setCardSize] = useState<"small" | "medium" | "large">("medium");
-  const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("popular");
   const [categoryFilter, setCategoryFilter] = useState<"all" | "favorites" | "popular" | "new" | string>("all");
   const [likedGames, setLikedGames] = useState<Set<string>>(new Set());
   const [popularGames, setPopularGames] = useState<Game[]>([]);
