@@ -4,21 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   useEffect(() => {
     checkAuth();
   }, []);
-
   const checkAuth = () => {
     const sessionToken = localStorage.getItem("session_token");
     setIsAuthenticated(!!sessionToken);
   };
-
   const handleLogout = () => {
     localStorage.removeItem("session_token");
     sessionStorage.removeItem("session_token");
@@ -26,9 +22,7 @@ const Navigation = () => {
     setIsAuthenticated(false);
     navigate("/");
   };
-
-  return (
-    <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+  return <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
@@ -39,10 +33,7 @@ const Navigation = () => {
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search the vault..." 
-              className="pl-10 bg-muted/50 border-border focus:border-primary/50"
-            />
+            <Input placeholder="Search the vault..." className="pl-10 bg-muted/50 border-border focus:border-primary/50" />
           </div>
 
           {/* Navigation Links */}
@@ -53,7 +44,7 @@ const Navigation = () => {
             </Link>
             <Link to="/games" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
               <Gamepad2 className="w-4 h-4" />
-              <span>Games</span>
+              <span>g𐌀mes</span>
             </Link>
             <Link to="/tools" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
               <Wrench className="w-4 h-4" />
@@ -71,14 +62,8 @@ const Navigation = () => {
 
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate("/profile")}
-                  title="Profile"
-                >
+            {isAuthenticated ? <>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
                   <User className="w-5 h-5" />
                 </Button>
                 <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/create")}>
@@ -88,9 +73,7 @@ const Navigation = () => {
                 <Button variant="outline" onClick={handleLogout}>
                   Sign Out
                 </Button>
-              </>
-            ) : (
-              <>
+              </> : <>
                 <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => navigate("/register")}>
                   <Plus className="w-4 h-4" />
                   Create
@@ -99,13 +82,10 @@ const Navigation = () => {
                   <LogIn className="w-4 h-4" />
                   Sign In
                 </Button>
-              </>
-            )}
+              </>}
           </div>
         </div>
       </div>
-    </nav>
-  );
+    </nav>;
 };
-
 export default Navigation;
