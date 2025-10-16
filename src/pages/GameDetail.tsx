@@ -397,93 +397,145 @@ const GameDetail = () => {
           </Button>
         </div>
 
-        {/* Header with Buttons */}
+        {/* Header with Sidebar Toggle */}
         <div className="w-full max-w-7xl mb-4 flex items-center justify-between">
           <h1 className="text-3xl font-bold">{game.title}</h1>
-          <div className="flex gap-3">
-            <Button
-              onClick={handleFullscreen}
-              variant="outline"
-              size="lg"
-              className="gap-2"
-              disabled={!game.game_url}
-            >
-              <Maximize2 className="w-5 h-5" />
-              Fullscreen
-            </Button>
-            <Button
-              onClick={() => setShowSidebar(!showSidebar)}
-              size="lg"
-              className="gap-2 bg-primary hover:bg-primary/90 text-lg px-6 py-6 shadow-lg"
-            >
-              {showSidebar ? (
-                <>
-                  <ChevronRight className="w-5 h-5" />
-                  Hide Info
-                </>
-              ) : (
-                <>
-                  <ChevronLeft className="w-5 h-5" />
-                  Show Info
-                </>
-              )}
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowSidebar(!showSidebar)}
+            size="lg"
+            className="gap-2 bg-primary hover:bg-primary/90 text-lg px-6 py-6 shadow-lg"
+          >
+            {showSidebar ? (
+              <>
+                <ChevronRight className="w-5 h-5" />
+                Hide Info
+              </>
+            ) : (
+              <>
+                <ChevronLeft className="w-5 h-5" />
+                Show Info
+              </>
+            )}
+          </Button>
         </div>
 
         <div className="flex gap-8 w-full max-w-7xl">
           {/* Game Player - Centered */}
-          <div className="flex-1 flex justify-center items-start">
+          <div className="flex-1 flex flex-col items-center gap-6">
             {game.game_url ? (
-              <div className="relative inline-block">
-                {/* Edge Resize Handles */}
-                <div
-                  className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                  onMouseDown={handleResizeStart('left')}
-                />
-                <div
-                  className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                  onMouseDown={handleResizeStart('right')}
-                />
-                <div
-                  className="absolute left-0 right-0 -top-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
-                  onMouseDown={handleResizeStart('top')}
-                />
-                <div
-                  className="absolute left-0 right-0 -bottom-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
-                  onMouseDown={handleResizeStart('bottom')}
-                />
-                
-                {/* Corner Handles */}
-                <div
-                  className="absolute -left-1 -top-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                  onMouseDown={handleResizeStart('top-left')}
-                />
-                <div
-                  className="absolute -right-1 -top-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                  onMouseDown={handleResizeStart('top-right')}
-                />
-                <div
-                  className="absolute -left-1 -bottom-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                  onMouseDown={handleResizeStart('bottom-left')}
-                />
-                <div
-                  className="absolute -right-1 -bottom-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                  onMouseDown={handleResizeStart('bottom-right')}
-                />
+              <>
+                <div className="relative inline-block">
+                  {/* Edge Resize Handles */}
+                  <div
+                    className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                    onMouseDown={handleResizeStart('left')}
+                  />
+                  <div
+                    className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                    onMouseDown={handleResizeStart('right')}
+                  />
+                  <div
+                    className="absolute left-0 right-0 -top-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
+                    onMouseDown={handleResizeStart('top')}
+                  />
+                  <div
+                    className="absolute left-0 right-0 -bottom-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
+                    onMouseDown={handleResizeStart('bottom')}
+                  />
+                  
+                  {/* Corner Handles */}
+                  <div
+                    className="absolute -left-1 -top-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                    onMouseDown={handleResizeStart('top-left')}
+                  />
+                  <div
+                    className="absolute -right-1 -top-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                    onMouseDown={handleResizeStart('top-right')}
+                  />
+                  <div
+                    className="absolute -left-1 -bottom-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                    onMouseDown={handleResizeStart('bottom-left')}
+                  />
+                  <div
+                    className="absolute -right-1 -bottom-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                    onMouseDown={handleResizeStart('bottom-right')}
+                  />
 
-                <iframe
-                  src={game.game_url}
-                  title={game.title}
-                  className="border-2 border-primary/20 rounded-lg shadow-2xl"
-                  style={{
-                    width: `${iframeSize.width}px`,
-                    height: `${iframeSize.height}px`,
-                  }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
+                  <iframe
+                    src={game.game_url}
+                    title={game.title}
+                    className="border-2 border-primary/20 rounded-lg shadow-2xl"
+                    style={{
+                      width: `${iframeSize.width}px`,
+                      height: `${iframeSize.height}px`,
+                    }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+
+                {/* Fullscreen Button */}
+                <Button
+                  onClick={handleFullscreen}
+                  size="lg"
+                  className="gap-2 w-full max-w-md"
+                >
+                  <Maximize2 className="w-5 h-5" />
+                  Open in Fullscreen
+                </Button>
+
+                {/* Comments Section */}
+                <Card className="w-full max-w-4xl">
+                  <CardContent className="pt-6">
+                    <h3 className="font-semibold mb-4 text-xl">Comments ({comments.length})</h3>
+                    
+                    {/* Comment Input */}
+                    <div className="mb-6 space-y-2">
+                      <Textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Write a comment..."
+                        className="resize-none"
+                        rows={3}
+                      />
+                      <Button
+                        onClick={handleSubmitComment}
+                        disabled={!newComment.trim() || submittingComment}
+                        className="w-full gap-2"
+                      >
+                        <Send className="w-4 h-4" />
+                        {submittingComment ? 'Posting...' : 'Post Comment'}
+                      </Button>
+                    </div>
+
+                    {/* Comments List */}
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {comments.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          No comments yet. Be the first to comment!
+                        </p>
+                      ) : (
+                        comments.map((comment) => (
+                          <div key={comment.id} className="p-4 rounded-lg bg-muted/50 border border-border">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                <User className="w-4 h-4 text-primary" />
+                              </div>
+                              <span className="font-medium">
+                                {comment.profiles?.username || 'Anonymous'}
+                              </span>
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                {new Date(comment.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm ml-10">{comment.content}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <div className="p-8 border-2 border-dashed border-border rounded-lg text-center">
                 <Play className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
@@ -562,56 +614,6 @@ const GameDetail = () => {
                       <Play className="w-4 h-4" />
                       {game.plays}
                     </span>
-                  </div>
-                </div>
-
-                {/* Comments Section */}
-                <div className="pt-6 border-t border-border">
-                  <h3 className="font-semibold mb-4">Comments ({comments.length})</h3>
-                  
-                  {/* Comment Input */}
-                  <div className="mb-4 space-y-2">
-                    <Textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Write a comment..."
-                      className="resize-none"
-                      rows={3}
-                    />
-                    <Button
-                      onClick={handleSubmitComment}
-                      disabled={!newComment.trim() || submittingComment}
-                      className="w-full gap-2"
-                    >
-                      <Send className="w-4 h-4" />
-                      {submittingComment ? 'Posting...' : 'Post Comment'}
-                    </Button>
-                  </div>
-
-                  {/* Comments List */}
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {comments.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        No comments yet. Be the first to comment!
-                      </p>
-                    ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className="p-3 rounded-lg bg-muted/50">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                              <User className="w-3 h-3 text-primary" />
-                            </div>
-                            <span className="text-sm font-medium">
-                              {comment.profiles?.username || 'Anonymous'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(comment.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-sm">{comment.content}</p>
-                        </div>
-                      ))
-                    )}
                   </div>
                 </div>
               </CardContent>
