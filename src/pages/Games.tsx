@@ -370,16 +370,16 @@ const Games = () => {
         {/* Featured Game Banner with enhanced design */}
         {featuredGame && (
           <div className="mb-16 animate-fade-in-delay-1">
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-accent/5 to-background border-2 border-primary/40 hover:border-primary/60 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/30 group">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-accent/15 to-background border-2 border-primary/50 hover:border-primary/70 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/40 group">
               <div className="absolute inset-0">
                 {featuredGame.image_url && (
                   <img
                     src={featuredGame.image_url}
                     alt={featuredGame.title}
-                    className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500"
+                    className="w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/50" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/60 to-background/30" />
               </div>
               <div className="relative p-10 md:p-14">
                 <div className="flex items-center gap-3 mb-6">

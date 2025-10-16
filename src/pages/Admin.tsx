@@ -321,7 +321,12 @@ const Admin = () => {
   };
 
   const fetchBlockedWords = async () => {
+    const sessionToken = localStorage.getItem("session_token");
+    if (!sessionToken) return;
+
     try {
+      await supabase.rpc('set_session_context', { _session_token: sessionToken });
+      
       const { data, error } = await supabase
         .from("blocked_words")
         .select("*")
@@ -462,9 +467,14 @@ const Admin = () => {
       });
       return;
     }
+    
+    const sessionToken = localStorage.getItem("session_token");
+    if (!sessionToken) return;
 
     setLoading(true);
     try {
+      await supabase.rpc('set_session_context', { _session_token: sessionToken });
+      
       const { error } = await supabase.from("blocked_words").insert({
         word: newBlockedWord.toLowerCase().trim(),
         severity: wordSeverity,
@@ -490,8 +500,13 @@ const Admin = () => {
   };
 
   const handleDeleteBlockedWord = async (id: string) => {
+    const sessionToken = localStorage.getItem("session_token");
+    if (!sessionToken) return;
+    
     setLoading(true);
     try {
+      await supabase.rpc('set_session_context', { _session_token: sessionToken });
+      
       const { error } = await supabase.from("blocked_words").delete().eq("id", id);
 
       if (error) throw error;
