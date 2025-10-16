@@ -16,6 +16,14 @@ interface ProfileData {
   created_at: string;
 }
 
+interface Particle {
+  id: number;
+  emoji: string;
+  left: number;
+  animationDuration: number;
+  size: number;
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -24,10 +32,38 @@ const Profile = () => {
   const [displayName, setDisplayName] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [stats, setStats] = useState({ gamesCreated: 0, totalLikes: 0, totalPlays: 0 });
+  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
     fetchProfile();
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
+    let particleId = 0;
+
+    const generateParticle = () => {
+      const particle: Particle = {
+        id: particleId++,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        left: Math.random() * 100,
+        animationDuration: 8 + Math.random() * 8,
+        size: 0.8 + Math.random() * 3,
+      };
+      
+      setParticles(prev => [...prev, particle]);
+
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => p.id !== particle.id));
+      }, particle.animationDuration * 1000);
+    };
+
+    const interval = setInterval(() => {
+      generateParticle();
+    }, 600);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchProfile = async () => {
@@ -38,46 +74,64 @@ const Profile = () => {
     }
 
     try {
-      const { data: userData } = await supabase.rpc('get_user_by_session', {
+      const { data: userData, error: userError } = await supabase.rpc('get_user_by_session', {
         _session_token: sessionToken
       });
+
+      if (userError) throw userError;
 
       if (!userData || userData.length === 0) {
         navigate('/login');
         return;
       }
 
-      const { data: profileData, error } = await supabase
+      const userId = userData[0].user_id;
+      const username = userData[0].username;
+
+      // Try to get existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userData[0].user_id)
+        .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
 
       // If profile doesn't exist, create one
-      if (!profileData) {
+      if (!existingProfile) {
+        console.log('Creating new profile for user:', userId);
+        
+        const newProfileData = {
+          user_id: userId,
+          username: username,
+          display_name: username,
+          avatar_url: null
+        };
+
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
-          .insert({
-            user_id: userData[0].user_id,
-            username: userData[0].username,
-            display_name: userData[0].username
-          })
+          .insert(newProfileData)
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          throw createError;
+        }
 
+        console.log('New profile created:', newProfile);
         setProfile(newProfile);
         setDisplayName(newProfile.display_name || "");
+        toast.success("Welcome! Your profile has been created.");
       } else {
-        setProfile(profileData);
-        setDisplayName(profileData.display_name || "");
+        setProfile(existingProfile);
+        setDisplayName(existingProfile.display_name || "");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
-      toast.error("Failed to load profile");
+      toast.error(error.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -193,6 +247,24 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Falling Particles - Full Page */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute"
+            style={{
+              left: `${particle.left}%`,
+              top: '-100px',
+              fontSize: `${particle.size}rem`,
+              animation: `fall ${particle.animationDuration}s linear forwards`,
+            }}
+          >
+            {particle.emoji}
+          </div>
+        ))}
+      </div>
+
       {/* Halloween decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
@@ -206,7 +278,9 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-12 space-y-4 animate-fade-in">
           <div className="flex items-center gap-3">
-            <User className="w-12 h-12 text-primary" />
+            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+              <User className="w-6 h-6 text-primary" />
+            </div>
             <h1 className="text-5xl font-bold tracking-tight">
               Your <span className="text-primary">Profile</span>
             </h1>
@@ -219,7 +293,7 @@ const Profile = () => {
         <div className="grid md:grid-cols-3 gap-8">
           {/* Profile Settings */}
           <div className="md:col-span-2 space-y-8">
-            <Card className="animate-fade-in-delay-1">
+            <Card className="animate-fade-in-delay-1 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
               <CardHeader>
                 <CardTitle>Profile Settings</CardTitle>
                 <CardDescription>Update your profile information</CardDescription>
@@ -303,13 +377,13 @@ const Profile = () => {
 
           {/* Stats */}
           <div className="space-y-4">
-            <Card className="animate-fade-in-delay-2">
+            <Card className="animate-fade-in-delay-2 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-lg">Your Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
                     <Gamepad2 className="w-5 h-5 text-primary" />
                   </div>
                   <div>
@@ -318,7 +392,7 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                   <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
                     <Heart className="w-5 h-5 text-red-500" />
                   </div>
@@ -328,7 +402,7 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                   <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
                     <Trophy className="w-5 h-5 text-green-500" />
                   </div>
@@ -340,7 +414,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            <Card className="animate-fade-in-delay-3">
+            <Card className="animate-fade-in-delay-3 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-lg">Account Info</CardTitle>
               </CardHeader>
