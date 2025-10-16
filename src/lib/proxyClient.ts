@@ -8,30 +8,47 @@ const PROXY_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/proxy-supabase`;
 const proxyFetch: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
   
-  console.log('🔍 proxyFetch called with URL:', url);
-  
-  // Only proxy Supabase API calls
-  if (url.includes('supabase.co')) {
+  // Only proxy Supabase API calls (excluding storage and edge functions)
+  if (url.includes('supabase.co') && !url.includes('/storage/') && !url.includes('/functions/')) {
     try {
       const targetUrl = new URL(url);
       const targetPath = targetUrl.pathname + targetUrl.search;
       
       const proxyUrl = `${PROXY_FUNCTION_URL}?path=${encodeURIComponent(targetPath)}`;
       
-      console.log('🔄 Routing through proxy:', proxyUrl);
-      console.log('📦 Request init:', init);
+      console.log('[Proxy] Routing:', targetPath);
       
-      const response = await fetch(proxyUrl, init);
-      console.log('✅ Proxy response:', response.status, response.statusText);
+      // Make request with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(proxyUrl, {
+        ...init,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok && response.status >= 500) {
+        throw new Error(`Proxy server error: ${response.status}`);
+      }
+      
+      console.log('[Proxy] Success:', response.status);
       return response;
     } catch (error) {
-      console.error('❌ Proxy routing failed, using direct connection:', error);
-      return fetch(input, init);
+      console.warn('[Proxy] Failed, using direct connection:', error.message);
+      
+      // Fallback to direct connection
+      try {
+        return await fetch(input, init);
+      } catch (directError) {
+        console.error('[Direct] Also failed:', directError);
+        throw directError;
+      }
     }
   }
   
-  // For non-Supabase requests, use normal fetch
-  console.log('➡️ Direct fetch (non-Supabase)');
+  // For non-Supabase requests or storage/functions, use normal fetch
   return fetch(input, init);
 };
 
