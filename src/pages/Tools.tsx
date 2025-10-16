@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
+interface Particle {
+  id: number;
+  emoji: string;
+  left: number;
+  animationDuration: number;
+  size: number;
+}
 import Navigation from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,9 +32,37 @@ const Tools = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
+  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
     fetchTools();
+  }, []);
+
+  useEffect(() => {
+    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
+    let particleId = 0;
+
+    const generateParticle = () => {
+      const particle: Particle = {
+        id: particleId++,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        left: Math.random() * 100,
+        animationDuration: 8 + Math.random() * 8,
+        size: 0.8 + Math.random() * 3,
+      };
+      
+      setParticles(prev => [...prev, particle]);
+
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => p.id !== particle.id));
+      }, particle.animationDuration * 1000);
+    };
+
+    const interval = setInterval(() => {
+      generateParticle();
+    }, 600);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchTools = async () => {
@@ -57,6 +93,24 @@ const Tools = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Falling Particles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute"
+            style={{
+              left: `${particle.left}%`,
+              top: '-100px',
+              fontSize: `${particle.size}rem`,
+              animation: `fall ${particle.animationDuration}s linear forwards`,
+            }}
+          >
+            {particle.emoji}
+          </div>
+        ))}
+      </div>
+
       {/* Bouncing decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[12%] left-[8%] text-5xl animate-bounce-slow opacity-30">🎃</div>

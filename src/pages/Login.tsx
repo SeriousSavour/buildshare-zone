@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,48 @@ import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 
+interface Particle {
+  id: number;
+  emoji: string;
+  left: number;
+  animationDuration: number;
+  size: number;
+}
+
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [particles, setParticles] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
+    let particleId = 0;
+
+    const generateParticle = () => {
+      const particle: Particle = {
+        id: particleId++,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        left: Math.random() * 100,
+        animationDuration: 8 + Math.random() * 8,
+        size: 0.8 + Math.random() * 3,
+      };
+      
+      setParticles(prev => [...prev, particle]);
+
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => p.id !== particle.id));
+      }, particle.animationDuration * 1000);
+    };
+
+    const interval = setInterval(() => {
+      generateParticle();
+    }, 600);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,8 +103,26 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 relative">
+      {/* Falling Particles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute"
+            style={{
+              left: `${particle.left}%`,
+              top: '-100px',
+              fontSize: `${particle.size}rem`,
+              animation: `fall ${particle.animationDuration}s linear forwards`,
+            }}
+          >
+            {particle.emoji}
+          </div>
+        ))}
+      </div>
+
+      <Card className="w-full max-w-md relative z-10">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center">Welcome Back</CardTitle>
           <CardDescription className="text-center">

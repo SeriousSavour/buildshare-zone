@@ -8,20 +8,20 @@ import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { User, Upload, Settings, Trophy, Heart, Gamepad2 } from "lucide-react";
 
-interface ProfileData {
-  user_id: string;
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
-}
-
 interface Particle {
   id: number;
   emoji: string;
   left: number;
   animationDuration: number;
   size: number;
+}
+
+interface ProfileData {
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
 }
 
 const Profile = () => {

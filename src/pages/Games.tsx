@@ -9,6 +9,14 @@ import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { StyledKeyword } from "@/components/ui/styled-text";
 
+interface Particle {
+  id: number;
+  emoji: string;
+  left: number;
+  animationDuration: number;
+  size: number;
+}
+
 interface Game {
   id: string;
   title: string;
