@@ -21,18 +21,30 @@ const Navigation = () => {
 
     if (sessionToken) {
       try {
-        const { data: userData } = await supabase.rpc('get_user_by_session', {
+        const { data: userData, error: userError } = await supabase.rpc('get_user_by_session', {
           _session_token: sessionToken
         });
 
+        console.log('User data:', userData);
+        console.log('User error:', userError);
+
         if (userData && userData.length > 0) {
-          const { data: roleData } = await supabase
+          const userId = userData[0].user_id;
+          const username = userData[0].username;
+          console.log('Logged in as:', username, 'ID:', userId);
+
+          const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', userData[0].user_id)
+            .eq('user_id', userId)
             .single();
 
-          setIsAdmin(roleData?.role === 'admin');
+          console.log('Role data:', roleData);
+          console.log('Role error:', roleError);
+
+          const isAdminUser = roleData?.role === 'admin';
+          console.log('Is admin:', isAdminUser);
+          setIsAdmin(isAdminUser);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
