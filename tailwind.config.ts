@@ -13,12 +13,12 @@ export default {
 		container: {
 			center: true,
 			padding: {
-				DEFAULT: '1rem',
-				sm: '1.5rem',
-				md: '2rem',
-				lg: '2.5rem',
-				xl: '3rem',
-				'2xl': '4rem',
+				DEFAULT: '1.5rem',
+				sm: '2rem',
+				md: '3rem',
+				lg: '4rem',
+				xl: '5rem',
+				'2xl': '6rem',
 			},
 			screens: {
 				xs: '475px',

@@ -4,73 +4,86 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 213 31% 91%;
+    /* Underground Halloween Theme - Deep dark base */
+    --background: 240 10% 8%;
+    --foreground: 30 100% 95%;
     
-    --card: 224 37% 15%;
-    --card-foreground: 213 31% 91%;
+    /* Cards with subtle purple underground glow */
+    --card: 260 15% 12%;
+    --card-foreground: 30 100% 95%;
     
-    --popover: 224 37% 15%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 260 15% 12%;
+    --popover-foreground: 30 100% 95%;
     
+    /* Halloween orange primary */
     --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 0 0% 5%;
     
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    /* Purple underground secondary */
+    --secondary: 270 60% 25%;
+    --secondary-foreground: 30 100% 95%;
     
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
+    /* Muted dark tones */
+    --muted: 240 10% 15%;
+    --muted-foreground: 30 20% 70%;
     
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent purple with glow */
+    --accent: 270 70% 35%;
+    --accent-foreground: 30 100% 95%;
     
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
     
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
+    /* Subtle borders */
+    --border: 260 20% 20%;
+    --input: 260 15% 18%;
     --ring: 25 95% 53%;
     
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
-    --sidebar-background: 224 37% 15%;
-    --sidebar-foreground: 213 31% 91%;
+    /* Sidebar underground theme */
+    --sidebar-background: 260 15% 10%;
+    --sidebar-foreground: 30 100% 95%;
     --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 270 60% 25%;
+    --sidebar-accent-foreground: 30 100% 95%;
+    --sidebar-border: 260 20% 18%;
     --sidebar-ring: 25 95% 53%;
+    
+    /* Halloween glow effects */
+    --glow-orange: 25 95% 53%;
+    --glow-purple: 270 70% 50%;
+    --glow-green: 120 60% 45%;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 213 31% 91%;
+    --background: 240 10% 8%;
+    --foreground: 30 100% 95%;
     
-    --card: 224 37% 15%;
-    --card-foreground: 213 31% 91%;
+    --card: 260 15% 12%;
+    --card-foreground: 30 100% 95%;
     
-    --popover: 224 37% 15%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 260 15% 12%;
+    --popover-foreground: 30 100% 95%;
     
     --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 0 0% 5%;
     
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 270 60% 25%;
+    --secondary-foreground: 30 100% 95%;
     
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 30 20% 70%;
     
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 70% 35%;
+    --accent-foreground: 30 100% 95%;
     
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
     
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
+    --border: 260 20% 20%;
+    --input: 260 15% 18%;
     --ring: 25 95% 53%;
   }
 }
@@ -82,6 +95,27 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    letter-spacing: 0.01em;
+  }
+  
+  /* Spacious modern layout */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+  
+  /* Halloween glow utilities */
+  .glow-orange {
+    box-shadow: 0 0 20px hsl(var(--glow-orange) / 0.3), 
+                0 0 40px hsl(var(--glow-orange) / 0.1);
+  }
+  
+  .glow-purple {
+    box-shadow: 0 0 20px hsl(var(--glow-purple) / 0.3), 
+                0 0 40px hsl(var(--glow-purple) / 0.1);
+  }
+  
+  .glow-green {
+    box-shadow: 0 0 20px hsl(var(--glow-green) / 0.3);
   }
 }
 
