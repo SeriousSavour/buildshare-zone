@@ -82,7 +82,7 @@ const GameCard = ({
 
   const handlePlay = () => {
     if (gameUrl) {
-      window.open(gameUrl, '_blank');
+      window.location.href = gameUrl;
     } else {
       toast.error("Game URL not available");
     }
