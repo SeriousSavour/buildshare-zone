@@ -107,21 +107,33 @@ serve(async (req) => {
     let response: Response;
     
     if (proxy) {
-      // Route through proxy server with authentication
+      // Use HTTP proxy with Proxy-Authorization header
       console.log(`↪ Forwarding via proxy ${proxy.host}:${proxy.port}...`);
       
-      const proxyUrl = `http://${proxy.host}:${proxy.port}`;
       const proxyAuth = btoa(`${proxy.username}:${proxy.password}`);
       
-      response = await fetch(targetUrl, {
-        method: req.method,
+      // Create proxy request
+      response = await fetch(`http://${proxy.host}:${proxy.port}`, {
+        method: 'CONNECT',
         headers: {
-          ...Object.fromEntries(headers),
+          'Host': new URL(targetUrl).host,
           'Proxy-Authorization': `Basic ${proxyAuth}`,
         },
-        body: body,
-        // @ts-ignore - Deno supports proxy option
-        proxy: proxyUrl,
+      }).then(async () => {
+        // After CONNECT, make the actual request
+        return fetch(targetUrl, {
+          method: req.method,
+          headers: headers,
+          body: body,
+        });
+      }).catch(async (error) => {
+        // Fallback to direct if proxy fails
+        console.warn(`⚠ Proxy failed: ${error.message}, using direct`);
+        return fetch(targetUrl, {
+          method: req.method,
+          headers: headers,
+          body: body,
+        });
       });
     } else {
       // Direct connection (fallback if no proxies configured)

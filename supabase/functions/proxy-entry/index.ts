@@ -86,36 +86,15 @@ serve(async (req) => {
       }
     }
     
-    // Get a random proxy for this layer
-    const proxy = getRandomProxy();
+    // For now, skip the entry-level proxy and go direct to proxy-supabase
+    // (Browser-level proxy requires browser extension or system settings)
+    console.log(`↪ [ENTRY] Forwarding to proxy-supabase...`);
     
-    let response: Response;
-    
-    if (proxy) {
-      console.log(`↪ [ENTRY] Routing via proxy ${proxy.host}:${proxy.port} to edge function...`);
-      
-      const proxyUrlFull = `http://${proxy.host}:${proxy.port}`;
-      const proxyAuth = btoa(`${proxy.username}:${proxy.password}`);
-      
-      response = await fetch(proxyUrl, {
-        method: req.method,
-        headers: {
-          ...Object.fromEntries(headers),
-          'Proxy-Authorization': `Basic ${proxyAuth}`,
-        },
-        body: body,
-        // @ts-ignore - Deno supports proxy option
-        proxy: proxyUrlFull,
-      });
-    } else {
-      console.log(`↪ [ENTRY] Direct connection to edge function (no proxy configured)...`);
-      
-      response = await fetch(proxyUrl, {
-        method: req.method,
-        headers: headers,
-        body: body,
-      });
-    }
+    const response = await fetch(proxyUrl, {
+      method: req.method,
+      headers: headers,
+      body: body,
+    });
     
     const duration = Date.now() - startTime;
     console.log(`✓ [ENTRY] ${response.status} (${duration}ms)`);
