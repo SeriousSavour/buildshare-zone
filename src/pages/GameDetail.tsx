@@ -564,17 +564,23 @@ const GameDetail = () => {
                                 <img
                                   src={comment.profiles.avatar_url}
                                   alt={comment.profiles.username || 'User'}
-                                  className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"
+                                  className="w-10 h-10 rounded-full object-cover border-2 border-primary/20 flex-shrink-0"
+                                  style={{ aspectRatio: '1/1' }}
                                 />
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border-2 border-primary/20">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border-2 border-primary/20 flex-shrink-0">
                                   <User className="w-5 h-5 text-primary" />
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-foreground">
+                                  <span className="font-semibold text-foreground flex items-center gap-1.5">
                                     {comment.profiles?.username || 'Anonymous'}
+                                    {comment.profiles?.username === 'wild' && (
+                                      <span className="inline-flex items-center text-yellow-500" title="Admin">
+                                        👑
+                                      </span>
+                                    )}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
                                     {new Date(comment.created_at).toLocaleDateString('en-US', {
