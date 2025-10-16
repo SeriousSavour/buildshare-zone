@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { StyledKeyword } from "@/components/ui/styled-text";
 
 interface Game {
   id: string;
@@ -281,7 +282,7 @@ const Games = () => {
         {/* Header */}
         <div className="mb-8 space-y-4 animate-fade-in text-center">
           <h1 className="text-5xl font-bold tracking-tight">
-            Spooky <span className="text-primary">Games</span> 🎃 👻
+            Spooky <StyledKeyword keyword="Games" className="text-primary" /> 🎃 👻
           </h1>
           <p className="text-xl text-muted-foreground">
             Discover spine-chilling games this October! 🎃✨

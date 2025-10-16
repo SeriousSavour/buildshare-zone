@@ -37,6 +37,8 @@ export default {
 				poppins: ['Poppins', 'system-ui', 'sans-serif'],
 				playfair: ['Playfair Display', 'serif'],
 				merriweather: ['Merriweather', 'serif'],
+				creepster: ['Creepster', 'cursive'],
+				special: ['Special Elite', 'cursive'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

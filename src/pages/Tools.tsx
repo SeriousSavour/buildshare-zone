@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Wrench, Search, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { StyledKeyword } from "@/components/ui/styled-text";
 
 interface Tool {
   id: string;
@@ -72,7 +73,7 @@ const Tools = () => {
           <div className="flex items-center gap-3">
             <Wrench className="w-12 h-12 text-primary" />
             <h1 className="text-5xl font-bold tracking-tight">
-              Gaming <span className="text-primary">Tools</span>
+              <StyledKeyword keyword="Gaming" /> <StyledKeyword keyword="Tools" className="text-primary" />
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl">

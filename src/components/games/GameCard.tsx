@@ -4,6 +4,7 @@ import { Heart, Play, MessageSquare, Share2, User } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { StyledText } from "@/components/ui/styled-text";
 
 interface GameCardProps {
   id: string;
@@ -112,7 +113,7 @@ const GameCard = ({
             </div>
           )}
           <div className="absolute top-3 right-3 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm shadow-lg">
-            {genre}
+            <StyledText text={genre} weirdLetterIndex={genre === "Action" ? 2 : 0} />
           </div>
         </div>
       </CardHeader>
@@ -145,7 +146,7 @@ const GameCard = ({
           <div className="flex gap-4 text-muted-foreground">
             <span className="flex items-center gap-1">
               <Heart className="w-4 h-4" />
-              {localLikes}
+              <StyledText text={localLikes.toString()} weirdLetterIndex={0} />
             </span>
             <span className="flex items-center gap-1">
               <Play className="w-4 h-4" />
