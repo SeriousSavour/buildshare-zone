@@ -77,24 +77,27 @@ const GameDetail = () => {
     }
   };
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const handlePlay = async () => {
-    if (game?.game_url) {
-      // Increment play count
-      try {
-        await supabase
-          .from('games')
-          .update({ plays: game.plays + 1 })
-          .eq('id', id);
-        
-        setGame(prev => prev ? { ...prev, plays: prev.plays + 1 } : null);
-      } catch (error) {
-        console.error('Error updating play count:', error);
-      }
-      
-      window.open(game.game_url, '_blank');
-    } else {
+    if (!game?.game_url) {
       toast.error("Game URL not available");
+      return;
     }
+
+    // Increment play count
+    try {
+      await supabase
+        .from('games')
+        .update({ plays: game.plays + 1 })
+        .eq('id', id);
+      
+      setGame(prev => prev ? { ...prev, plays: prev.plays + 1 } : null);
+    } catch (error) {
+      console.error('Error updating play count:', error);
+    }
+
+    setIsPlaying(true);
   };
 
   const handleLike = async () => {
@@ -157,7 +160,7 @@ const GameDetail = () => {
 
       <Navigation />
       
-      <div className="container mx-auto px-4 py-12 relative z-10 max-w-6xl">
+      <div className="container mx-auto px-4 py-12 relative z-10 max-w-7xl">
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -168,8 +171,42 @@ const GameDetail = () => {
           Back to Games
         </Button>
 
+        {/* Game Player Section */}
+        {isPlaying && game.game_url ? (
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Now Playing: {game.title}</h2>
+              <Button
+                variant="outline"
+                onClick={() => setIsPlaying(false)}
+                className="gap-2"
+              >
+                Close Game
+              </Button>
+            </div>
+            <div className="relative">
+              <iframe
+                src={game.game_url}
+                title={game.title}
+                className="w-full border-2 border-primary/20 rounded-lg shadow-2xl resize overflow-auto"
+                style={{
+                  minHeight: '400px',
+                  height: '600px',
+                  maxHeight: '90vh',
+                  resize: 'both'
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded pointer-events-none">
+                Drag corner to resize
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* Game Image */}
+          {/* Game Preview */}
           <div className="space-y-6">
             <Card className="overflow-hidden">
               {game.image_url ? (
@@ -191,9 +228,10 @@ const GameDetail = () => {
                 onClick={handlePlay}
                 className="flex-1 gap-2 h-14 text-lg"
                 size="lg"
+                disabled={!game.game_url}
               >
                 <Play className="w-5 h-5" />
-                Play Now
+                {isPlaying ? 'Playing' : 'Play Now'}
               </Button>
               <Button
                 variant={isLiked ? "default" : "outline"}
