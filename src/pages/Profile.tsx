@@ -51,12 +51,30 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', userData[0].user_id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      setProfile(profileData);
-      setDisplayName(profileData.display_name || "");
+      // If profile doesn't exist, create one
+      if (!profileData) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: userData[0].user_id,
+            username: userData[0].username,
+            display_name: userData[0].username
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+
+        setProfile(newProfile);
+        setDisplayName(newProfile.display_name || "");
+      } else {
+        setProfile(profileData);
+        setDisplayName(profileData.display_name || "");
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error("Failed to load profile");
