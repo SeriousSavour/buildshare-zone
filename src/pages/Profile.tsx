@@ -86,49 +86,25 @@ const Profile = () => {
       }
 
       const userId = userData[0].user_id;
-      const username = userData[0].username;
 
-      // Try to get existing profile
-      const { data: existingProfile, error: fetchError } = await supabase
+      // Fetch profile (should always exist due to automatic creation on signup)
+      const { data: profile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         throw fetchError;
       }
 
-      // If profile doesn't exist, create one
-      if (!existingProfile) {
-        console.log('Creating new profile for user:', userId);
-        
-        const newProfileData = {
-          user_id: userId,
-          username: username,
-          display_name: username,
-          avatar_url: null
-        };
-
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert(newProfileData)
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-          throw createError;
-        }
-
-        console.log('New profile created:', newProfile);
-        setProfile(newProfile);
-        setDisplayName(newProfile.display_name || "");
-        toast.success("Welcome! Your profile has been created.");
-      } else {
-        setProfile(existingProfile);
-        setDisplayName(existingProfile.display_name || "");
+      if (!profile) {
+        toast.error("Profile not found. Please contact support.");
+        return;
       }
+
+      setProfile(profile);
+      setDisplayName(profile.display_name || "");
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       toast.error(error.message || "Failed to load profile");
