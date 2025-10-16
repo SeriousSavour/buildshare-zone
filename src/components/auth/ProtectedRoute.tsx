@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -29,6 +29,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     
     if (!sessionToken) {
       setIsAuthenticated(false);
+      if (requireAdmin) setIsAdmin(false);
       return;
     }
 
@@ -41,37 +42,42 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
       if (error || !data || data.length === 0) {
         // Session is invalid, clear storage
         setIsAuthenticated(false);
+        if (requireAdmin) setIsAdmin(false);
         localStorage.removeItem("session_token");
         sessionStorage.removeItem("session_token");
         localStorage.removeItem("auth_initialized");
         return;
       }
 
-      // Session is valid
-      setIsAuthenticated(true);
-      
-      // Ensure token is in both storages
-      localStorage.setItem("session_token", sessionToken);
-      sessionStorage.setItem("session_token", sessionToken);
-
+      // If admin check is required, do it before setting authenticated
       if (requireAdmin) {
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", data[0].user_id);
 
-        setIsAdmin(roleData?.some(r => r.role === "admin") || false);
+        const hasAdminRole = roleData?.some(r => r.role === "admin") || false;
+        setIsAdmin(hasAdminRole);
       }
+      
+      // Session is valid - set this AFTER admin check if needed
+      setIsAuthenticated(true);
+      
+      // Ensure token is in both storages
+      localStorage.setItem("session_token", sessionToken);
+      sessionStorage.setItem("session_token", sessionToken);
     } catch (error) {
       console.error("Auth check failed:", error);
       setIsAuthenticated(false);
+      if (requireAdmin) setIsAdmin(false);
       localStorage.removeItem("session_token");
       sessionStorage.removeItem("session_token");
       localStorage.removeItem("auth_initialized");
     }
   };
 
-  if (isAuthenticated === null) {
+  // Show loading while checking auth or admin status
+  if (isAuthenticated === null || (requireAdmin && isAdmin === null)) {
     return <div className="flex items-center justify-center min-h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>;
