@@ -16,6 +16,8 @@ interface Game {
   genre: string;
   max_players: string;
   creator_name: string;
+  creator_id: string;
+  creator_avatar?: string | null;
   likes: number;
   plays: number;
   game_url: string | null;
@@ -67,7 +69,22 @@ const GameDetail = () => {
         .single();
 
       if (error) throw error;
-      setGame(data);
+      
+      // Fetch creator profile with avatar
+      if (data) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('user_id', data.creator_id)
+          .single();
+        
+        setGame({
+          ...data,
+          creator_avatar: profile?.avatar_url
+        });
+      } else {
+        setGame(data);
+      }
     } catch (error) {
       console.error('Error fetching game:', error);
       toast.error("Failed to load game");
@@ -656,7 +673,20 @@ const GameDetail = () => {
                       <User className="w-4 h-4" />
                       <span>Creator</span>
                     </div>
-                    <span className="text-sm font-medium">{game.creator_name}</span>
+                    <div className="flex items-center gap-2">
+                      {game.creator_avatar ? (
+                        <img
+                          src={game.creator_avatar}
+                          alt={game.creator_name}
+                          className="w-6 h-6 rounded-full object-cover border border-border"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                          <User className="w-3 h-3 text-primary" />
+                        </div>
+                      )}
+                      <span className="text-sm font-medium">{game.creator_name}</span>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between pb-3 border-b border-border">
