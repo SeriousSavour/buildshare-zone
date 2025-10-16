@@ -32,8 +32,8 @@ const Index = () => {
         id: particleId++,
         emoji: emojis[Math.floor(Math.random() * emojis.length)],
         left: Math.random() * 100,
-        animationDuration: 3 + Math.random() * 4,
-        size: 1.5 + Math.random() * 2,
+        animationDuration: 8 + Math.random() * 8,
+        size: 0.8 + Math.random() * 3,
       };
       
       setParticles(prev => [...prev, particle]);
@@ -45,13 +45,31 @@ const Index = () => {
 
     const interval = setInterval(() => {
       generateParticle();
-    }, 400);
+    }, 600);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Falling Particles - Full Page */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute"
+            style={{
+              left: `${particle.left}%`,
+              top: '-100px',
+              fontSize: `${particle.size}rem`,
+              animation: `fall ${particle.animationDuration}s linear forwards`,
+            }}
+          >
+            {particle.emoji}
+          </div>
+        ))}
+      </div>
+      
       <Navigation />
       
       {/* Announcement Banner */}
@@ -74,23 +92,6 @@ const Index = () => {
 
       {/* Hero Section with Halloween Icons */}
       <section className="relative overflow-hidden py-20 px-4">
-        {/* Falling Particles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {particles.map((particle) => (
-            <div
-              key={particle.id}
-              className="absolute animate-fall"
-              style={{
-                left: `${particle.left}%`,
-                top: '-50px',
-                fontSize: `${particle.size}rem`,
-                animation: `fall ${particle.animationDuration}s linear forwards`,
-              }}
-            >
-              {particle.emoji}
-            </div>
-          ))}
-        </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           {/* Hero Icon */}
