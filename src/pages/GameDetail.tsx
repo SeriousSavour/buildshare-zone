@@ -278,60 +278,39 @@ const GameDetail = () => {
   };
 
   const fetchComments = async () => {
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) {
+      setComments([]);
+      return;
+    }
+
     try {
-      const { data, error } = await supabase
-        .from('game_comments')
-        .select(`
-          id,
-          user_id,
-          content,
-          created_at,
-          is_deleted
-        `)
-        .eq('game_id', id)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_game_comments_with_profiles', {
+        _game_id: id,
+        _session_token: sessionToken
+      });
 
       if (error) {
         console.error('Error fetching comments:', error);
         throw error;
       }
 
-      console.log('Fetched comments:', data);
+      console.log('Fetched comments with profiles:', data);
       
-      // Fetch all user profiles in one query
-      const userIds = [...new Set((data || []).map(c => c.user_id))];
-      
-      if (userIds.length > 0) {
-        const { data: profiles, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_id, username, avatar_url')
-          .in('user_id', userIds);
-
-        if (profileError) {
-          console.error('Error fetching profiles:', profileError);
+      // Transform the data to match the expected structure
+      const commentsWithProfiles = (data || []).map(comment => ({
+        id: comment.id,
+        user_id: comment.user_id,
+        content: comment.content,
+        created_at: comment.created_at,
+        is_deleted: comment.is_deleted,
+        profiles: {
+          username: comment.username,
+          avatar_url: comment.avatar_url
         }
-
-        console.log('Fetched profiles:', profiles);
-
-        // Map profiles to comments
-        const profileMap = new Map(
-          (profiles || []).map(p => [p.user_id, p])
-        );
-
-        const commentsWithProfiles = (data || []).map(comment => ({
-          ...comment,
-          profiles: profileMap.get(comment.user_id) || { 
-            username: 'Unknown User', 
-            avatar_url: null 
-          }
-        }));
-        
-        console.log('Comments with profiles:', commentsWithProfiles);
-        setComments(commentsWithProfiles);
-      } else {
-        setComments([]);
-      }
+      }));
+      
+      setComments(commentsWithProfiles);
     } catch (error) {
       console.error('Error in fetchComments:', error);
       toast.error("Failed to load comments");

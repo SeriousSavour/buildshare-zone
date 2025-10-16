@@ -1131,6 +1131,18 @@ export type Database = {
           user_profile: Json
         }[]
       }
+      get_game_comments_with_profiles: {
+        Args: { _game_id: string; _session_token: string }
+        Returns: {
+          avatar_url: string
+          content: string
+          created_at: string
+          id: string
+          is_deleted: boolean
+          user_id: string
+          username: string
+        }[]
+      }
       get_room_members: {
         Args: { room_id: string }
         Returns: {
