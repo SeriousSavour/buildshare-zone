@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     
     if (!sessionToken) {
       setIsAuthenticated(false);
-      if (requireAdmin) setIsAdmin(false);
+      setIsAdmin(false);
       return;
     }
 
@@ -42,14 +42,14 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
       if (error || !data || data.length === 0) {
         // Session is invalid, clear storage
         setIsAuthenticated(false);
-        if (requireAdmin) setIsAdmin(false);
+        setIsAdmin(false);
         localStorage.removeItem("session_token");
         sessionStorage.removeItem("session_token");
         localStorage.removeItem("auth_initialized");
         return;
       }
 
-      // If admin check is required, do it before setting authenticated
+      // Check admin role if required
       if (requireAdmin) {
         const { data: roleData } = await supabase
           .from("user_roles")
@@ -58,10 +58,12 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
 
         const hasAdminRole = roleData?.some(r => r.role === "admin") || false;
         setIsAdmin(hasAdminRole);
+        setIsAuthenticated(true);
+      } else {
+        // Not checking admin, so set to false and mark as authenticated
+        setIsAdmin(false);
+        setIsAuthenticated(true);
       }
-      
-      // Session is valid - set this AFTER admin check if needed
-      setIsAuthenticated(true);
       
       // Ensure token is in both storages
       localStorage.setItem("session_token", sessionToken);
@@ -69,7 +71,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     } catch (error) {
       console.error("Auth check failed:", error);
       setIsAuthenticated(false);
-      if (requireAdmin) setIsAdmin(false);
+      setIsAdmin(false);
       localStorage.removeItem("session_token");
       sessionStorage.removeItem("session_token");
       localStorage.removeItem("auth_initialized");
