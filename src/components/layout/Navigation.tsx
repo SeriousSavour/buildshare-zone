@@ -21,6 +21,8 @@ const Navigation = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("session_token");
+    sessionStorage.removeItem("session_token");
+    localStorage.removeItem("auth_initialized");
     setIsAuthenticated(false);
     navigate("/");
   };

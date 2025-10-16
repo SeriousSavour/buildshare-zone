@@ -16,7 +16,16 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
   }, []);
 
   const checkAuth = async () => {
-    const sessionToken = localStorage.getItem("session_token");
+    // Try localStorage first, then sessionStorage as fallback
+    let sessionToken = localStorage.getItem("session_token");
+    
+    if (!sessionToken) {
+      sessionToken = sessionStorage.getItem("session_token");
+      // If found in sessionStorage, restore to localStorage
+      if (sessionToken) {
+        localStorage.setItem("session_token", sessionToken);
+      }
+    }
     
     if (!sessionToken) {
       setIsAuthenticated(false);
@@ -24,17 +33,26 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     }
 
     try {
+      // Verify the session is still valid
       const { data, error } = await supabase.rpc("get_user_by_session", {
         _session_token: sessionToken,
       });
 
       if (error || !data || data.length === 0) {
+        // Session is invalid, clear storage
         setIsAuthenticated(false);
         localStorage.removeItem("session_token");
+        sessionStorage.removeItem("session_token");
+        localStorage.removeItem("auth_initialized");
         return;
       }
 
+      // Session is valid
       setIsAuthenticated(true);
+      
+      // Ensure token is in both storages
+      localStorage.setItem("session_token", sessionToken);
+      sessionStorage.setItem("session_token", sessionToken);
 
       if (requireAdmin) {
         const { data: roleData } = await supabase
@@ -48,6 +66,9 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     } catch (error) {
       console.error("Auth check failed:", error);
       setIsAuthenticated(false);
+      localStorage.removeItem("session_token");
+      sessionStorage.removeItem("session_token");
+      localStorage.removeItem("auth_initialized");
     }
   };
 
