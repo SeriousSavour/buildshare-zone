@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -104,6 +104,9 @@ const Navigation = () => {
                     <Shield className="w-5 h-5 text-primary" />
                   </Button>
                 )}
+                <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} title="Settings">
+                  <Settings className="w-5 h-5" />
+                </Button>
                 <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
                   <User className="w-5 h-5" />
                 </Button>
