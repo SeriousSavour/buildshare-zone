@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
-import { ProxyTest } from "@/components/ProxyTest";
 
 interface Particle {
   id: number;
@@ -65,7 +64,7 @@ const Settings = () => {
         <h1 className="text-4xl font-bold mb-8 gradient-text">Settings</h1>
         
         <div className="space-y-6">
-          <ProxyTest />
+          <p className="text-muted-foreground">Settings coming soon...</p>
         </div>
       </div>
     </div>
