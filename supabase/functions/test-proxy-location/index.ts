@@ -19,23 +19,48 @@ serve(async (req) => {
   }
 
   try {
-    // Get BrightData proxy configuration
-    const proxyListEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
+    // Try IPRoyal first, then BrightData
+    let proxyList: ProxyServer[] = [];
+    let proxyType = 'none';
     
-    if (!proxyListEnv) {
+    const iproyalEnv = Deno.env.get('IPROYAL_PROXY_LIST');
+    if (iproyalEnv) {
+      try {
+        proxyList = JSON.parse(iproyalEnv);
+        proxyType = 'IPRoyal';
+        console.log(`Using IPRoyal with ${proxyList.length} servers`);
+      } catch (e) {
+        console.error('Failed to parse IPROYAL_PROXY_LIST:', e);
+      }
+    }
+    
+    if (proxyList.length === 0) {
+      const brightdataEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
+      if (brightdataEnv) {
+        try {
+          proxyList = JSON.parse(brightdataEnv);
+          proxyType = 'BrightData';
+          console.log(`Using BrightData with ${proxyList.length} servers`);
+        } catch (e) {
+          console.error('Failed to parse BRIGHTDATA_PROXY_LIST:', e);
+        }
+      }
+    }
+    
+    if (proxyList.length === 0) {
       return new Response(
         JSON.stringify({ 
-          error: 'BRIGHTDATA_PROXY_LIST not configured',
-          message: 'Please add the BrightData proxy list secret and redeploy'
+          error: 'No proxy configured',
+          message: 'Neither IPROYAL_PROXY_LIST nor BRIGHTDATA_PROXY_LIST is configured',
+          note: 'The system will work with direct connections, but proxy testing is not available'
         }), 
         { 
-          status: 500,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
 
-    const proxyList: ProxyServer[] = JSON.parse(proxyListEnv);
     const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
     
     console.log(`Testing with proxy: ${proxy.host}:${proxy.port}`);
@@ -61,6 +86,7 @@ serve(async (req) => {
       
       proxyResult = {
         success: true,
+        proxyType,
         ip: ipData.ip,
         location: {
           country: locationData.country,
