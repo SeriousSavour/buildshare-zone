@@ -19,14 +19,14 @@ serve(async (req) => {
   }
 
   try {
-    // Get BrightData proxy configuration
-    const proxyListEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
+    // Get proxy configuration
+    const proxyListEnv = Deno.env.get('PROXY_LIST');
     
     if (!proxyListEnv) {
       return new Response(
         JSON.stringify({ 
-          error: 'BRIGHTDATA_PROXY_LIST not configured',
-          message: 'Please add the BrightData proxy list secret and redeploy'
+          error: 'PROXY_LIST not configured',
+          message: 'Please add the proxy list secret and redeploy'
         }), 
         { 
           status: 500,
@@ -36,9 +36,10 @@ serve(async (req) => {
     }
 
     const proxyList: ProxyServer[] = JSON.parse(proxyListEnv);
-    const proxy = proxyList[Math.floor(Math.random() * proxyList.length)];
+    const randomIndex = Math.floor(Math.random() * proxyList.length);
+    const proxy = proxyList[randomIndex];
     
-    console.log(`Testing with proxy: ${proxy.host}:${proxy.port}`);
+    console.log(`🎲 Testing with random proxy ${randomIndex + 1}/${proxyList.length}: ${proxy.host}:${proxy.port}`);
 
     // Test 1: Get IP address through proxy
     const ipTestUrl = 'https://api.ipify.org?format=json';

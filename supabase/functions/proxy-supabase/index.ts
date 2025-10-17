@@ -14,7 +14,7 @@ const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60000;
 const RATE_LIMIT_MAX = 200;
 
-// BrightData proxy configuration
+// Proxy configuration
 interface ProxyServer {
   host: string;
   port: number;
@@ -23,23 +23,25 @@ interface ProxyServer {
 }
 
 let proxyList: ProxyServer[] = [];
-const proxyListEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
+const proxyListEnv = Deno.env.get('PROXY_LIST');
 if (proxyListEnv) {
   try {
-    // Parse JSON format: [{"host":"brd.superproxy.io","port":33335,"username":"brd-customer-hl_b2z2czbc-zone-flowtation","password":"c9yil9ln5cq4"}]
+    // Parse JSON format: [{"host":"geo.iproyal.com","port":12321,"username":"...","password":"..."}]
     proxyList = JSON.parse(proxyListEnv);
-    console.log(`✓ BrightData loaded ${proxyList.length} proxy servers`);
+    console.log(`✓ Loaded ${proxyList.length} proxy servers`);
   } catch (e) {
-    console.error('✗ Failed to parse BRIGHTDATA_PROXY_LIST:', e);
+    console.error('✗ Failed to parse PROXY_LIST:', e);
   }
 } else {
-  console.warn('⚠ BRIGHTDATA_PROXY_LIST not configured - direct connection will be used');
+  console.warn('⚠ PROXY_LIST not configured - direct connection will be used');
 }
 
-// Get random proxy from list
+// Get random proxy from list (randomized on EVERY request)
 function getRandomProxy(): ProxyServer | null {
   if (proxyList.length === 0) return null;
-  return proxyList[Math.floor(Math.random() * proxyList.length)];
+  const randomIndex = Math.floor(Math.random() * proxyList.length);
+  console.log(`🎲 Selected random proxy ${randomIndex + 1}/${proxyList.length}`);
+  return proxyList[randomIndex];
 }
 
 serve(async (req) => {
