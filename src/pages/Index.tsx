@@ -97,11 +97,11 @@ const Index = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <span className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text">
-                    Site being shut down for a while
+                    🎃 Halloween Special Event! 🎃
                   </span>
                   <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-primary/50" />
                   <span className="text-base text-muted-foreground/90">
-                    See you sometime in 2030 👋
+                    Join the spooky fun with exclusive Halloween games and rewards! 👻
                   </span>
                 </div>
               </div>
