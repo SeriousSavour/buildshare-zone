@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const PROXY_SUPABASE_URL = 'https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/proxy-supabase';
 
-// BrightData proxy configuration
+// Proxy configuration - supports IPRoyal and BrightData
 interface ProxyServer {
   host: string;
   port: number;
@@ -18,17 +18,34 @@ interface ProxyServer {
 }
 
 let proxyList: ProxyServer[] = [];
-const proxyListEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
-if (proxyListEnv) {
+
+// Try IPRoyal first (preferred)
+const iproyalListEnv = Deno.env.get('IPROYAL_PROXY_LIST');
+if (iproyalListEnv) {
   try {
-    // Parse JSON format: [{"host":"brd.superproxy.io","port":33335,"username":"brd-customer-hl_b2z2czbc-zone-flowtation","password":"c9yil9ln5cq4"}]
-    proxyList = JSON.parse(proxyListEnv);
-    console.log(`✓ BrightData loaded ${proxyList.length} proxy servers`);
+    proxyList = JSON.parse(iproyalListEnv);
+    console.log(`✓ IPRoyal loaded ${proxyList.length} proxy servers`);
   } catch (e) {
-    console.error('✗ Failed to parse BRIGHTDATA_PROXY_LIST:', e);
+    console.error('✗ Failed to parse IPROYAL_PROXY_LIST:', e);
   }
-} else {
-  console.warn('⚠ BRIGHTDATA_PROXY_LIST not configured - direct connection will be used');
+}
+
+// Fallback to BrightData if IPRoyal not configured
+if (proxyList.length === 0) {
+  const brightdataListEnv = Deno.env.get('BRIGHTDATA_PROXY_LIST');
+  if (brightdataListEnv) {
+    try {
+      proxyList = JSON.parse(brightdataListEnv);
+      console.log(`✓ BrightData loaded ${proxyList.length} proxy servers`);
+    } catch (e) {
+      console.error('✗ Failed to parse BRIGHTDATA_PROXY_LIST:', e);
+    }
+  }
+}
+
+// Log proxy status
+if (proxyList.length === 0) {
+  console.log('ℹ No proxy configured - using direct connection (this is fine!)');
 }
 
 // Get random proxy from list
