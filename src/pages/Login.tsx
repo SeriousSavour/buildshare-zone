@@ -77,23 +77,15 @@ const Login = () => {
         return;
       }
 
-      // Store session token with additional persistence
+      // Store session token
       localStorage.setItem("session_token", sessionToken);
-      
-      // Also store in sessionStorage as backup
       sessionStorage.setItem("session_token", sessionToken);
-      
-      // Set a flag to indicate successful login
       localStorage.setItem("auth_initialized", "true");
       
       toast.success("Welcome back!");
       
-      // Force a small delay to ensure storage is written before navigation
-      setTimeout(() => {
-        navigate("/games");
-        // Reload to ensure fresh auth state
-        window.location.reload();
-      }, 100);
+      // Navigate without reload to avoid race conditions
+      navigate("/games", { replace: true });
     } catch (error) {
       console.error("Login error:", error);
       toast.error("An error occurred during login");
