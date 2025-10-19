@@ -1,6 +1,6 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Play, MessageSquare, Share2, User } from "lucide-react";
+import { Heart, Play, MessageSquare, Share2, User, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
@@ -16,11 +16,14 @@ interface GameCardProps {
   maxPlayers: string;
   creatorName: string;
   creatorAvatar?: string | null;
+  creatorId: string;
   likes: number;
   plays: number;
   gameUrl: string | null;
   isLiked?: boolean;
+  isAdmin?: boolean;
   onLikeToggle?: () => void;
+  onDelete?: () => void;
 }
 
 const GameCard = ({
@@ -31,14 +34,18 @@ const GameCard = ({
   genre,
   creatorName,
   creatorAvatar,
+  creatorId,
   likes,
   plays,
   gameUrl,
   isLiked = false,
+  isAdmin = false,
   onLikeToggle,
+  onDelete,
 }: GameCardProps) => {
   const navigate = useNavigate();
   const [isLiking, setIsLiking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [localLiked, setLocalLiked] = useState(isLiked);
   const [localLikes, setLocalLikes] = useState(likes);
 
@@ -90,6 +97,40 @@ const GameCard = ({
     const shareUrl = `${window.location.origin}/games?id=${id}`;
     navigator.clipboard.writeText(shareUrl);
     toast.success("Link copied to clipboard!");
+  };
+
+  const handleEdit = () => {
+    navigate(`/create?edit=${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this game?")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const sessionToken = localStorage.getItem('session_token');
+      if (!sessionToken) {
+        toast.error("Please login to delete games");
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('delete_game_with_context', {
+        _session_token: sessionToken,
+        _game_id: id
+      });
+
+      if (error) throw error;
+
+      toast.success("Game deleted successfully");
+      onDelete?.();
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      toast.error("Failed to delete game");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -182,6 +223,29 @@ const GameCard = ({
         >
           <Share2 className="w-5 h-5" />
         </Button>
+
+        {isAdmin && (
+          <>
+            <Button
+              onClick={handleEdit}
+              variant="outline"
+              size="lg"
+              className="hover-scale hover-glow transition-all duration-300 border-2 border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/10 py-6"
+            >
+              <Pencil className="w-5 h-5 text-blue-500" />
+            </Button>
+            
+            <Button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              variant="outline"
+              size="lg"
+              className="hover-scale hover-glow transition-all duration-300 border-2 border-destructive/30 hover:border-destructive/60 hover:bg-destructive/10 py-6"
+            >
+              <Trash2 className="w-5 h-5 text-destructive" />
+            </Button>
+          </>
+        )}
       </CardFooter>
     </Card>
   );

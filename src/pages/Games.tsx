@@ -46,6 +46,7 @@ const Games = () => {
   const [popularGames, setPopularGames] = useState<Game[]>([]);
   const [featuredGame, setFeaturedGame] = useState<Game | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   useEffect(() => {
     fetchGames();
@@ -87,7 +88,18 @@ const Games = () => {
         _session_token: sessionToken
       });
       if (data && data.length > 0) {
-        setCurrentUserId(data[0].user_id);
+        const userId = data[0].user_id;
+        setCurrentUserId(userId);
+        
+        // Check if user is admin
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+        
+        if (rolesData && rolesData.length > 0) {
+          setIsAdmin(rolesData[0].role === 'admin');
+        }
       }
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -423,7 +435,7 @@ const Games = () => {
               Try adjusting your search or filters
             </p>
           </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
-            {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} />)}
+            {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
           </div>}
       </div>
     </div>;
