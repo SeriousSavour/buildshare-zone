@@ -141,7 +141,42 @@ const GameCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg">
+    <div className="relative">
+      {/* Admin Controls - Completely outside Card */}
+      {isAdmin && (
+        <div className="absolute top-3 left-3 flex gap-2 z-[9999]">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('=== EDIT BUTTON CLICKED ===');
+              console.log('Game ID:', id);
+              console.log('Navigating to /edit/' + id);
+              navigate(`/edit/${id}`);
+            }}
+            className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all cursor-pointer shadow-xl border-2 border-blue-400"
+            title="Edit game"
+            type="button"
+          >
+            <Pencil className="w-5 h-5 text-white" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleDelete();
+            }}
+            disabled={isDeleting}
+            className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer shadow-xl border-2 border-red-400"
+            title="Delete game"
+            type="button"
+          >
+            <Trash2 className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      )}
+      
+      <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 pointer-events-none">
           {imageUrl ? (
@@ -163,54 +198,6 @@ const GameCard = ({
             <StyledText text={genre} weirdLetterIndex={genre === "Action" ? 2 : 0} />
           </div>
         </div>
-        
-        {/* Admin Controls - Positioned absolutely outside pointer-events-none container */}
-        {isAdmin && (
-          <div 
-            className="absolute top-3 left-3 flex gap-2 z-[100]"
-            style={{ pointerEvents: 'auto' }}
-          >
-            <button
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Edit mousedown');
-              }}
-              onClick={(e) => {
-                console.log('Edit onClick fired');
-                e.preventDefault();
-                e.stopPropagation();
-                handleEdit(e);
-                return false;
-              }}
-              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all cursor-pointer shadow-xl border-2 border-blue-400"
-              title="Edit game"
-              type="button"
-              style={{ pointerEvents: 'auto', zIndex: 9999 }}
-            >
-              <Pencil className="w-5 h-5 text-white" style={{ pointerEvents: 'none' }} />
-            </button>
-            <button
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDelete();
-                return false;
-              }}
-              disabled={isDeleting}
-              className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer shadow-xl border-2 border-red-400"
-              title="Delete game"
-              type="button"
-              style={{ pointerEvents: 'auto', zIndex: 9999 }}
-            >
-              <Trash2 className="w-5 h-5 text-white" style={{ pointerEvents: 'none' }} />
-            </button>
-          </div>
-        )}
       </CardHeader>
       
       <CardContent className="p-7 space-y-4">
@@ -281,6 +268,7 @@ const GameCard = ({
         </Button>
       </CardFooter>
     </Card>
+    </div>
   );
 };
 
