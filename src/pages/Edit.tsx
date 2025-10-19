@@ -8,6 +8,7 @@ import Navigation from "@/components/layout/Navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { createClient } from '@supabase/supabase-js';
 
 const Edit = () => {
   const { id } = useParams();
@@ -117,7 +118,14 @@ const Edit = () => {
 
     try {
       const sessionToken = localStorage.getItem('session_token');
-      const { data, error } = await supabase.rpc('update_game_with_context', {
+      
+      // Use direct client for RPC calls (proxy fails for these)
+      const directClient = createClient(
+        "https://ptmeykacgbrsmvcvwrpp.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bWV5a2FjZ2Jyc212Y3Z3cnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY3MDAsImV4cCI6MjA3MzQ2MjcwMH0.7J3jVdRgQeiaVvMnH9-xr-mA1fRCVr-JksDK5SklRJI"
+      );
+      
+      const { data, error } = await directClient.rpc('update_game_with_context', {
         _session_token: sessionToken,
         _game_id: id,
         title: formData.title,
