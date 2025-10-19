@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Navigation from "@/components/layout/Navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 
 const Edit = () => {
@@ -79,16 +78,22 @@ const Edit = () => {
       }
 
       try {
-        const response = await api.getGame(id);
-        if (response && response.length > 0) {
-          const game = response[0];
+        const { data, error } = await supabase
+          .from('games')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
           setFormData({
-            title: game.title || "",
-            description: game.description || "",
-            genre: game.genre || "Action",
-            max_players: game.max_players || "1-4 players",
-            game_url: game.game_url || "",
-            image_url: game.image_url || "",
+            title: data.title || "",
+            description: data.description || "",
+            genre: data.genre || "Action",
+            max_players: data.max_players || "1-4 players",
+            game_url: data.game_url || "",
+            image_url: data.image_url || "",
           });
         }
       } catch (error) {
@@ -111,7 +116,20 @@ const Edit = () => {
     setIsSubmitting(true);
 
     try {
-      await api.updateGame(id!, formData);
+      const sessionToken = localStorage.getItem('session_token');
+      const { data, error } = await supabase.rpc('update_game_with_context', {
+        _session_token: sessionToken,
+        _game_id: id,
+        title: formData.title,
+        description: formData.description,
+        genre: formData.genre,
+        max_players: formData.max_players,
+        game_url: formData.game_url,
+        image_url: formData.image_url
+      });
+
+      if (error) throw error;
+
       toast.success("Game updated successfully!");
       navigate("/games");
     } catch (error: any) {
