@@ -8,12 +8,14 @@ import Navigation from "@/components/layout/Navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 
 const Edit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -24,7 +26,53 @@ const Edit = () => {
   });
 
   useEffect(() => {
-    const loadGameData = async () => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) {
+      toast.error("Please login to edit games");
+      navigate("/games");
+      return;
+    }
+
+    try {
+      const { data: userData } = await supabase.rpc('get_user_by_session', {
+        _session_token: sessionToken
+      });
+
+      if (!userData || userData.length === 0) {
+        toast.error("Session expired. Please login again.");
+        navigate("/games");
+        return;
+      }
+
+      const userId = userData[0].user_id;
+
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      const hasAdminRole = rolesData?.some(r => r.role === 'admin') || false;
+      
+      if (!hasAdminRole) {
+        toast.error("You don't have permission to edit games");
+        navigate("/games");
+        return;
+      }
+
+      setIsAdmin(true);
+      loadGameData();
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      toast.error("Failed to verify permissions");
+      navigate("/games");
+    }
+  };
+
+  const loadGameData = async () => {
       if (!id) {
         navigate("/games");
         return;
@@ -51,9 +99,6 @@ const Edit = () => {
         setIsLoading(false);
       }
     };
-
-    loadGameData();
-  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
