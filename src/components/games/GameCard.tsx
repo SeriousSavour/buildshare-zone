@@ -151,6 +151,34 @@ const GameCard = ({
               <Play className="w-20 h-20 text-primary/60 animate-pulse" />
             </div>
           )}
+          
+          {/* Admin Controls - Discreet top-left corner */}
+          {isAdmin && (
+            <div className="absolute top-3 left-3 flex gap-2 opacity-70 hover:opacity-100 transition-opacity">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit();
+                }}
+                className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-blue-500/60 flex items-center justify-center hover-scale transition-all"
+                title="Edit game"
+              >
+                <Pencil className="w-4 h-4 text-blue-500" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
+                disabled={isDeleting}
+                className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-destructive/60 flex items-center justify-center hover-scale transition-all disabled:opacity-50"
+                title="Delete game"
+              >
+                <Trash2 className="w-4 h-4 text-destructive" />
+              </button>
+            </div>
+          )}
+          
           <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm shadow-xl hover-scale glow-orange">
             <StyledText text={genre} weirdLetterIndex={genre === "Action" ? 2 : 0} />
           </div>
@@ -223,29 +251,6 @@ const GameCard = ({
         >
           <Share2 className="w-5 h-5" />
         </Button>
-
-        {isAdmin && (
-          <>
-            <Button
-              onClick={handleEdit}
-              variant="outline"
-              size="lg"
-              className="hover-scale hover-glow transition-all duration-300 border-2 border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/10 py-6"
-            >
-              <Pencil className="w-5 h-5 text-blue-500" />
-            </Button>
-            
-            <Button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              variant="outline"
-              size="lg"
-              className="hover-scale hover-glow transition-all duration-300 border-2 border-destructive/30 hover:border-destructive/60 hover:bg-destructive/10 py-6"
-            >
-              <Trash2 className="w-5 h-5 text-destructive" />
-            </Button>
-          </>
-        )}
       </CardFooter>
     </Card>
   );
