@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,21 +9,9 @@ import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { Plus, Upload } from "lucide-react";
 
-interface Particle {
-  id: number;
-  emoji: string;
-  left: number;
-  animationDuration: number;
-  size: number;
-}
-
 const Create = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const editGameId = searchParams.get('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -41,70 +29,6 @@ const Create = () => {
     "Action", "Adventure", "Puzzle", "Strategy", 
     "Simulation", "Survival", "Horror", "RPG"
   ];
-
-  // Load game data if in edit mode
-  useEffect(() => {
-    const loadGameData = async () => {
-      if (!editGameId) return;
-      
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('games')
-          .select('*')
-          .eq('id', editGameId)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setFormData({
-            title: data.title || "",
-            description: data.description || "",
-            game_url: data.game_url || "",
-            image_url: data.image_url || "",
-            genre: data.genre || "Action",
-            max_players: data.max_players || "1-4 players",
-            category: data.category || "game"
-          });
-        }
-      } catch (error) {
-        console.error('Error loading game:', error);
-        toast.error("Failed to load game data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadGameData();
-  }, [editGameId]);
-
-  useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
-    let particleId = 0;
-
-    const generateParticle = () => {
-      const particle: Particle = {
-        id: particleId++,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 100,
-        animationDuration: 8 + Math.random() * 8,
-        size: 0.8 + Math.random() * 3,
-      };
-      
-      setParticles(prev => [...prev, particle]);
-
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => p.id !== particle.id));
-      }, particle.animationDuration * 1000);
-    };
-
-    const interval = setInterval(() => {
-      generateParticle();
-    }, 600);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -179,42 +103,22 @@ const Create = () => {
 
       setUploadProgress(90);
 
-      if (editGameId) {
-        // Update existing game
-        const { data, error } = await supabase.rpc('update_game_with_context', {
-          _session_token: sessionToken,
-          _game_id: editGameId,
-          _title: formData.title,
-          _description: formData.description,
-          _genre: formData.genre,
-          _max_players: formData.max_players,
-          _game_url: gameUrl,
-          _image_url: imageUrl,
-          _category: formData.category
-        });
+      // Create new game
+      const { data, error } = await supabase.rpc('create_game_with_context', {
+        _session_token: sessionToken,
+        _title: formData.title,
+        _description: formData.description,
+        _genre: formData.genre,
+        _max_players: formData.max_players,
+        _game_url: gameUrl,
+        _image_url: imageUrl,
+        _category: formData.category
+      });
 
-        if (error) throw error;
-        
-        setUploadProgress(100);
-        toast.success("Game updated successfully!");
-      } else {
-        // Create new game
-        const { data, error } = await supabase.rpc('create_game_with_context', {
-          _session_token: sessionToken,
-          _title: formData.title,
-          _description: formData.description,
-          _genre: formData.genre,
-          _max_players: formData.max_players,
-          _game_url: gameUrl,
-          _image_url: imageUrl,
-          _category: formData.category
-        });
-
-        if (error) throw error;
-        
-        setUploadProgress(100);
-        toast.success("Game created successfully!");
-      }
+      if (error) throw error;
+      
+      setUploadProgress(100);
+      toast.success("Game created successfully!");
       
       navigate('/games');
     } catch (error) {
@@ -228,24 +132,6 @@ const Create = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Falling Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
-            className="absolute"
-            style={{
-              left: `${particle.left}%`,
-              top: '-100px',
-              fontSize: `${particle.size}rem`,
-              animation: `fall ${particle.animationDuration}s linear forwards`,
-            }}
-          >
-            {particle.emoji}
-          </div>
-        ))}
-      </div>
-
       {/* Halloween decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
@@ -260,30 +146,22 @@ const Create = () => {
           <div className="flex items-center gap-3">
             <Plus className="w-12 h-12 text-primary" />
             <h1 className="text-5xl font-bold tracking-tight">
-              {editGameId ? 'Edit' : 'Create'} <span className="text-primary">Game</span>
+              Create <span className="text-primary">Game</span>
             </h1>
           </div>
           <p className="text-xl text-muted-foreground">
-            {editGameId ? 'Update your game details' : 'Share your favorite game with the community'}
+            Share your favorite game with the community
           </p>
         </div>
 
         <Card className="animate-fade-in-delay-1">
           <CardHeader>
-            <CardTitle>{editGameId ? 'Edit' : 'Create'} Game Details</CardTitle>
+            <CardTitle>Create Game Details</CardTitle>
             <CardDescription>
-              {editGameId ? 'Update your game information' : 'Fill in the information about your game'}
+              Fill in the information about your game
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center space-y-2">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-                  <p className="text-muted-foreground">Loading game data...</p>
-                </div>
-              </div>
-            ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="title" className="text-sm font-medium">
@@ -442,7 +320,7 @@ const Create = () => {
                   size="lg"
                 >
                   <Upload className="w-4 h-4" />
-                  {isSubmitting ? (editGameId ? "Updating..." : "Creating...") : (editGameId ? "Update Game" : "Create Game")}
+                  {isSubmitting ? "Creating..." : "Create Game"}
                 </Button>
                 <Button
                   type="button"
@@ -454,7 +332,6 @@ const Create = () => {
                 </Button>
               </div>
             </form>
-            )}
           </CardContent>
         </Card>
       </div>

@@ -100,7 +100,7 @@ const GameCard = ({
   };
 
   const handleEdit = () => {
-    navigate(`/create?edit=${id}`);
+    navigate(`/edit/${id}`);
   };
 
   const handleDelete = async () => {
