@@ -102,8 +102,12 @@ const GameCard = ({
   const handleEdit = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    console.log('Navigating to edit page for game:', id);
-    navigate(`/edit/${id}`);
+    const editPath = `/edit/${id}`;
+    console.log('=== EDIT BUTTON CLICKED ===');
+    console.log('Current game ID:', id);
+    console.log('Navigating to:', editPath);
+    console.log('===========================');
+    navigate(editPath);
   };
 
   const handleDelete = async () => {
@@ -162,23 +166,29 @@ const GameCard = ({
         
         {/* Admin Controls - Positioned absolutely outside pointer-events-none container */}
         {isAdmin && (
-          <div className="absolute top-3 left-3 flex gap-2 opacity-70 hover:opacity-100 transition-opacity z-50">
+          <div 
+            className="absolute top-3 left-3 flex gap-2 z-[100]"
+            style={{ pointerEvents: 'auto' }}
+          >
             <button
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('Edit mousedown');
               }}
               onClick={(e) => {
+                console.log('Edit onClick fired');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Edit button clicked for game:', id);
                 handleEdit(e);
+                return false;
               }}
-              className="w-8 h-8 rounded-full bg-card/90 backdrop-blur-sm border-2 border-blue-500/60 hover:bg-blue-500/20 flex items-center justify-center hover:scale-110 transition-all cursor-pointer shadow-lg"
+              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all cursor-pointer shadow-xl border-2 border-blue-400"
               title="Edit game"
               type="button"
+              style={{ pointerEvents: 'auto', zIndex: 9999 }}
             >
-              <Pencil className="w-4 h-4 text-blue-500 pointer-events-none" />
+              <Pencil className="w-5 h-5 text-white" style={{ pointerEvents: 'none' }} />
             </button>
             <button
               onMouseDown={(e) => {
@@ -189,13 +199,15 @@ const GameCard = ({
                 e.preventDefault();
                 e.stopPropagation();
                 handleDelete();
+                return false;
               }}
               disabled={isDeleting}
-              className="w-8 h-8 rounded-full bg-card/90 backdrop-blur-sm border-2 border-destructive/60 hover:bg-destructive/20 flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 cursor-pointer shadow-lg"
+              className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer shadow-xl border-2 border-red-400"
               title="Delete game"
               type="button"
+              style={{ pointerEvents: 'auto', zIndex: 9999 }}
             >
-              <Trash2 className="w-4 h-4 text-destructive pointer-events-none" />
+              <Trash2 className="w-5 h-5 text-white" style={{ pointerEvents: 'none' }} />
             </button>
           </div>
         )}
