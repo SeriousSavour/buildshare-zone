@@ -99,7 +99,10 @@ const GameCard = ({
     toast.success("Link copied to clipboard!");
   };
 
-  const handleEdit = () => {
+  const handleEdit = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log('Navigating to edit page for game:', id);
     navigate(`/edit/${id}`);
   };
 
@@ -157,11 +160,13 @@ const GameCard = ({
             <div className="absolute top-3 left-3 flex gap-2 opacity-70 hover:opacity-100 transition-opacity">
               <button
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
-                  handleEdit();
+                  handleEdit(e);
                 }}
                 className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-blue-500/60 flex items-center justify-center hover-scale transition-all"
                 title="Edit game"
+                type="button"
               >
                 <Pencil className="w-4 h-4 text-blue-500" />
               </button>
