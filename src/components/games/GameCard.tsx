@@ -139,52 +139,54 @@ const GameCard = ({
   return (
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg">
       <CardHeader className="p-0">
-        <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
+        <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 pointer-events-none">
           {imageUrl ? (
             <>
               <img
                 src={imageUrl}
                 alt={title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
-              <Play className="w-20 h-20 text-primary/60 animate-pulse" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15 pointer-events-none">
+              <Play className="w-20 h-20 text-primary/60 animate-pulse pointer-events-none" />
             </div>
           )}
           
           {/* Admin Controls - Discreet top-left corner */}
           {isAdmin && (
-            <div className="absolute top-3 left-3 flex gap-2 opacity-70 hover:opacity-100 transition-opacity">
+            <div className="absolute top-3 left-3 flex gap-2 opacity-70 hover:opacity-100 transition-opacity z-50 pointer-events-auto">
               <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleEdit(e);
                 }}
-                className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-blue-500/60 flex items-center justify-center hover-scale transition-all"
+                className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-blue-500/60 flex items-center justify-center hover-scale transition-all pointer-events-auto cursor-pointer"
                 title="Edit game"
                 type="button"
               >
-                <Pencil className="w-4 h-4 text-blue-500" />
+                <Pencil className="w-4 h-4 text-blue-500 pointer-events-none" />
               </button>
               <button
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   handleDelete();
                 }}
                 disabled={isDeleting}
-                className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-destructive/60 flex items-center justify-center hover-scale transition-all disabled:opacity-50"
+                className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 hover:border-destructive/60 flex items-center justify-center hover-scale transition-all disabled:opacity-50 pointer-events-auto cursor-pointer"
                 title="Delete game"
+                type="button"
               >
-                <Trash2 className="w-4 h-4 text-destructive" />
+                <Trash2 className="w-4 h-4 text-destructive pointer-events-none" />
               </button>
             </div>
           )}
           
-          <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm shadow-xl hover-scale glow-orange">
+          <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm shadow-xl hover-scale glow-orange pointer-events-none">
             <StyledText text={genre} weirdLetterIndex={genre === "Action" ? 2 : 0} />
           </div>
         </div>
