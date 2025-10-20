@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = "https://ptmeykacgbrsmvcvwrpp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bWV5a2FjZ2Jyc212Y3Z3cnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY3MDAsImV4cCI6MjA3MzQ2MjcwMH0.7J3jVdRgQeiaVvMnH9-xr-mA1fRCVr-JksDK5SklRJI";
-const PROXY_URL = `${SUPABASE_URL}/functions/v1/proxy-supabase`;
+const GATEWAY_URL = `${SUPABASE_URL}/functions/v1/api-gateway`;
 
 // Create a custom fetch function that routes through our proxy
 const proxyFetch: typeof fetch = async (input, init) => {
@@ -18,22 +18,22 @@ const proxyFetch: typeof fetch = async (input, init) => {
     const targetUrl = new URL(url);
     const targetPath = targetUrl.pathname + targetUrl.search;
     
-    const proxyUrl = `${PROXY_URL}?path=${encodeURIComponent(targetPath)}`;
+    const gatewayUrl = `${GATEWAY_URL}?path=${encodeURIComponent(targetPath)}`;
     
-    console.log(`[PROXY ATTEMPT] ${init?.method || 'GET'} ${targetPath}`);
+    console.log(`[GATEWAY ATTEMPT] ${init?.method || 'GET'} ${targetPath}`);
     
     try {
-      // Try proxy first
-      const response = await fetch(proxyUrl, init);
+      // Try gateway first
+      const response = await fetch(gatewayUrl, init);
       
       if (response.ok) {
-        console.log(`[PROXY SUCCESS] ${response.status}`);
+        console.log(`[GATEWAY SUCCESS] ${response.status}`);
         return response;
       }
       
-      console.warn(`[PROXY FAILED] ${response.status}, falling back to direct`);
+      console.warn(`[GATEWAY FAILED] ${response.status}, falling back to direct`);
     } catch (error) {
-      console.error(`[PROXY ERROR]`, error);
+      console.error(`[GATEWAY ERROR]`, error);
     }
     
     // Fallback to direct connection

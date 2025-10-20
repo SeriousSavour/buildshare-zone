@@ -90,11 +90,11 @@ const Admin = () => {
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [testResults, setTestResults] = useState<{
     directRest: 'pending' | 'success' | 'blocked' | 'error';
-    proxyRest: 'pending' | 'success' | 'blocked' | 'error';
+    gatewayRest: 'pending' | 'success' | 'blocked' | 'error';
     diagnosticsApi: 'pending' | 'success' | 'blocked' | 'error';
   }>({
     directRest: 'pending',
-    proxyRest: 'pending',
+    gatewayRest: 'pending',
     diagnosticsApi: 'pending',
   });
   
@@ -605,7 +605,7 @@ const Admin = () => {
     setLoading(true);
     setTestResults({
       directRest: 'pending',
-      proxyRest: 'pending',
+      gatewayRest: 'pending',
       diagnosticsApi: 'pending',
     });
 
@@ -624,19 +624,19 @@ const Admin = () => {
       setTestResults(prev => ({ ...prev, directRest: 'blocked' }));
     }
 
-    // Test 2: Proxy REST API call
+    // Test 2: Gateway REST API call
     try {
-      const response = await fetch('https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/proxy-supabase?path=/rest/v1/games?select=id&limit=1', {
+      const response = await fetch('https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/api-gateway?path=/rest/v1/games?select=id&limit=1', {
         headers: {
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bWV5a2FjZ2Jyc212Y3Z3cnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY3MDAsImV4cCI6MjA3MzQ2MjcwMH0.7J3jVdRgQeiaVvMnH9-xr-mA1fRCVr-JksDK5SklRJI'
         }
       });
       setTestResults(prev => ({
         ...prev,
-        proxyRest: response.ok ? 'success' : 'error'
+        gatewayRest: response.ok ? 'success' : 'error'
       }));
     } catch {
-      setTestResults(prev => ({ ...prev, proxyRest: 'blocked' }));
+      setTestResults(prev => ({ ...prev, gatewayRest: 'blocked' }));
     }
 
     // Test 3: Network diagnostics API
@@ -1257,13 +1257,13 @@ const Admin = () => {
 
                   <Card className="p-4 bg-muted/30 border-2 border-border/30">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Proxy REST API</h3>
-                      {testResults.proxyRest === 'success' && <span className="text-green-500">✓ Accessible</span>}
-                      {testResults.proxyRest === 'blocked' && <span className="text-red-500">✗ Blocked</span>}
-                      {testResults.proxyRest === 'error' && <span className="text-yellow-500">! Error</span>}
-                      {testResults.proxyRest === 'pending' && <span className="text-muted-foreground">Pending</span>}
+                      <h3 className="font-semibold">Gateway REST API</h3>
+                      {testResults.gatewayRest === 'success' && <span className="text-green-500">✓ Accessible</span>}
+                      {testResults.gatewayRest === 'blocked' && <span className="text-red-500">✗ Blocked</span>}
+                      {testResults.gatewayRest === 'error' && <span className="text-yellow-500">! Error</span>}
+                      {testResults.gatewayRest === 'pending' && <span className="text-muted-foreground">Pending</span>}
                     </div>
-                    <p className="text-sm text-muted-foreground">/functions/v1/proxy-supabase</p>
+                    <p className="text-sm text-muted-foreground">/functions/v1/api-gateway</p>
                   </Card>
 
                   <Card className="p-4 bg-muted/30 border-2 border-border/30">
@@ -1325,15 +1325,15 @@ const Admin = () => {
 
                     <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                       <h4 className="font-semibold mb-3">Filtering Detection</h4>
-                      {testResults.directRest === 'blocked' && testResults.proxyRest === 'success' && (
+                      {testResults.directRest === 'blocked' && testResults.gatewayRest === 'success' && (
                         <div className="text-sm space-y-2">
                           <p className="text-green-500 font-semibold">✓ Endpoint Pattern Filtering Detected</p>
                           <p className="text-muted-foreground">
-                            Direct REST API is blocked but proxy works. Network filters by endpoint patterns (e.g., "/rest/v1/").
+                            Direct REST API is blocked but gateway works. Network filters by endpoint patterns (e.g., "/rest/v1/").
                           </p>
                         </div>
                       )}
-                      {testResults.directRest === 'blocked' && testResults.proxyRest === 'blocked' && testResults.diagnosticsApi === 'blocked' && (
+                      {testResults.directRest === 'blocked' && testResults.gatewayRest === 'blocked' && testResults.diagnosticsApi === 'blocked' && (
                         <div className="text-sm space-y-2">
                           <p className="text-red-500 font-semibold">✗ Domain-Level Blocking Detected</p>
                           <p className="text-muted-foreground">
@@ -1341,7 +1341,7 @@ const Admin = () => {
                           </p>
                         </div>
                       )}
-                      {testResults.directRest === 'success' && testResults.proxyRest === 'success' && (
+                      {testResults.directRest === 'success' && testResults.gatewayRest === 'success' && (
                         <div className="text-sm space-y-2">
                           <p className="text-green-500 font-semibold">✓ No Filtering Detected</p>
                           <p className="text-muted-foreground">
