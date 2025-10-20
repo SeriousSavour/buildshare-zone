@@ -125,8 +125,15 @@ async function fetchThroughProxy(
     }
 
     const responseText = new TextDecoder().decode(fullResponse);
-    const [headerSection, ...bodyParts] = responseText.split('\r\n\r\n');
-    const responseBody = bodyParts.join('\r\n\r\n');
+    
+    // Split headers and body
+    const headerEndIndex = responseText.indexOf('\r\n\r\n');
+    if (headerEndIndex === -1) {
+      throw new Error('Invalid HTTP response: no header delimiter found');
+    }
+    
+    const headerSection = responseText.substring(0, headerEndIndex);
+    let responseBody = responseText.substring(headerEndIndex + 4);
 
     // Parse status line
     const lines = headerSection.split('\r\n');
@@ -137,10 +144,35 @@ async function fetchThroughProxy(
     // Parse headers
     const responseHeaders = new Headers();
     for (let i = 1; i < lines.length; i++) {
-      const [key, ...valueParts] = lines[i].split(': ');
-      if (key && valueParts.length > 0) {
-        responseHeaders.set(key, valueParts.join(': '));
+      const colonIndex = lines[i].indexOf(': ');
+      if (colonIndex > 0) {
+        const key = lines[i].substring(0, colonIndex);
+        const value = lines[i].substring(colonIndex + 2);
+        responseHeaders.set(key, value);
       }
+    }
+    
+    // Handle chunked transfer encoding
+    const transferEncoding = responseHeaders.get('transfer-encoding');
+    if (transferEncoding?.toLowerCase() === 'chunked') {
+      let decodedBody = '';
+      let pos = 0;
+      
+      while (pos < responseBody.length) {
+        const chunkSizeEnd = responseBody.indexOf('\r\n', pos);
+        if (chunkSizeEnd === -1) break;
+        
+        const chunkSizeHex = responseBody.substring(pos, chunkSizeEnd).trim();
+        const chunkSize = parseInt(chunkSizeHex, 16);
+        
+        if (chunkSize === 0) break; // Last chunk
+        
+        pos = chunkSizeEnd + 2;
+        decodedBody += responseBody.substring(pos, pos + chunkSize);
+        pos += chunkSize + 2; // Skip chunk data and trailing \r\n
+      }
+      
+      responseBody = decodedBody;
     }
 
     return new Response(responseBody, {
