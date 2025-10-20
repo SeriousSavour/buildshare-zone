@@ -1,6 +1,6 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Play, MessageSquare, Share2, User, Pencil, Trash2 } from "lucide-react";
+import { Heart, Play, MessageSquare, Share2, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
@@ -99,17 +99,6 @@ const GameCard = ({
     toast.success("Link copied to clipboard!");
   };
 
-  const handleEdit = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    const editPath = `/edit/${id}`;
-    console.log('=== EDIT BUTTON CLICKED ===');
-    console.log('Current game ID:', id);
-    console.log('Navigating to:', editPath);
-    console.log('===========================');
-    navigate(editPath);
-  };
-
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this game?")) {
       return;
@@ -141,42 +130,7 @@ const GameCard = ({
   };
 
   return (
-    <div className="relative">
-      {/* Admin Controls - Completely outside Card */}
-      {isAdmin && (
-        <div className="absolute top-3 left-3 flex gap-2 z-[9999]">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('=== EDIT BUTTON CLICKED ===');
-              console.log('Game ID:', id);
-              console.log('Navigating to /edit/' + id);
-              navigate(`/edit/${id}`);
-            }}
-            className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all cursor-pointer shadow-xl border-2 border-blue-400"
-            title="Edit game"
-            type="button"
-          >
-            <Pencil className="w-5 h-5 text-white" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleDelete();
-            }}
-            disabled={isDeleting}
-            className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all disabled:opacity-50 cursor-pointer shadow-xl border-2 border-red-400"
-            title="Delete game"
-            type="button"
-          >
-            <Trash2 className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      )}
-      
-      <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg">
+    <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 pointer-events-none">
           {imageUrl ? (
@@ -268,7 +222,6 @@ const GameCard = ({
         </Button>
       </CardFooter>
     </Card>
-    </div>
   );
 };
 

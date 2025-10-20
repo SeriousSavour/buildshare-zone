@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X } from "lucide-react";
+import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2 } from "lucide-react";
 
 interface Particle {
   id: number;
@@ -64,6 +64,18 @@ interface BlockedWord {
   created_at: string;
 }
 
+interface Game {
+  id: string;
+  title: string;
+  description: string | null;
+  genre: string;
+  creator_name: string;
+  image_url: string | null;
+  likes: number;
+  plays: number;
+  created_at: string;
+}
+
 const Admin = () => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -71,6 +83,7 @@ const Admin = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [blockedWords, setBlockedWords] = useState<BlockedWord[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalGames: 0, activeFlags: 0, totalPlays: 0 });
   
   const [searchUsername, setSearchUsername] = useState("");
@@ -121,6 +134,7 @@ const Admin = () => {
     fetchAuditLogs();
     fetchAnnouncements();
     fetchBlockedWords();
+    fetchGames();
     fetchStats();
   }, []);
 
@@ -527,6 +541,54 @@ const Admin = () => {
     }
   };
 
+  const fetchGames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setGames(data || []);
+    } catch (error: any) {
+      console.error("Error fetching games:", error);
+    }
+  };
+
+  const handleDeleteGame = async (gameId: string) => {
+    if (!window.confirm("Are you sure you want to delete this game?")) {
+      return;
+    }
+
+    const sessionToken = localStorage.getItem("session_token");
+    if (!sessionToken) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.rpc("delete_game_with_context", {
+        _session_token: sessionToken,
+        _game_id: gameId,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Game deleted successfully",
+      });
+      fetchGames();
+      fetchStats();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchUsername.toLowerCase())
   );
@@ -605,10 +667,14 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="w-full animate-fade-in-delay-2">
-          <TabsList className="grid w-full grid-cols-5 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
+          <TabsList className="grid w-full grid-cols-6 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
             <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Users className="w-4 h-4" />
               Users
+            </TabsTrigger>
+            <TabsTrigger value="games" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
+              <Gamepad2 className="w-4 h-4" />
+              Games
             </TabsTrigger>
             <TabsTrigger value="flags" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Flag className="w-4 h-4" />
@@ -726,6 +792,67 @@ const Admin = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Games Tab */}
+          <TabsContent value="games" className="space-y-6">
+            <Card className="p-8 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 rounded-2xl shadow-lg">
+              <h2 className="text-3xl font-bold mb-6 gradient-text flex items-center gap-3">
+                <Gamepad2 className="w-8 h-8" />
+                Game Management
+              </h2>
+              <div className="space-y-3">
+                {games.map((game) => (
+                  <div
+                    key={game.id}
+                    className="flex items-center justify-between p-6 bg-muted/30 border-2 border-border/30 rounded-xl hover:border-primary/40 transition-all hover-lift"
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      {game.image_url ? (
+                        <img src={game.image_url} alt={game.title} className="w-16 h-16 rounded-lg object-cover border-2 border-primary/30" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center">
+                          <Gamepad2 className="w-8 h-8 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <p className="font-bold text-lg">{game.title}</p>
+                          <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+                            {game.genre}
+                          </span>
+                        </div>
+                        {game.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-1">{game.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <span>By {game.creator_name}</span>
+                          <span>❤️ {game.likes}</span>
+                          <span>▶️ {game.plays}</span>
+                          <span>{new Date(game.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteGame(game.id)}
+                      disabled={loading}
+                      className="hover-scale shadow-lg"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                ))}
+                {games.length === 0 && (
+                  <div className="text-center py-16">
+                    <Gamepad2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                    <p className="text-xl text-muted-foreground">No games found</p>
+                  </div>
+                )}
               </div>
             </Card>
           </TabsContent>

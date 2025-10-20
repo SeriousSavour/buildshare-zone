@@ -12,7 +12,6 @@ import GameDetail from "./pages/GameDetail";
 import Tools from "./pages/Tools";
 import ToolDetail from "./pages/ToolDetail";
 import Create from "./pages/Create";
-import Edit from "./pages/Edit";
 import Friends from "./pages/Friends";
 import Chat from "./pages/Chat";
 import Admin from "./pages/Admin";
@@ -38,7 +37,6 @@ const App = () => (
             <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
             <Route path="/tools/:id" element={<ProtectedRoute><ToolDetail /></ProtectedRoute>} />
             <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
-            <Route path="/edit/:id" element={<ProtectedRoute><Edit /></ProtectedRoute>} />
             <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
