@@ -73,10 +73,14 @@ async function fetchThroughProxy(
     const path = url.pathname + url.search;
     const requestLines = [`${method} ${path} HTTP/1.1`, `Host: ${targetHost}`];
     
-    // Set Content-Length for POST/PUT requests with body
+    // Set Content-Length and Content-Type for POST/PUT requests with body
     if (body) {
       const bodyBytes = new TextEncoder().encode(body);
       headers.set('Content-Length', bodyBytes.length.toString());
+      // Ensure Content-Type is set
+      if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
     }
     
     // Add all headers
@@ -95,6 +99,7 @@ async function fetchThroughProxy(
     console.log(`[PROXY REQ] ${method} ${path}`);
     if (body) {
       console.log(`[PROXY BODY] ${body.substring(0, 100)}${body.length > 100 ? '...' : ''}`);
+      console.log(`[PROXY HEADERS] Content-Type: ${headers.get('Content-Type')}, Content-Length: ${headers.get('Content-Length')}`);
     }
     
     if (body) {
