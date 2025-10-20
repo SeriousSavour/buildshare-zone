@@ -86,6 +86,18 @@ const Admin = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalGames: 0, activeFlags: 0, totalPlays: 0 });
   
+  // Network diagnostics state
+  const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
+  const [testResults, setTestResults] = useState<{
+    directRest: 'pending' | 'success' | 'blocked' | 'error';
+    proxyRest: 'pending' | 'success' | 'blocked' | 'error';
+    diagnosticsApi: 'pending' | 'success' | 'blocked' | 'error';
+  }>({
+    directRest: 'pending',
+    proxyRest: 'pending',
+    diagnosticsApi: 'pending',
+  });
+  
   const [searchUsername, setSearchUsername] = useState("");
   const [promoteUsername, setPromoteUsername] = useState("");
   const [loading, setLoading] = useState(false);
@@ -589,6 +601,60 @@ const Admin = () => {
     }
   };
 
+  const runNetworkDiagnostics = async () => {
+    setLoading(true);
+    setTestResults({
+      directRest: 'pending',
+      proxyRest: 'pending',
+      diagnosticsApi: 'pending',
+    });
+
+    // Test 1: Direct REST API call
+    try {
+      const response = await fetch('https://ptmeykacgbrsmvcvwrpp.supabase.co/rest/v1/games?select=id&limit=1', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bWV5a2FjZ2Jyc212Y3Z3cnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY3MDAsImV4cCI6MjA3MzQ2MjcwMH0.7J3jVdRgQeiaVvMnH9-xr-mA1fRCVr-JksDK5SklRJI'
+        }
+      });
+      setTestResults(prev => ({
+        ...prev,
+        directRest: response.ok ? 'success' : 'error'
+      }));
+    } catch {
+      setTestResults(prev => ({ ...prev, directRest: 'blocked' }));
+    }
+
+    // Test 2: Proxy REST API call
+    try {
+      const response = await fetch('https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/proxy-supabase?path=/rest/v1/games?select=id&limit=1', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bWV5a2FjZ2Jyc212Y3Z3cnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY3MDAsImV4cCI6MjA3MzQ2MjcwMH0.7J3jVdRgQeiaVvMnH9-xr-mA1fRCVr-JksDK5SklRJI'
+        }
+      });
+      setTestResults(prev => ({
+        ...prev,
+        proxyRest: response.ok ? 'success' : 'error'
+      }));
+    } catch {
+      setTestResults(prev => ({ ...prev, proxyRest: 'blocked' }));
+    }
+
+    // Test 3: Network diagnostics API
+    try {
+      const response = await fetch('https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/network-diagnostics');
+      const data = await response.json();
+      setDiagnosticsData(data);
+      setTestResults(prev => ({
+        ...prev,
+        diagnosticsApi: response.ok ? 'success' : 'error'
+      }));
+    } catch {
+      setTestResults(prev => ({ ...prev, diagnosticsApi: 'blocked' }));
+    }
+
+    setLoading(false);
+  };
+
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchUsername.toLowerCase())
   );
@@ -667,7 +733,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="w-full animate-fade-in-delay-2">
-          <TabsList className="grid w-full grid-cols-6 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
+          <TabsList className="grid w-full grid-cols-7 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
             <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Users className="w-4 h-4" />
               Users
@@ -691,6 +757,10 @@ const Admin = () => {
             <TabsTrigger value="logs" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <ScrollText className="w-4 h-4" />
               Logs
+            </TabsTrigger>
+            <TabsTrigger value="diagnostics" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
+              <Shield className="w-4 h-4" />
+              Network
             </TabsTrigger>
           </TabsList>
 
@@ -1147,6 +1217,148 @@ const Admin = () => {
                     <ScrollText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
                     <p className="text-xl text-muted-foreground">No audit logs yet</p>
                   </div>
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Network Diagnostics Tab */}
+          <TabsContent value="diagnostics" className="space-y-6">
+            <Card className="p-8 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 rounded-2xl shadow-lg">
+              <h2 className="text-3xl font-bold mb-6 gradient-text flex items-center gap-3">
+                <Shield className="w-8 h-8" />
+                Network Diagnostics
+              </h2>
+              
+              <div className="mb-6">
+                <Button 
+                  onClick={runNetworkDiagnostics} 
+                  disabled={loading}
+                  className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange font-semibold"
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  Run Diagnostics
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Test Results */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card className="p-4 bg-muted/30 border-2 border-border/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Direct REST API</h3>
+                      {testResults.directRest === 'success' && <span className="text-green-500">✓ Accessible</span>}
+                      {testResults.directRest === 'blocked' && <span className="text-red-500">✗ Blocked</span>}
+                      {testResults.directRest === 'error' && <span className="text-yellow-500">! Error</span>}
+                      {testResults.directRest === 'pending' && <span className="text-muted-foreground">Pending</span>}
+                    </div>
+                    <p className="text-sm text-muted-foreground">/rest/v1/games endpoint</p>
+                  </Card>
+
+                  <Card className="p-4 bg-muted/30 border-2 border-border/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Proxy REST API</h3>
+                      {testResults.proxyRest === 'success' && <span className="text-green-500">✓ Accessible</span>}
+                      {testResults.proxyRest === 'blocked' && <span className="text-red-500">✗ Blocked</span>}
+                      {testResults.proxyRest === 'error' && <span className="text-yellow-500">! Error</span>}
+                      {testResults.proxyRest === 'pending' && <span className="text-muted-foreground">Pending</span>}
+                    </div>
+                    <p className="text-sm text-muted-foreground">/functions/v1/proxy-supabase</p>
+                  </Card>
+
+                  <Card className="p-4 bg-muted/30 border-2 border-border/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Diagnostics API</h3>
+                      {testResults.diagnosticsApi === 'success' && <span className="text-green-500">✓ Accessible</span>}
+                      {testResults.diagnosticsApi === 'blocked' && <span className="text-red-500">✗ Blocked</span>}
+                      {testResults.diagnosticsApi === 'error' && <span className="text-yellow-500">! Error</span>}
+                      {testResults.diagnosticsApi === 'pending' && <span className="text-muted-foreground">Pending</span>}
+                    </div>
+                    <p className="text-sm text-muted-foreground">/functions/v1/network-diagnostics</p>
+                  </Card>
+                </div>
+
+                {/* Network Analysis */}
+                {diagnosticsData && (
+                  <Card className="p-6 bg-muted/30 border-2 border-border/30 mt-6">
+                    <h3 className="text-xl font-bold mb-4 gradient-text">Network Analysis</h3>
+                    
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <h4 className="font-semibold mb-2">Client Info</h4>
+                        <dl className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">IP Address:</dt>
+                            <dd className="font-mono">{diagnosticsData.client?.ip || 'Unknown'}</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">User Agent:</dt>
+                            <dd className="font-mono text-xs truncate max-w-xs">{diagnosticsData.client?.userAgent || 'Unknown'}</dd>
+                          </div>
+                        </dl>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold mb-2">Network Characteristics</h4>
+                        <dl className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Via Proxy:</dt>
+                            <dd className={diagnosticsData.network?.viaProxy ? 'text-green-500' : 'text-red-500'}>
+                              {diagnosticsData.network?.viaProxy ? 'Yes' : 'No'}
+                            </dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Proxy Detected:</dt>
+                            <dd className={diagnosticsData.network?.proxyDetected ? 'text-yellow-500' : 'text-muted-foreground'}>
+                              {diagnosticsData.network?.proxyDetected ? 'Yes' : 'No'}
+                            </dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Cloudflare:</dt>
+                            <dd className={diagnosticsData.network?.cloudflare ? 'text-blue-500' : 'text-muted-foreground'}>
+                              {diagnosticsData.network?.cloudflare ? 'Yes' : 'No'}
+                            </dd>
+                          </div>
+                        </dl>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                      <h4 className="font-semibold mb-3">Filtering Detection</h4>
+                      {testResults.directRest === 'blocked' && testResults.proxyRest === 'success' && (
+                        <div className="text-sm space-y-2">
+                          <p className="text-green-500 font-semibold">✓ Endpoint Pattern Filtering Detected</p>
+                          <p className="text-muted-foreground">
+                            Direct REST API is blocked but proxy works. Network filters by endpoint patterns (e.g., "/rest/v1/").
+                          </p>
+                        </div>
+                      )}
+                      {testResults.directRest === 'blocked' && testResults.proxyRest === 'blocked' && testResults.diagnosticsApi === 'blocked' && (
+                        <div className="text-sm space-y-2">
+                          <p className="text-red-500 font-semibold">✗ Domain-Level Blocking Detected</p>
+                          <p className="text-muted-foreground">
+                            All Supabase endpoints blocked. Network blocks entire *.supabase.co domain.
+                          </p>
+                        </div>
+                      )}
+                      {testResults.directRest === 'success' && testResults.proxyRest === 'success' && (
+                        <div className="text-sm space-y-2">
+                          <p className="text-green-500 font-semibold">✓ No Filtering Detected</p>
+                          <p className="text-muted-foreground">
+                            All endpoints accessible. Network does not block Supabase services.
+                          </p>
+                        </div>
+                      )}
+                      {diagnosticsData.network?.viaProxy && (
+                        <div className="text-sm space-y-2 mt-3 pt-3 border-t border-border/30">
+                          <p className="text-blue-500 font-semibold">ℹ IP Rotation Active</p>
+                          <p className="text-muted-foreground">
+                            Requests are being routed through proxy with IP rotation from IPRoyal.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
                 )}
               </div>
             </Card>

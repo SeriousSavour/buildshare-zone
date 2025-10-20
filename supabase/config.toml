@@ -2,3 +2,6 @@ project_id = "ptmeykacgbrsmvcvwrpp"
 
 [functions.proxy-supabase]
 verify_jwt = false
+
+[functions.network-diagnostics]
+verify_jwt = false
