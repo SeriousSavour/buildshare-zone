@@ -87,11 +87,20 @@ async function fetchThroughProxy(
     });
     
     requestLines.push('Connection: close');
-    requestLines.push('');
-    requestLines.push('');
+    requestLines.push(''); // Empty line to end headers
 
-    const request = requestLines.join('\r\n') + (body || '');
-    await stream.write(new TextEncoder().encode(request));
+    const headerText = requestLines.join('\r\n') + '\r\n';
+    const requestBytes = new TextEncoder().encode(headerText);
+    
+    if (body) {
+      const bodyBytes = new TextEncoder().encode(body);
+      const fullRequest = new Uint8Array(requestBytes.length + bodyBytes.length);
+      fullRequest.set(requestBytes, 0);
+      fullRequest.set(bodyBytes, requestBytes.length);
+      await stream.write(fullRequest);
+    } else {
+      await stream.write(requestBytes);
+    }
 
     // Read response
     const responseBuffer: Uint8Array[] = [];
