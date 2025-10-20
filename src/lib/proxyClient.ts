@@ -8,8 +8,8 @@ const PROXY_ENTRY_URL = `${SUPABASE_URL}/functions/v1/proxy-entry`;
 const proxyFetch: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
   
-  // Only proxy Supabase REST API calls (not storage or other edge functions)
-  if (url.includes('supabase.co') && !url.includes('/storage/') && !url.includes('/functions/v1/')) {
+  // Proxy all Supabase calls including storage (except edge functions)
+  if (url.includes('supabase.co') && !url.includes('/functions/v1/')) {
     const targetUrl = new URL(url);
     const targetPath = targetUrl.pathname + targetUrl.search;
     
@@ -37,7 +37,7 @@ const proxyFetch: typeof fetch = async (input, init) => {
     }
   }
   
-  // For storage, functions, and non-Supabase requests: direct
+  // For edge functions and non-Supabase requests: direct
   return fetch(input, init);
 };
 
