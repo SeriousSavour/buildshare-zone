@@ -92,6 +92,11 @@ async function fetchThroughProxy(
     const headerText = requestLines.join('\r\n') + '\r\n';
     const requestBytes = new TextEncoder().encode(headerText);
     
+    console.log(`[PROXY REQ] ${method} ${path}`);
+    if (body) {
+      console.log(`[PROXY BODY] ${body.substring(0, 100)}${body.length > 100 ? '...' : ''}`);
+    }
+    
     if (body) {
       const bodyBytes = new TextEncoder().encode(body);
       const fullRequest = new Uint8Array(requestBytes.length + bodyBytes.length);
