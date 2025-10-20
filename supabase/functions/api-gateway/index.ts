@@ -77,10 +77,8 @@ async function fetchThroughProxy(
     if (body) {
       const bodyBytes = new TextEncoder().encode(body);
       headers.set('Content-Length', bodyBytes.length.toString());
-      // Ensure Content-Type is set
-      if (!headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
-      }
+      // Force application/json for RPC and other POST requests
+      headers.set('Content-Type', 'application/json');
     }
     
     // Add all headers
