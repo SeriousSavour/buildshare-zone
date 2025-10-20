@@ -241,9 +241,9 @@ serve(async (req) => {
     // Build target URL
     const targetUrl = `${SUPABASE_URL}${targetPath}`;
     
-    // Copy headers (exclude problematic ones)
+    // Copy headers (exclude problematic ones but keep content-length for POST/PUT)
     const headers = new Headers();
-    const excludeHeaders = ['host', 'connection', 'content-length', 'transfer-encoding'];
+    const excludeHeaders = ['host', 'connection', 'transfer-encoding'];
     
     req.headers.forEach((value, key) => {
       if (!excludeHeaders.includes(key.toLowerCase())) {
