@@ -1,10 +1,4 @@
 project_id = "ptmeykacgbrsmvcvwrpp"
 
-[functions.proxy-entry]
-verify_jwt = false
-
 [functions.proxy-supabase]
-verify_jwt = false
-
-[functions.test-proxy-location]
 verify_jwt = false

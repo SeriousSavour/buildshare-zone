@@ -1,5 +1,147 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// HTTP CONNECT proxy implementation
+async function connectThroughProxy(
+  targetHost: string,
+  targetPort: number,
+  proxy: ProxyServer
+): Promise<Deno.Conn> {
+  // Connect to proxy server
+  const proxyConn = await Deno.connect({
+    hostname: proxy.host,
+    port: proxy.port,
+  });
+
+  // Create Basic Auth header
+  const auth = btoa(`${proxy.username}:${proxy.password}`);
+  
+  // Send CONNECT request
+  const connectRequest = [
+    `CONNECT ${targetHost}:${targetPort} HTTP/1.1`,
+    `Host: ${targetHost}:${targetPort}`,
+    `Proxy-Authorization: Basic ${auth}`,
+    `Proxy-Connection: Keep-Alive`,
+    ``,
+    ``
+  ].join('\r\n');
+
+  await proxyConn.write(new TextEncoder().encode(connectRequest));
+
+  // Read CONNECT response
+  const buffer = new Uint8Array(4096);
+  const bytesRead = await proxyConn.read(buffer);
+  
+  if (!bytesRead) {
+    proxyConn.close();
+    throw new Error('Proxy connection failed: no response');
+  }
+
+  const response = new TextDecoder().decode(buffer.subarray(0, bytesRead));
+  
+  // Check if CONNECT was successful (HTTP/1.1 200 or HTTP/1.0 200)
+  if (!response.startsWith('HTTP/1.1 200') && !response.startsWith('HTTP/1.0 200')) {
+    proxyConn.close();
+    throw new Error(`Proxy CONNECT failed: ${response.split('\r\n')[0]}`);
+  }
+
+  return proxyConn;
+}
+
+// Make HTTP request through proxy tunnel
+async function fetchThroughProxy(
+  targetUrl: string,
+  method: string,
+  headers: Headers,
+  body: string | null,
+  proxy: ProxyServer
+): Promise<Response> {
+  const url = new URL(targetUrl);
+  const targetHost = url.hostname;
+  const targetPort = url.port || (url.protocol === 'https:' ? 443 : 80);
+
+  // Establish tunnel
+  const conn = await connectThroughProxy(targetHost, targetPort, proxy);
+
+  try {
+    // For HTTPS, upgrade to TLS
+    let stream: Deno.Conn = conn;
+    if (url.protocol === 'https:') {
+      stream = await Deno.startTls(conn, { hostname: targetHost });
+    }
+
+    // Build HTTP request
+    const path = url.pathname + url.search;
+    const requestLines = [`${method} ${path} HTTP/1.1`, `Host: ${targetHost}`];
+    
+    // Add headers
+    headers.forEach((value, key) => {
+      if (key.toLowerCase() !== 'host') {
+        requestLines.push(`${key}: ${value}`);
+      }
+    });
+    
+    requestLines.push('Connection: close');
+    requestLines.push('');
+    if (body) {
+      requestLines.push(body);
+    } else {
+      requestLines.push('');
+    }
+
+    const request = requestLines.join('\r\n');
+    await stream.write(new TextEncoder().encode(request));
+
+    // Read response
+    const responseBuffer: Uint8Array[] = [];
+    const chunk = new Uint8Array(8192);
+    
+    while (true) {
+      const bytesRead = await stream.read(chunk);
+      if (!bytesRead) break;
+      responseBuffer.push(chunk.slice(0, bytesRead));
+    }
+
+    stream.close();
+
+    // Parse response
+    const fullResponse = new Uint8Array(
+      responseBuffer.reduce((acc, arr) => acc + arr.length, 0)
+    );
+    let offset = 0;
+    for (const arr of responseBuffer) {
+      fullResponse.set(arr, offset);
+      offset += arr.length;
+    }
+
+    const responseText = new TextDecoder().decode(fullResponse);
+    const [headerSection, ...bodyParts] = responseText.split('\r\n\r\n');
+    const responseBody = bodyParts.join('\r\n\r\n');
+
+    // Parse status line
+    const lines = headerSection.split('\r\n');
+    const statusLine = lines[0];
+    const statusMatch = statusLine.match(/HTTP\/\d\.\d (\d+)/);
+    const status = statusMatch ? parseInt(statusMatch[1]) : 500;
+
+    // Parse headers
+    const responseHeaders = new Headers();
+    for (let i = 1; i < lines.length; i++) {
+      const [key, ...valueParts] = lines[i].split(': ');
+      if (key && valueParts.length > 0) {
+        responseHeaders.set(key, valueParts.join(': '));
+      }
+    }
+
+    return new Response(responseBody, {
+      status,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    conn.close();
+    throw error;
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-api-version, prefer',
@@ -126,24 +268,15 @@ serve(async (req) => {
     let response: Response;
     
     if (proxy) {
-      // For HTTP proxies, we make the request through the proxy using HTTP tunneling
+      // Use HTTP CONNECT tunneling through proxy
       console.log(`↪ Forwarding via proxy ${proxy.host}:${proxy.port}...`);
       
-      const proxyAuth = btoa(`${proxy.username}:${proxy.password}`);
-      
       try {
-        // Make request to target through HTTP proxy
-        // HTTP proxies work by sending the full target URL in the request line
-        response = await fetch(targetUrl, {
-          method: req.method,
-          headers: {
-            ...Object.fromEntries(headers),
-            'Proxy-Authorization': `Basic ${proxyAuth}`,
-          },
-          body: body,
-        });
+        // Use actual HTTP CONNECT proxy implementation
+        response = await fetchThroughProxy(targetUrl, req.method, headers, body, proxy);
         
-        console.log(`✓ Proxy request successful`);
+        const duration = Date.now() - startTime;
+        console.log(`✓ Proxy request successful (${duration}ms)`);
       } catch (error) {
         // Fallback to direct if proxy fails
         console.warn(`⚠ Proxy failed: ${error.message}, falling back to direct`);
@@ -154,7 +287,7 @@ serve(async (req) => {
         });
       }
     } else {
-      // Direct connection (fallback if no proxies configured)
+      // Direct connection (no proxies configured)
       console.log(`↪ Forwarding direct to Supabase (no proxies configured)...`);
       
       response = await fetch(targetUrl, {
