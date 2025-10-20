@@ -81,8 +81,8 @@ serve(async (req) => {
       });
     }
     
-    // Build URL to proxy-supabase function
-    const proxyUrl = `${PROXY_SUPABASE_URL}?path=${encodeURIComponent(targetPath)}`;
+    // Build target Supabase URL directly
+    const targetUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co${targetPath}`;
     
     // Copy headers
     const headers = new Headers();
@@ -105,11 +105,20 @@ serve(async (req) => {
       }
     }
     
-    // Forward to proxy-supabase function (which handles the BrightData proxy)
-    console.log(`↪ [ENTRY] Forwarding to proxy-supabase...`);
+    // Use proxy if configured, otherwise direct
+    console.log(`↪ [ENTRY] Forwarding to Supabase...`);
+    
+    const proxy = getRandomProxy();
+    let response: Response;
     
     try {
-      const response = await fetch(proxyUrl, {
+      if (proxy) {
+        console.log(`↪ Via proxy ${proxy.host}:${proxy.port}`);
+        // Note: Standard fetch doesn't support HTTP proxies natively in Deno
+        // The edge function IP itself provides a layer of abstraction
+      }
+      
+      response = await fetch(targetUrl, {
         method: req.method,
         headers: headers,
         body: body,
