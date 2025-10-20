@@ -114,15 +114,28 @@ serve(async (req) => {
     try {
       if (proxy) {
         console.log(`↪ Via proxy ${proxy.host}:${proxy.port}`);
-        // Note: Standard fetch doesn't support HTTP proxies natively in Deno
-        // The edge function IP itself provides a layer of abstraction
       }
       
-      response = await fetch(targetUrl, {
-        method: req.method,
-        headers: headers,
-        body: body,
-      });
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+      
+      try {
+        response = await fetch(targetUrl, {
+          method: req.method,
+          headers: headers,
+          body: body,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.error(`✗ [ENTRY] Request timeout after 25s`);
+          throw new Error('Request timeout');
+        }
+        throw fetchError;
+      }
       
       const duration = Date.now() - startTime;
       console.log(`✓ [ENTRY] ${response.status} (${duration}ms)`);
