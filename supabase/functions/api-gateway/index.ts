@@ -73,19 +73,18 @@ async function fetchThroughProxy(
     const path = url.pathname + url.search;
     const requestLines = [`${method} ${path} HTTP/1.1`, `Host: ${targetHost}`];
     
-    // Add headers
+    // Set Content-Length for POST/PUT requests with body
+    if (body) {
+      const bodyBytes = new TextEncoder().encode(body);
+      headers.set('Content-Length', bodyBytes.length.toString());
+    }
+    
+    // Add all headers
     headers.forEach((value, key) => {
       if (key.toLowerCase() !== 'host') {
         requestLines.push(`${key}: ${value}`);
       }
     });
-    
-    // Set Content-Length for POST/PUT requests
-    if (body) {
-      const bodyBytes = new TextEncoder().encode(body);
-      headers.set('Content-Length', bodyBytes.length.toString());
-      requestLines.push(`Content-Length: ${bodyBytes.length}`);
-    }
     
     requestLines.push('Connection: close');
     requestLines.push('');
