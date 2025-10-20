@@ -133,7 +133,7 @@ async function fetchThroughProxy(
     }
     
     const headerSection = responseText.substring(0, headerEndIndex);
-    let responseBody = responseText.substring(headerEndIndex + 4);
+    const bodyStartIndex = headerEndIndex + 4;
 
     // Parse status line
     const lines = headerSection.split('\r\n');
@@ -152,30 +152,73 @@ async function fetchThroughProxy(
       }
     }
     
+    // Get body as bytes (not text, to preserve binary data)
+    const bodyBytes = fullResponse.slice(bodyStartIndex);
+    
     // Handle chunked transfer encoding
     const transferEncoding = responseHeaders.get('transfer-encoding');
+    let finalBodyBytes = bodyBytes;
+    
     if (transferEncoding?.toLowerCase() === 'chunked') {
-      let decodedBody = '';
+      const chunks: Uint8Array[] = [];
       let pos = 0;
+      const bodyText = new TextDecoder().decode(bodyBytes);
       
-      while (pos < responseBody.length) {
-        const chunkSizeEnd = responseBody.indexOf('\r\n', pos);
+      while (pos < bodyText.length) {
+        const chunkSizeEnd = bodyText.indexOf('\r\n', pos);
         if (chunkSizeEnd === -1) break;
         
-        const chunkSizeHex = responseBody.substring(pos, chunkSizeEnd).trim();
+        const chunkSizeHex = bodyText.substring(pos, chunkSizeEnd).trim();
         const chunkSize = parseInt(chunkSizeHex, 16);
         
         if (chunkSize === 0) break; // Last chunk
         
         pos = chunkSizeEnd + 2;
-        decodedBody += responseBody.substring(pos, pos + chunkSize);
+        const chunkData = bodyBytes.slice(pos, pos + chunkSize);
+        chunks.push(chunkData);
         pos += chunkSize + 2; // Skip chunk data and trailing \r\n
       }
       
-      responseBody = decodedBody;
+      // Combine all chunks
+      const totalSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      finalBodyBytes = new Uint8Array(totalSize);
+      let offset = 0;
+      for (const chunk of chunks) {
+        finalBodyBytes.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      // Remove chunked encoding header since we decoded it
+      responseHeaders.delete('transfer-encoding');
+    }
+    
+    // Handle gzip compression
+    const contentEncoding = responseHeaders.get('content-encoding');
+    if (contentEncoding?.toLowerCase() === 'gzip') {
+      // Decompress gzip
+      const decompressed = new DecompressionStream('gzip');
+      const reader = new Blob([finalBodyBytes]).stream().pipeThrough(decompressed).getReader();
+      const decompressedChunks: Uint8Array[] = [];
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        decompressedChunks.push(value);
+      }
+      
+      const totalSize = decompressedChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      finalBodyBytes = new Uint8Array(totalSize);
+      let offset = 0;
+      for (const chunk of decompressedChunks) {
+        finalBodyBytes.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      // Remove gzip encoding header since we decoded it
+      responseHeaders.delete('content-encoding');
     }
 
-    return new Response(responseBody, {
+    return new Response(finalBodyBytes, {
       status,
       headers: responseHeaders,
     });
