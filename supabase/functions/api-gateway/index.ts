@@ -80,15 +80,18 @@ async function fetchThroughProxy(
       }
     });
     
+    // Set Content-Length for POST/PUT requests
+    if (body) {
+      const bodyBytes = new TextEncoder().encode(body);
+      headers.set('Content-Length', bodyBytes.length.toString());
+      requestLines.push(`Content-Length: ${bodyBytes.length}`);
+    }
+    
     requestLines.push('Connection: close');
     requestLines.push('');
-    if (body) {
-      requestLines.push(body);
-    } else {
-      requestLines.push('');
-    }
+    requestLines.push('');
 
-    const request = requestLines.join('\r\n');
+    const request = requestLines.join('\r\n') + (body || '');
     await stream.write(new TextEncoder().encode(request));
 
     // Read response
