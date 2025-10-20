@@ -20,13 +20,25 @@ const proxyFetch: typeof fetch = async (input, init) => {
     
     const proxyUrl = `${PROXY_URL}?path=${encodeURIComponent(targetPath)}`;
     
-    console.log(`[PROXY] ${init?.method || 'GET'} ${targetPath}`);
+    console.log(`[PROXY ATTEMPT] ${init?.method || 'GET'} ${targetPath}`);
     
-    // Route through proxy - no fallback
-    const response = await fetch(proxyUrl, init);
+    try {
+      // Try proxy first
+      const response = await fetch(proxyUrl, init);
+      
+      if (response.ok) {
+        console.log(`[PROXY SUCCESS] ${response.status}`);
+        return response;
+      }
+      
+      console.warn(`[PROXY FAILED] ${response.status}, falling back to direct`);
+    } catch (error) {
+      console.error(`[PROXY ERROR]`, error);
+    }
     
-    console.log(`[PROXY] ${response.ok ? '✓' : '✗'} ${response.status}`);
-    return response;
+    // Fallback to direct connection
+    console.log(`[DIRECT] ${init?.method || 'GET'} ${targetPath}`);
+    return await fetch(input, init);
   }
   
   // For non-Supabase requests: direct
