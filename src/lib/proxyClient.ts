@@ -23,8 +23,17 @@ const proxyFetch: typeof fetch = async (input, init) => {
     console.log(`[GATEWAY ATTEMPT] ${init?.method || 'GET'} ${targetPath}`);
     
     try {
-      // Try gateway first
-      const response = await fetch(gatewayUrl, init);
+      // Try gateway first - need to include auth headers for the edge function
+      const gatewayInit = {
+        ...init,
+        headers: {
+          ...((init?.headers as Record<string, string>) || {}),
+          'apikey': SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+        }
+      };
+      
+      const response = await fetch(gatewayUrl, gatewayInit);
       
       if (response.ok) {
         console.log(`[GATEWAY SUCCESS] ${response.status}`);
