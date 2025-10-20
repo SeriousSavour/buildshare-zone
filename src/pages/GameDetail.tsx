@@ -101,28 +101,32 @@ const GameDetail = () => {
       const { data, error } = await supabase
         .from('games')
         .select('*')
-        .eq('id', id)
-        .single();
+        .eq('id', id);
 
       if (error) throw error;
       
-      if (!data) {
+      // Handle both array and single object responses
+      const gameData = Array.isArray(data) ? data[0] : data;
+      
+      if (!gameData) {
         throw new Error('Game not found');
       }
 
-      console.log('Game data fetched:', data);
+      console.log('Game data fetched:', gameData);
+      console.log('Game URL:', gameData.game_url);
       
       // Set game first to ensure we have the data
-      setGame(data);
+      setGame(gameData);
       
       // Fetch creator profile with avatar if creator_id exists
-      if (data.creator_id) {
+      if (gameData.creator_id) {
         try {
-          const { data: profile } = await supabase
+          const { data: profileData } = await supabase
             .from('profiles')
             .select('avatar_url')
-            .eq('user_id', data.creator_id)
-            .single();
+            .eq('user_id', gameData.creator_id);
+          
+          const profile = Array.isArray(profileData) ? profileData[0] : profileData;
           
           // Update with avatar
           setGame(prev => prev ? {
