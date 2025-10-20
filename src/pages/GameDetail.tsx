@@ -106,20 +106,33 @@ const GameDetail = () => {
 
       if (error) throw error;
       
-      // Fetch creator profile with avatar
-      if (data) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .eq('user_id', data.creator_id)
-          .single();
-        
-        setGame({
-          ...data,
-          creator_avatar: profile?.avatar_url
-        });
-      } else {
-        setGame(data);
+      if (!data) {
+        throw new Error('Game not found');
+      }
+
+      console.log('Game data fetched:', data);
+      
+      // Set game first to ensure we have the data
+      setGame(data);
+      
+      // Fetch creator profile with avatar if creator_id exists
+      if (data.creator_id) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('user_id', data.creator_id)
+            .single();
+          
+          // Update with avatar
+          setGame(prev => prev ? {
+            ...prev,
+            creator_avatar: profile?.avatar_url
+          } : null);
+        } catch (profileError) {
+          console.error('Error fetching profile:', profileError);
+          // Continue without avatar - game is already set
+        }
       }
     } catch (error) {
       console.error('Error fetching game:', error);
