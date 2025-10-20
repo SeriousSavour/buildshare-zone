@@ -8,8 +8,13 @@ const PROXY_URL = `${SUPABASE_URL}/functions/v1/proxy-supabase`;
 const proxyFetch: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
   
-  // Proxy all Supabase calls including storage (except edge functions)
-  if (url.includes('supabase.co') && !url.includes('/functions/v1/')) {
+  // Don't proxy the proxy endpoint itself or other edge functions
+  if (url.includes('/functions/v1/')) {
+    return fetch(input, init);
+  }
+  
+  // Proxy all Supabase REST API and storage calls
+  if (url.includes('supabase.co')) {
     const targetUrl = new URL(url);
     const targetPath = targetUrl.pathname + targetUrl.search;
     
@@ -17,27 +22,14 @@ const proxyFetch: typeof fetch = async (input, init) => {
     
     console.log(`[PROXY] ${init?.method || 'GET'} ${targetPath}`);
     
-    try {
-      // Route through proxy edge function
-      const response = await fetch(proxyUrl, init);
-      
-      if (response.ok || response.status < 500) {
-        console.log(`[PROXY] ✓ ${response.status}`);
-        return response;
-      }
-      
-      // Only fall back on 500+ errors
-      console.warn(`[PROXY] ✗ ${response.status}, falling back`);
-      return await fetch(input, init);
-      
-    } catch (error) {
-      console.error(`[PROXY] Failed:`, error);
-      // Last resort: direct connection
-      return await fetch(input, init);
-    }
+    // Route through proxy - no fallback
+    const response = await fetch(proxyUrl, init);
+    
+    console.log(`[PROXY] ${response.ok ? '✓' : '✗'} ${response.status}`);
+    return response;
   }
   
-  // For edge functions and non-Supabase requests: direct
+  // For non-Supabase requests: direct
   return fetch(input, init);
 };
 
