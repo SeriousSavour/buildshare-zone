@@ -48,12 +48,22 @@ const Games = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const GAMES_PER_PAGE = 20;
+
   useEffect(() => {
     fetchGames();
     fetchLikedGames();
     fetchPopularGames();
     fetchCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (currentPage > 0) {
+      loadMoreGames();
+    }
+  }, [currentPage]);
   useEffect(() => {
     const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
     let particleId = 0;
@@ -107,14 +117,25 @@ const Games = () => {
   };
   const fetchGames = async () => {
     try {
+      const from = 0;
+      const to = GAMES_PER_PAGE - 1;
+      
       const {
         data,
-        error
-      } = await supabase.from('games').select('*').eq('category', 'game').order('created_at', {
-        ascending: false
-      });
+        error,
+        count
+      } = await supabase
+        .from('games')
+        .select('*', { count: 'exact' })
+        .eq('category', 'game')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+        
       if (error) throw error;
-      console.log(`Fetched ${data?.length || 0} games from database`);
+      console.log(`Fetched ${data?.length || 0} games from database (page 1)`);
+
+      // Check if there are more games
+      setHasMore((count || 0) > GAMES_PER_PAGE);
 
       // Fetch creator profiles
       if (data && data.length > 0) {
@@ -131,9 +152,24 @@ const Games = () => {
         setGames(gamesWithAvatars);
         setFilteredGames(gamesWithAvatars);
 
-        // Set featured game (most played)
-        const featured = [...gamesWithAvatars].sort((a, b) => b.plays - a.plays)[0];
-        setFeaturedGame(featured || null);
+        // Set featured game (most played overall - fetch separately)
+        const { data: topGame } = await supabase
+          .from('games')
+          .select('*')
+          .eq('category', 'game')
+          .order('plays', { ascending: false })
+          .limit(1);
+        
+        if (topGame && topGame.length > 0) {
+          const { data: topProfile } = await supabase
+            .from('profiles')
+            .select('user_id, avatar_url')
+            .eq('user_id', topGame[0].creator_id);
+          setFeaturedGame({
+            ...topGame[0],
+            creator_avatar: topProfile?.[0]?.avatar_url
+          });
+        }
       } else {
         setGames([]);
         setFilteredGames([]);
@@ -143,6 +179,49 @@ const Games = () => {
       toast.error("Failed to load games");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreGames = async () => {
+    try {
+      const from = currentPage * GAMES_PER_PAGE;
+      const to = from + GAMES_PER_PAGE - 1;
+      
+      const {
+        data,
+        error,
+        count
+      } = await supabase
+        .from('games')
+        .select('*', { count: 'exact' })
+        .eq('category', 'game')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+        
+      if (error) throw error;
+      console.log(`Loaded ${data?.length || 0} more games (page ${currentPage + 1})`);
+
+      // Check if there are more games
+      setHasMore((count || 0) > (currentPage + 1) * GAMES_PER_PAGE);
+
+      // Fetch creator profiles
+      if (data && data.length > 0) {
+        const creatorIds = [...new Set(data.map(g => g.creator_id))];
+        const {
+          data: profiles
+        } = await supabase.from('profiles').select('user_id, avatar_url').in('user_id', creatorIds);
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.avatar_url]) || []);
+        const gamesWithAvatars = data.map(game => ({
+          ...game,
+          creator_avatar: profileMap.get(game.creator_id)
+        }));
+        
+        setGames(prev => [...prev, ...gamesWithAvatars]);
+        setFilteredGames(prev => [...prev, ...gamesWithAvatars]);
+      }
+    } catch (error) {
+      console.error('Error loading more games:', error);
+      toast.error("Failed to load more games");
     }
   };
   const fetchPopularGames = async () => {
@@ -441,6 +520,19 @@ const Games = () => {
           </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
           </div>}
+
+        {/* Load More Button */}
+        {hasMore && filteredGames.length > 0 && categoryFilter === "all" && !searchQuery && selectedGenre === "all" && (
+          <div className="flex justify-center mt-12 animate-fade-in">
+            <Button 
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              size="lg"
+              className="gap-3 px-8 py-6 text-lg"
+            >
+              Load More Games 🎮
+            </Button>
+          </div>
+        )}
       </div>
     </div>;
 };
