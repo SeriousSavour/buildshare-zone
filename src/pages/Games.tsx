@@ -48,12 +48,8 @@ const Games = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [totalGamesCount, setTotalGamesCount] = useState(0);
-  const GAMES_PER_PAGE = 20;
-  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchGames();
@@ -61,34 +57,6 @@ const Games = () => {
     fetchPopularGames();
     fetchCurrentUser();
   }, []);
-
-  useEffect(() => {
-    if (currentPage > 0) {
-      loadMoreGames();
-    }
-  }, [currentPage]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore && categoryFilter === "all" && !searchQuery && selectedGenre === "all") {
-          console.log('🎃 Reached bottom! Loading more games...');
-          setCurrentPage(prev => prev + 1);
-        }
-      },
-      { 
-        threshold: 0.1,
-        rootMargin: '100px' // Start loading 100px before reaching the element
-      }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, isLoadingMore, categoryFilter, searchQuery, selectedGenre]);
   useEffect(() => {
     const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
     let particleId = 0;
@@ -142,119 +110,74 @@ const Games = () => {
   };
   const fetchGames = async () => {
     try {
-      const from = 0;
-      const to = GAMES_PER_PAGE - 1;
+      setLoadingProgress(5);
       
-      const {
-        data,
-        error,
-        count
-      } = await supabase
+      // First get the total count
+      const { count } = await supabase
         .from('games')
-        .select('*', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
+        .eq('category', 'game');
+      
+      setTotalGamesCount(count || 0);
+      setLoadingProgress(10);
+      
+      // Fetch ALL games at once
+      const { data, error } = await supabase
+        .from('games')
+        .select('*')
         .eq('category', 'game')
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .order('created_at', { ascending: false });
         
       if (error) throw error;
-      console.log(`Fetched ${data?.length || 0} games from database (page 1)`);
-
-      // Store total count and check if there are more games
-      setTotalGamesCount(count || 0);
-      setHasMore((count || 0) > GAMES_PER_PAGE);
+      console.log(`Fetched ${data?.length || 0} games from database`);
+      setLoadingProgress(40);
 
       // Fetch creator profiles
       if (data && data.length > 0) {
         const creatorIds = [...new Set(data.map(g => g.creator_id))];
-        const {
-          data: profiles
-        } = await supabase.from('profiles').select('user_id, avatar_url').in('user_id', creatorIds);
+        setLoadingProgress(50);
+        
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, avatar_url')
+          .in('user_id', creatorIds);
+        
+        setLoadingProgress(70);
+        
         const profileMap = new Map(profiles?.map(p => [p.user_id, p.avatar_url]) || []);
         const gamesWithAvatars = data.map(game => ({
           ...game,
           creator_avatar: profileMap.get(game.creator_id)
         }));
+        
+        setLoadingProgress(85);
         console.log(`Displaying ${gamesWithAvatars.length} games with avatars`);
         setGames(gamesWithAvatars);
         setFilteredGames(gamesWithAvatars);
 
-        // Set featured game (most played overall - fetch separately)
-        const { data: topGame } = await supabase
-          .from('games')
-          .select('*')
-          .eq('category', 'game')
-          .order('plays', { ascending: false })
-          .limit(1);
-        
-        if (topGame && topGame.length > 0) {
-          const { data: topProfile } = await supabase
-            .from('profiles')
-            .select('user_id, avatar_url')
-            .eq('user_id', topGame[0].creator_id);
+        // Set featured game (most played overall)
+        const topGame = [...data].sort((a, b) => b.plays - a.plays)[0];
+        if (topGame) {
           setFeaturedGame({
-            ...topGame[0],
-            creator_avatar: topProfile?.[0]?.avatar_url
+            ...topGame,
+            creator_avatar: profileMap.get(topGame.creator_id)
           });
         }
+        setLoadingProgress(100);
       } else {
         setGames([]);
         setFilteredGames([]);
+        setLoadingProgress(100);
       }
     } catch (error) {
       console.error('Error fetching games:', error);
       toast.error("Failed to load games");
+      setLoadingProgress(100);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMoreGames = async () => {
-    if (isLoadingMore) return;
-    
-    setIsLoadingMore(true);
-    try {
-      const from = currentPage * GAMES_PER_PAGE;
-      const to = from + GAMES_PER_PAGE - 1;
-      
-      const {
-        data,
-        error,
-        count
-      } = await supabase
-        .from('games')
-        .select('*', { count: 'exact' })
-        .eq('category', 'game')
-        .order('created_at', { ascending: false })
-        .range(from, to);
-        
-      if (error) throw error;
-      console.log(`Loaded ${data?.length || 0} more games (page ${currentPage + 1})`);
-
-      // Check if there are more games
-      setHasMore((count || 0) > (currentPage + 1) * GAMES_PER_PAGE);
-
-      // Fetch creator profiles
-      if (data && data.length > 0) {
-        const creatorIds = [...new Set(data.map(g => g.creator_id))];
-        const {
-          data: profiles
-        } = await supabase.from('profiles').select('user_id, avatar_url').in('user_id', creatorIds);
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p.avatar_url]) || []);
-        const gamesWithAvatars = data.map(game => ({
-          ...game,
-          creator_avatar: profileMap.get(game.creator_id)
-        }));
-        
-        setGames(prev => [...prev, ...gamesWithAvatars]);
-        setFilteredGames(prev => [...prev, ...gamesWithAvatars]);
-      }
-    } catch (error) {
-      console.error('Error loading more games:', error);
-      toast.error("Failed to load more games");
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
   const fetchPopularGames = async () => {
     try {
       const {
@@ -364,22 +287,50 @@ const Games = () => {
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center space-y-6">
-              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="text-center space-y-6 w-full max-w-md">
               <div className="space-y-3">
-                <p className="text-2xl font-bold gradient-text-animated">Loading spooky games...</p>
-                <p className="text-lg text-muted-foreground">
-                  {games.length} / {totalGamesCount || '?'} games loaded
+                <p className="text-3xl font-bold gradient-text-animated">Loading spooky games...</p>
+                <p className="text-xl text-muted-foreground font-semibold">
+                  Loading {totalGamesCount || '...'} assets
                 </p>
-                {totalGamesCount > 0 && (
-                  <div className="w-64 h-3 bg-card border border-primary/30 rounded-full overflow-hidden mx-auto">
-                    <div 
-                      className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                      style={{ width: `${(games.length / totalGamesCount) * 100}%` }}
-                    />
-                  </div>
-                )}
+                <p className="text-lg text-primary">
+                  {loadingProgress}%
+                </p>
               </div>
+              
+              {/* Animated Progress Bar */}
+              <div className="relative w-full h-4 bg-card border-2 border-primary/40 rounded-full overflow-hidden shadow-lg">
+                {/* Background track */}
+                <div className="absolute inset-0 bg-gradient-to-r from-card via-card/50 to-card" />
+                
+                {/* Progress fill */}
+                <div 
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-accent to-primary transition-all duration-300 ease-out"
+                  style={{ width: `${loadingProgress}%` }}
+                />
+                
+                {/* Animated scanning line */}
+                <div 
+                  className="absolute inset-y-0 w-1 bg-white shadow-[0_0_10px_2px_rgba(255,255,255,0.8)]"
+                  style={{ 
+                    left: `${loadingProgress}%`,
+                    transition: 'left 0.3s ease-out'
+                  }}
+                />
+                
+                {/* Shimmer effect */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+                  style={{ 
+                    width: `${loadingProgress}%`,
+                    backgroundSize: '200% 100%'
+                  }}
+                />
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                🎃 Gathering haunted games from the database... 👻
+              </p>
             </div>
           </div>
         </div>
@@ -561,40 +512,9 @@ const Games = () => {
             <p className="text-muted-foreground">
               Try adjusting your search or filters
             </p>
-          </div> : <>
-          <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
+          </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
-          </div>
-
-          {/* Infinite scroll trigger & loading indicator */}
-          {categoryFilter === "all" && !searchQuery && selectedGenre === "all" && (
-            <div className="flex flex-col items-center gap-4 py-12">
-              {/* Invisible trigger point */}
-              <div ref={observerTarget} className="h-20 w-full" />
-              
-              {isLoadingMore && (
-                <div className="text-center space-y-3 animate-fade-in">
-                  <div className="flex items-center gap-3 text-muted-foreground justify-center">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <span className="text-lg">Loading more games...</span>
-                  </div>
-                  <p className="text-base text-muted-foreground">
-                    {games.length} / {totalGamesCount} games loaded
-                  </p>
-                  <div className="w-64 h-2 bg-card border border-primary/30 rounded-full overflow-hidden mx-auto">
-                    <div 
-                      className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                      style={{ width: `${(games.length / totalGamesCount) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              {!hasMore && filteredGames.length > GAMES_PER_PAGE && (
-                <p className="text-muted-foreground text-lg animate-fade-in">🎮 You've reached the end! 🎃</p>
-              )}
-            </div>
-          )}
-        </>}
+          </div>}
       </div>
     </div>;
 };
