@@ -73,10 +73,14 @@ const Games = () => {
     const observer = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore && categoryFilter === "all" && !searchQuery && selectedGenre === "all") {
+          console.log('🎃 Reached bottom! Loading more games...');
           setCurrentPage(prev => prev + 1);
         }
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.1,
+        rootMargin: '100px' // Start loading 100px before reaching the element
+      }
     );
 
     if (observerTarget.current) {
@@ -564,9 +568,12 @@ const Games = () => {
 
           {/* Infinite scroll trigger & loading indicator */}
           {categoryFilter === "all" && !searchQuery && selectedGenre === "all" && (
-            <div ref={observerTarget} className="flex flex-col items-center gap-4 py-12">
+            <div className="flex flex-col items-center gap-4 py-12">
+              {/* Invisible trigger point */}
+              <div ref={observerTarget} className="h-20 w-full" />
+              
               {isLoadingMore && (
-                <div className="text-center space-y-3">
+                <div className="text-center space-y-3 animate-fade-in">
                   <div className="flex items-center gap-3 text-muted-foreground justify-center">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     <span className="text-lg">Loading more games...</span>
@@ -583,7 +590,7 @@ const Games = () => {
                 </div>
               )}
               {!hasMore && filteredGames.length > GAMES_PER_PAGE && (
-                <p className="text-muted-foreground text-lg">🎮 You've reached the end! 🎃</p>
+                <p className="text-muted-foreground text-lg animate-fade-in">🎮 You've reached the end! 🎃</p>
               )}
             </div>
           )}
