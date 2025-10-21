@@ -329,7 +329,7 @@ const Games = () => {
               </div>
               
               <p className="text-sm text-muted-foreground">
-                🎃 Gathering haunted games from the database... 👻
+                🎃 Gathering haunted games... 👻
               </p>
             </div>
           </div>
