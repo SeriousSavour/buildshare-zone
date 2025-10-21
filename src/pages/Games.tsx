@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import GameCard from "@/components/games/GameCard";
@@ -50,7 +50,9 @@ const Games = () => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const GAMES_PER_PAGE = 20;
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchGames();
@@ -64,6 +66,24 @@ const Games = () => {
       loadMoreGames();
     }
   }, [currentPage]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && categoryFilter === "all" && !searchQuery && selectedGenre === "all") {
+          setCurrentPage(prev => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, categoryFilter, searchQuery, selectedGenre]);
   useEffect(() => {
     const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
     let particleId = 0;
@@ -183,6 +203,9 @@ const Games = () => {
   };
 
   const loadMoreGames = async () => {
+    if (isLoadingMore) return;
+    
+    setIsLoadingMore(true);
     try {
       const from = currentPage * GAMES_PER_PAGE;
       const to = from + GAMES_PER_PAGE - 1;
@@ -222,6 +245,8 @@ const Games = () => {
     } catch (error) {
       console.error('Error loading more games:', error);
       toast.error("Failed to load more games");
+    } finally {
+      setIsLoadingMore(false);
     }
   };
   const fetchPopularGames = async () => {
@@ -517,22 +542,26 @@ const Games = () => {
             <p className="text-muted-foreground">
               Try adjusting your search or filters
             </p>
-          </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
+          </div> : <>
+          <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
-          </div>}
-
-        {/* Load More Button */}
-        {hasMore && filteredGames.length > 0 && categoryFilter === "all" && !searchQuery && selectedGenre === "all" && (
-          <div className="flex justify-center mt-12 animate-fade-in">
-            <Button 
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              size="lg"
-              className="gap-3 px-8 py-6 text-lg"
-            >
-              Load More Games 🎮
-            </Button>
           </div>
-        )}
+
+          {/* Infinite scroll trigger & loading indicator */}
+          {categoryFilter === "all" && !searchQuery && selectedGenre === "all" && (
+            <div ref={observerTarget} className="flex justify-center py-12">
+              {isLoadingMore && (
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-lg">Loading more games...</span>
+                </div>
+              )}
+              {!hasMore && filteredGames.length > GAMES_PER_PAGE && (
+                <p className="text-muted-foreground text-lg">🎮 You've reached the end! 🎃</p>
+              )}
+            </div>
+          )}
+        </>}
       </div>
     </div>;
 };
