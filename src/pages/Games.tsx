@@ -51,6 +51,7 @@ const Games = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totalGamesCount, setTotalGamesCount] = useState(0);
   const GAMES_PER_PAGE = 20;
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -154,7 +155,8 @@ const Games = () => {
       if (error) throw error;
       console.log(`Fetched ${data?.length || 0} games from database (page 1)`);
 
-      // Check if there are more games
+      // Store total count and check if there are more games
+      setTotalGamesCount(count || 0);
       setHasMore((count || 0) > GAMES_PER_PAGE);
 
       // Fetch creator profiles
@@ -358,9 +360,22 @@ const Games = () => {
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-6">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-muted-foreground">Loading games...</p>
+              <div className="space-y-3">
+                <p className="text-2xl font-bold gradient-text-animated">Loading spooky games...</p>
+                <p className="text-lg text-muted-foreground">
+                  {games.length} / {totalGamesCount || '?'} games loaded
+                </p>
+                {totalGamesCount > 0 && (
+                  <div className="w-64 h-3 bg-card border border-primary/30 rounded-full overflow-hidden mx-auto">
+                    <div 
+                      className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+                      style={{ width: `${(games.length / totalGamesCount) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -549,11 +564,22 @@ const Games = () => {
 
           {/* Infinite scroll trigger & loading indicator */}
           {categoryFilter === "all" && !searchQuery && selectedGenre === "all" && (
-            <div ref={observerTarget} className="flex justify-center py-12">
+            <div ref={observerTarget} className="flex flex-col items-center gap-4 py-12">
               {isLoadingMore && (
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <span className="text-lg">Loading more games...</span>
+                <div className="text-center space-y-3">
+                  <div className="flex items-center gap-3 text-muted-foreground justify-center">
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="text-lg">Loading more games...</span>
+                  </div>
+                  <p className="text-base text-muted-foreground">
+                    {games.length} / {totalGamesCount} games loaded
+                  </p>
+                  <div className="w-64 h-2 bg-card border border-primary/30 rounded-full overflow-hidden mx-auto">
+                    <div 
+                      className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+                      style={{ width: `${(games.length / totalGamesCount) * 100}%` }}
+                    />
+                  </div>
                 </div>
               )}
               {!hasMore && filteredGames.length > GAMES_PER_PAGE && (
