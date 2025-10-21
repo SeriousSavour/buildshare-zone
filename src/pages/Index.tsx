@@ -121,16 +121,23 @@ const Index = () => {
       {/* Hero Section with Halloween Icons */}
       <section className="relative overflow-hidden py-24 px-4">
         {/* Gradient background overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none animate-gradient-bg" />
+        
+        {/* Additional animated background blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-secondary/5 rounded-full blur-3xl animate-spin-slow" />
+        </div>
         
         <div className="max-w-5xl mx-auto text-center relative z-10">
           {/* Hero Icon with glow */}
-          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-primary/25 to-accent/25 mb-10 animate-pulse glow-orange">
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-primary/25 to-accent/25 mb-10 animate-pulse-ring glow-orange">
             <Users className="w-14 h-14 text-primary drop-shadow-lg" />
           </div>
 
           {/* Hero Title with enhanced gradient */}
-          <h1 className="text-7xl md:text-8xl font-bold mb-8 gradient-text animate-fade-in leading-tight">
+          <h1 className="text-7xl md:text-8xl font-bold mb-8 gradient-text-animated text-glow animate-fade-in leading-tight">
             Welcome Home!
           </h1>
           
@@ -217,10 +224,10 @@ const Index = () => {
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-20 space-y-4">
-            <h2 className="text-5xl md:text-6xl font-bold gradient-text">
+            <h2 className="text-5xl md:text-6xl font-bold gradient-text-animated text-glow-purple">
               Why You'll Love It Here
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground/80 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-muted-foreground/80 max-w-3xl mx-auto animate-fade-in-delay-1">
               Everything you need for an amazing gǟming social experience ✨
             </p>
           </div>

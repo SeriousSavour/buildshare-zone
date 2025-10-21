@@ -276,10 +276,12 @@ const Games = () => {
       </div>
 
       {/* Animated background effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-40 right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float-delayed" />
-        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-secondary/8 rounded-full blur-3xl animate-float" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-gradient-bg" />
+        <div className="absolute top-40 right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float-delayed animate-gradient-bg" />
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-secondary/8 rounded-full blur-3xl animate-float animate-gradient-bg" />
+        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-primary/8 rounded-full blur-3xl animate-spin-slow" />
+        <div className="absolute bottom-40 right-10 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-pulse-glow" />
       </div>
       
       {/* Bouncing Halloween decorations */}
@@ -316,8 +318,10 @@ const Games = () => {
         {/* Header with enhanced design */}
         <div className="mb-12 space-y-6 animate-fade-in text-center">
           <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text leading-tight">Spooky Gǟmes 🎃 👻</h1>
-            <p className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text-animated text-glow leading-tight animate-pulse-ring">
+              Spooky Gǟmes 🎃 👻
+            </h1>
+            <p className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-foreground via-primary to-muted-foreground bg-clip-text text-transparent animate-fade-in-delay-1">
               Discover spine-chilling games this October! 🎃✨
             </p>
           </div>
