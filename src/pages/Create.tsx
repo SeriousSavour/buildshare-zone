@@ -30,6 +30,16 @@ const Create = () => {
     "Simulation", "Survival", "Horror", "RPG"
   ];
 
+  const maxPlayersOptions = [
+    "Single Player",
+    "1-2 players",
+    "1-4 players",
+    "1-8 players",
+    "2-4 players",
+    "2-8 players",
+    "Multiplayer"
+  ];
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -286,15 +296,19 @@ const Create = () => {
 
                 <div className="space-y-2">
                   <label htmlFor="max_players" className="text-sm font-medium">
-                    Max Players
+                    Max Players *
                   </label>
-                  <Input
+                  <select
                     id="max_players"
+                    required
                     value={formData.max_players}
                     onChange={(e) => setFormData({...formData, max_players: e.target.value})}
-                    placeholder="e.g., 1-4 players"
-                    className="bg-muted/50"
-                  />
+                    className="w-full h-10 px-3 bg-muted/50 border border-border rounded-md text-foreground"
+                  >
+                    {maxPlayersOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
