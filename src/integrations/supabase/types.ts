@@ -978,30 +978,28 @@ export type Database = {
         }
         Returns: boolean
       }
-      add_game_to_group: {
-        Args:
-          | { _game_id: string; _group_id: string }
-          | { _game_id: string; _group_id: string; _session_token: string }
-        Returns: boolean
-      }
-      ban_user: {
-        Args:
-          | { _admin_session_token?: string; _target_user_id: string }
-          | { _target_user_id: string }
-        Returns: boolean
-      }
+      add_game_to_group:
+        | {
+            Args: {
+              _game_id: string
+              _group_id: string
+              _session_token: string
+            }
+            Returns: boolean
+          }
+        | { Args: { _game_id: string; _group_id: string }; Returns: boolean }
+      ban_user:
+        | {
+            Args: { _admin_session_token?: string; _target_user_id: string }
+            Returns: boolean
+          }
+        | { Args: { _target_user_id: string }; Returns: boolean }
       check_user_game_like: {
         Args: { _game_id: string; _user_id: string }
         Returns: boolean
       }
-      check_username_exists: {
-        Args: { _username: string }
-        Returns: boolean
-      }
-      create_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      check_username_exists: { Args: { _username: string }; Returns: boolean }
+      create_admin_user: { Args: never; Returns: string }
       create_chat_room_with_context: {
         Args: {
           _friend_id: string
@@ -1010,17 +1008,20 @@ export type Database = {
         }
         Returns: Json
       }
-      create_game_group: {
-        Args:
-          | { _description?: string; _game_ids?: string[]; _name: string }
-          | {
+      create_game_group:
+        | {
+            Args: {
               _description?: string
               _game_ids?: string[]
               _name: string
               _session_token: string
             }
-        Returns: string
-      }
+            Returns: string
+          }
+        | {
+            Args: { _description?: string; _game_ids?: string[]; _name: string }
+            Returns: string
+          }
       create_game_with_context: {
         Args: {
           _category?: string
@@ -1042,10 +1043,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
-      create_user_session: {
-        Args: { _user_id: string }
-        Returns: string
-      }
+      create_user_session: { Args: { _user_id: string }; Returns: string }
       delete_game_group: {
         Args: { _group_id: string; _session_token: string }
         Returns: boolean
@@ -1074,7 +1072,7 @@ export type Database = {
         Returns: string
       }
       get_active_guidelines: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           content: string
           created_at: string
@@ -1114,10 +1112,7 @@ export type Database = {
         Args: { _session_token: string }
         Returns: string
       }
-      get_current_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_id: { Args: never; Returns: string }
       get_friends_with_context: {
         Args: { _session_token: string }
         Returns: {
@@ -1182,10 +1177,7 @@ export type Database = {
           username: string
         }[]
       }
-      get_session_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_session_user_id: { Args: never; Returns: string }
       get_user_by_session: {
         Args: { _session_token: string }
         Returns: {
@@ -1197,10 +1189,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
-      get_user_room_ids: {
-        Args: { _session_token: string }
-        Returns: string[]
-      }
+      get_user_room_ids: { Args: { _session_token: string }; Returns: string[] }
       get_users_with_roles: {
         Args: { _admin_session_token: string }
         Returns: {
@@ -1219,18 +1208,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      hash_password: {
-        Args: { _password: string }
-        Returns: string
-      }
-      increment_game_plays: {
-        Args: { game_id: string }
-        Returns: number
-      }
-      increment_group_clicks: {
-        Args: { group_id: string }
-        Returns: undefined
-      }
+      hash_password: { Args: { _password: string }; Returns: string }
+      increment_game_plays: { Args: { game_id: string }; Returns: number }
+      increment_group_clicks: { Args: { group_id: string }; Returns: undefined }
       insert_game_comment: {
         Args: {
           _content: string
@@ -1323,12 +1303,16 @@ export type Database = {
         Args: { _friend_id: string; _session_token: string }
         Returns: Json
       }
-      remove_game_from_group: {
-        Args:
-          | { _game_id: string; _group_id: string }
-          | { _game_id: string; _group_id: string; _session_token: string }
-        Returns: boolean
-      }
+      remove_game_from_group:
+        | {
+            Args: {
+              _game_id: string
+              _group_id: string
+              _session_token: string
+            }
+            Returns: boolean
+          }
+        | { Args: { _game_id: string; _group_id: string }; Returns: boolean }
       save_game_progress: {
         Args: { _game_id: string; _progress_data: Json; _session_token: string }
         Returns: Json
@@ -1359,10 +1343,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_featured_game: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      update_featured_game: { Args: never; Returns: string }
       update_game_with_context: {
         Args: {
           _description?: string
