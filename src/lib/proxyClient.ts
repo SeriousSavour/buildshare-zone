@@ -13,6 +13,11 @@ const proxyFetch: typeof fetch = async (input, init) => {
     return fetch(input, init);
   }
   
+  // Don't proxy public storage URLs - they should load directly for images
+  if (url.includes('/storage/v1/object/public/')) {
+    return fetch(input, init);
+  }
+  
   // Proxy all Supabase REST API and storage calls
   if (url.includes('supabase.co')) {
     const targetUrl = new URL(url);
