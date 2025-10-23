@@ -110,6 +110,28 @@ const Games = () => {
   };
   const fetchGames = async () => {
     try {
+      // Check cache first
+      const cachedData = localStorage.getItem('games_cache');
+      const cacheTimestamp = localStorage.getItem('games_cache_timestamp');
+      const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+      
+      if (cachedData && cacheTimestamp) {
+        const age = Date.now() - parseInt(cacheTimestamp);
+        if (age < CACHE_DURATION) {
+          // Use cached data
+          console.log('Loading games from cache');
+          const cached = JSON.parse(cachedData);
+          setGames(cached.games);
+          setFilteredGames(cached.games);
+          setFeaturedGame(cached.featuredGame);
+          setTotalGamesCount(cached.games.length);
+          setLoading(false);
+          toast.success("Games loaded from cache ⚡");
+          return;
+        }
+      }
+      
+      // Cache miss - fetch from database
       setLoadingProgress(5);
       
       // First get the total count
@@ -157,12 +179,22 @@ const Games = () => {
 
         // Set featured game (most played overall)
         const topGame = [...data].sort((a, b) => b.plays - a.plays)[0];
+        let featured = null;
         if (topGame) {
-          setFeaturedGame({
+          featured = {
             ...topGame,
             creator_avatar: profileMap.get(topGame.creator_id)
-          });
+          };
+          setFeaturedGame(featured);
         }
+        
+        // Cache the data
+        localStorage.setItem('games_cache', JSON.stringify({
+          games: gamesWithAvatars,
+          featuredGame: featured
+        }));
+        localStorage.setItem('games_cache_timestamp', Date.now().toString());
+        
         setLoadingProgress(100);
       } else {
         setGames([]);
