@@ -18,6 +18,7 @@ import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AntiCapture from "./components/security/AntiCapture";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <AntiCapture />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
