@@ -126,7 +126,7 @@ const Games = () => {
           setFeaturedGame(cached.featuredGame);
           setTotalGamesCount(cached.games.length);
           setLoading(false);
-          toast.success("Games loaded from cache ⚡");
+          toast.success("Games Loaded!");
           return;
         }
       }
