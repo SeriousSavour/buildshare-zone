@@ -63,6 +63,13 @@ const Create = () => {
   };
 
   const uploadFile = async (file: File, bucket: string, path: string): Promise<string> => {
+    const sessionToken = localStorage.getItem('session_token');
+    
+    // Set session context for storage policies
+    if (sessionToken) {
+      await supabase.rpc('set_session_context', { _session_token: sessionToken });
+    }
+    
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(path, file, { upsert: true });
