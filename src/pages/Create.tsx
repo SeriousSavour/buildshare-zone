@@ -72,7 +72,10 @@ const Create = () => {
     
     const { error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(path, file, { upsert: true });
+      .upload(path, file, { 
+        upsert: true,
+        contentType: file.type || 'application/octet-stream'
+      });
 
     if (uploadError) throw uploadError;
 
