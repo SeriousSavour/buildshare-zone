@@ -99,9 +99,15 @@ const Navigation = () => {
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
             {isAuthenticated ? <>
-              {isAdmin && (
-                  <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin Panel">
-                    <Shield className="w-5 h-5 text-primary" />
+                {isAdmin && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => navigate("/admin")}
+                    title="Admin Panel"
+                    aria-label="Admin Panel"
+                  >
+                    <Shield className="w-5 h-5" />
                   </Button>
                 )}
                 <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
