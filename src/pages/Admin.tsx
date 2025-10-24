@@ -584,6 +584,10 @@ const Admin = () => {
 
       if (error) throw error;
 
+      // Clear games cache so the Games page updates
+      localStorage.removeItem('games_cache');
+      localStorage.removeItem('games_cache_timestamp');
+
       toast({
         title: "Success",
         description: "Game deleted successfully",
