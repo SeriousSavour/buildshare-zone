@@ -138,6 +138,11 @@ const Create = () => {
       if (error) throw error;
       
       setUploadProgress(100);
+      
+      // Clear games cache so the new game appears immediately
+      localStorage.removeItem('games_cache');
+      localStorage.removeItem('games_cache_timestamp');
+      
       toast.success("Game created successfully!");
       
       navigate('/games');
