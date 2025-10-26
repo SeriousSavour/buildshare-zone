@@ -1,13 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-interface Particle {
-  id: number;
-  emoji: string;
-  left: number;
-  animationDuration: number;
-  size: number;
-}
 import Navigation from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,7 +39,6 @@ const GameDetail = () => {
   const navigate = useNavigate();
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [iframeSize, setIframeSize] = useState({ width: 900, height: 600 });
@@ -68,33 +59,6 @@ const GameDetail = () => {
       return cleanup;
     }
   }, [id]);
-
-  useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
-    let particleId = 0;
-
-    const generateParticle = () => {
-      const particle: Particle = {
-        id: particleId++,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 100,
-        animationDuration: 8 + Math.random() * 8,
-        size: 0.8 + Math.random() * 3,
-      };
-      
-      setParticles(prev => [...prev, particle]);
-
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => p.id !== particle.id));
-      }, particle.animationDuration * 1000);
-    };
-
-    const interval = setInterval(() => {
-      generateParticle();
-    }, 600);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const fetchGame = async () => {
     try {
@@ -487,40 +451,6 @@ const GameDetail = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Falling Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
-            className="absolute"
-            style={{
-              left: `${particle.left}%`,
-              top: '-100px',
-              fontSize: `${particle.size}rem`,
-              animation: `fall ${particle.animationDuration}s linear forwards`,
-            }}
-          >
-            {particle.emoji}
-          </div>
-        ))}
-      </div>
-
-      {/* Bouncing decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[15%] left-[8%] text-5xl animate-bounce-slow opacity-30">🎃</div>
-        <div className="absolute top-[28%] right-[10%] text-4xl animate-bounce-delayed opacity-25">👻</div>
-        <div className="absolute top-[18%] right-[85%] text-3xl animate-sway opacity-20">🦇</div>
-        <div className="absolute top-[48%] left-[6%] text-4xl animate-sway-delayed opacity-25">💀</div>
-        <div className="absolute top-[68%] right-[12%] text-5xl animate-bounce-slow opacity-30">🎃</div>
-      </div>
-      
-      {/* Halloween decorative elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
-        <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
-        <div className="absolute bottom-[20%] left-[10%] text-4xl animate-float opacity-15">🦇</div>
-      </div>
-
       <Navigation />
       
       <div className="container mx-auto px-4 py-12 relative z-10 max-w-[100vw] flex flex-col items-center">
