@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
-import { ArrowLeft, Heart, Share2, User, Play, ChevronLeft, ChevronRight, Maximize2, Send } from "lucide-react";
+import { ArrowLeft, Heart, Share2, User, Play, ChevronLeft, ChevronRight, Maximize2, Send, X, Minimize2 } from "lucide-react";
 
 interface Game {
   id: string;
@@ -37,6 +37,7 @@ interface Comment {
 const GameDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
@@ -47,6 +48,7 @@ const GameDetail = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -252,12 +254,19 @@ const GameDetail = () => {
   };
 
   const handleFullscreen = () => {
-    if (!game?.game_url) return;
-    
-    // Navigate to fullscreen page with game data to preserve state
-    navigate(`/games/${id}/fullscreen`, {
-      state: { game }
-    });
+    setIsFullscreen(true);
+  };
+
+  const handleExitFullscreen = () => {
+    setIsFullscreen(false);
+    // Restore iframe to original container
+    const originalContainer = document.querySelector('.relative.inline-block');
+    if (originalContainer && iframeRef.current) {
+      originalContainer.appendChild(iframeRef.current);
+      iframeRef.current.style.width = `${iframeSize.width}px`;
+      iframeRef.current.style.height = `${iframeSize.height}px`;
+      iframeRef.current.className = 'border-2 border-primary/20 rounded-lg shadow-2xl';
+    }
   };
 
   const fetchComments = async () => {
@@ -443,43 +452,48 @@ const GameDetail = () => {
             {game.game_url ? (
               <>
                 <div className="relative inline-block">
-                  {/* Edge Resize Handles */}
-                  <div
-                    className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                    onMouseDown={handleResizeStart('left')}
-                  />
-                  <div
-                    className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                    onMouseDown={handleResizeStart('right')}
-                  />
-                  <div
-                    className="absolute left-0 right-0 -top-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
-                    onMouseDown={handleResizeStart('top')}
-                  />
-                  <div
-                    className="absolute left-0 right-0 -bottom-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
-                    onMouseDown={handleResizeStart('bottom')}
-                  />
-                  
-                  {/* Corner Handles */}
-                  <div
-                    className="absolute -left-1 -top-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                    onMouseDown={handleResizeStart('top-left')}
-                  />
-                  <div
-                    className="absolute -right-1 -top-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                    onMouseDown={handleResizeStart('top-right')}
-                  />
-                  <div
-                    className="absolute -left-1 -bottom-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                    onMouseDown={handleResizeStart('bottom-left')}
-                  />
-                  <div
-                    className="absolute -right-1 -bottom-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
-                    onMouseDown={handleResizeStart('bottom-right')}
-                  />
+                  {!isFullscreen && (
+                    <>
+                      {/* Edge Resize Handles */}
+                      <div
+                        className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                        onMouseDown={handleResizeStart('left')}
+                      />
+                      <div
+                        className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                        onMouseDown={handleResizeStart('right')}
+                      />
+                      <div
+                        className="absolute left-0 right-0 -top-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
+                        onMouseDown={handleResizeStart('top')}
+                      />
+                      <div
+                        className="absolute left-0 right-0 -bottom-1 h-2 cursor-ns-resize hover:bg-primary/50 z-10"
+                        onMouseDown={handleResizeStart('bottom')}
+                      />
+                      
+                      {/* Corner Handles */}
+                      <div
+                        className="absolute -left-1 -top-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                        onMouseDown={handleResizeStart('top-left')}
+                      />
+                      <div
+                        className="absolute -right-1 -top-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                        onMouseDown={handleResizeStart('top-right')}
+                      />
+                      <div
+                        className="absolute -left-1 -bottom-1 w-4 h-4 cursor-nesw-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                        onMouseDown={handleResizeStart('bottom-left')}
+                      />
+                      <div
+                        className="absolute -right-1 -bottom-1 w-4 h-4 cursor-nwse-resize bg-primary hover:bg-primary/80 z-20 rounded-full border-2 border-background"
+                        onMouseDown={handleResizeStart('bottom-right')}
+                      />
+                    </>
+                  )}
 
                   <iframe
+                    ref={iframeRef}
                     src={game.game_url}
                     title={game.title}
                     className="border-2 border-primary/20 rounded-lg shadow-2xl"
@@ -674,6 +688,51 @@ const GameDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Overlay */}
+      {isFullscreen && game?.game_url && iframeRef.current && (
+        <div className="fixed inset-0 z-[100] bg-background flex flex-col">
+          {/* Header Bar */}
+          <div className="bg-gradient-to-r from-primary/90 to-purple-600/90 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-lg">
+            <h1 className="text-2xl font-bold text-white">
+              🎮 {game.title}
+            </h1>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleExitFullscreen}
+                className="text-white hover:bg-white/20"
+              >
+                <Minimize2 className="w-4 h-4 mr-2" />
+                Exit Fullscreen
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleExitFullscreen}
+                className="text-white hover:bg-white/20"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Game iframe container - will be moved here via portal */}
+          <div 
+            className="flex-1 relative bg-black"
+            ref={(el) => {
+              if (el && iframeRef.current && !el.contains(iframeRef.current)) {
+                // Move the iframe to fullscreen container
+                el.appendChild(iframeRef.current);
+                iframeRef.current.style.width = '100%';
+                iframeRef.current.style.height = '100%';
+                iframeRef.current.className = 'w-full h-full border-none';
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

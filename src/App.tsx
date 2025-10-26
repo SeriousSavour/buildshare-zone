@@ -9,7 +9,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Games from "./pages/Games";
 import GameDetail from "./pages/GameDetail";
-import GameFullscreen from "./pages/GameFullscreen";
 import Tools from "./pages/Tools";
 import ToolDetail from "./pages/ToolDetail";
 import Create from "./pages/Create";
@@ -37,7 +36,6 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
             <Route path="/games/:id" element={<ProtectedRoute><GameDetail /></ProtectedRoute>} />
-            <Route path="/games/:id/fullscreen" element={<ProtectedRoute><GameFullscreen /></ProtectedRoute>} />
             <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
             <Route path="/tools/:id" element={<ProtectedRoute><ToolDetail /></ProtectedRoute>} />
             <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
