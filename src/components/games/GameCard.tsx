@@ -155,14 +155,25 @@ const GameCard = ({
                   setImageError(false);
                 }}
                 onError={(e) => {
-                  // Try alternative URL format
+                  // Try alternative URL formats for backward compatibility
                   if (currentImageUrl?.includes('/game-assets/game-images/')) {
+                    // Try game-images bucket directly
                     const fileName = currentImageUrl.split('/game-assets/game-images/')[1];
                     const altUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-images/${fileName}`;
-                    setCurrentImageUrl(altUrl);
-                  } else {
-                    setImageError(true);
+                    if (currentImageUrl !== altUrl) {
+                      setCurrentImageUrl(altUrl);
+                      return;
+                    }
+                  } else if (currentImageUrl?.includes('/game-images/') && !currentImageUrl?.includes('/game-assets/')) {
+                    // Try game-assets/game-images folder
+                    const fileName = currentImageUrl.split('/game-images/')[1];
+                    const altUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-assets/game-images/${fileName}`;
+                    if (currentImageUrl !== altUrl) {
+                      setCurrentImageUrl(altUrl);
+                      return;
+                    }
                   }
+                  setImageError(true);
                   setImageLoading(false);
                 }}
                 style={{ opacity: imageLoading && !imageError ? 0 : 1, transition: 'opacity 0.3s' }}
