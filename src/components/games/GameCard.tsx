@@ -48,6 +48,8 @@ const GameCard = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [localLiked, setLocalLiked] = useState(isLiked);
   const [localLikes, setLocalLikes] = useState(likes);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -132,19 +134,30 @@ const GameCard = ({
   return (
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
-        <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 pointer-events-none">
-          {imageUrl ? (
+        <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
+          {imageUrl && !imageError ? (
             <>
+              {imageLoading && (
+                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
+                  <Play className="w-20 h-20 text-primary/60 animate-pulse" />
+                </div>
+              )}
               <img
                 src={imageUrl}
                 alt={title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none"
+                className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => setImageLoading(false)}
+                onError={() => {
+                  setImageError(true);
+                  setImageLoading(false);
+                }}
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15 pointer-events-none">
-              <Play className="w-20 h-20 text-primary/60 animate-pulse pointer-events-none" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
+              <Play className="w-20 h-20 text-primary/60 animate-pulse" />
             </div>
           )}
           
