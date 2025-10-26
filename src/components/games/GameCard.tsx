@@ -52,18 +52,12 @@ const GameCard = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl);
 
-  // Debug image loading
+  // Reset image state when imageUrl changes
   useEffect(() => {
-    console.log('GameCard mounted:', { title, imageUrl, currentImageUrl });
-    
-    // If image URL is from game-images bucket directly, try to fix it
-    if (imageUrl?.includes('/game-images/') && !imageUrl?.includes('/game-assets/')) {
-      const fileName = imageUrl.split('/game-images/')[1];
-      const correctedUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-assets/game-images/${fileName}`;
-      console.log('Correcting image URL from:', imageUrl, 'to:', correctedUrl);
-      setCurrentImageUrl(correctedUrl);
-    }
-  }, [title, imageUrl, currentImageUrl]);
+    setCurrentImageUrl(imageUrl);
+    setImageError(false);
+    setImageLoading(true);
+  }, [imageUrl]);
 
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -156,19 +150,15 @@ const GameCard = ({
                 alt={title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 onLoad={(e) => {
-                  console.log('✅ Image loaded:', title);
                   e.currentTarget.style.opacity = '1';
                   setImageLoading(false);
                   setImageError(false);
                 }}
                 onError={(e) => {
-                  console.error('❌ Image error for:', title, currentImageUrl);
-                  
                   // Try alternative URL format
                   if (currentImageUrl?.includes('/game-assets/game-images/')) {
                     const fileName = currentImageUrl.split('/game-assets/game-images/')[1];
                     const altUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-images/${fileName}`;
-                    console.log('Trying alternative URL:', altUrl);
                     setCurrentImageUrl(altUrl);
                   } else {
                     setImageError(true);
