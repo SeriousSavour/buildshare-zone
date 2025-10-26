@@ -51,12 +51,17 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
 
       // Check admin role if required
       if (requireAdmin) {
-        const { data: roleData } = await supabase
+        const { data: roleData, error: roleError } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", data[0].user_id);
 
+        console.log("ProtectedRoute admin check - User ID:", data[0].user_id);
+        console.log("ProtectedRoute admin check - Role data:", roleData);
+        console.log("ProtectedRoute admin check - Role error:", roleError);
+
         const hasAdminRole = roleData?.some(r => r.role === "admin") || false;
+        console.log("ProtectedRoute admin check - Has admin role:", hasAdminRole);
         setIsAdmin(hasAdminRole);
         setIsAuthenticated(true);
       } else {
