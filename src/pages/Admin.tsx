@@ -229,6 +229,7 @@ const Admin = () => {
       });
       fetchUsers();
       fetchAuditLogs();
+      fetchStats();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -260,6 +261,7 @@ const Admin = () => {
       setPromoteUsername("");
       fetchUsers();
       fetchAuditLogs();
+      fetchStats();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -290,6 +292,7 @@ const Admin = () => {
       });
       fetchUsers();
       fetchAuditLogs();
+      fetchStats();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -321,6 +324,7 @@ const Admin = () => {
         description: "Flag resolved",
       });
       fetchContentFlags();
+      fetchStats();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -351,8 +355,6 @@ const Admin = () => {
     if (!sessionToken) return;
 
     try {
-      await supabase.rpc('set_session_context', { _session_token: sessionToken });
-      
       const { data, error } = await supabase
         .from("blocked_words")
         .select("*")
@@ -369,7 +371,7 @@ const Admin = () => {
     try {
       const [usersResult, gamesResult, flagsResult] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("games").select("*, plays", { count: "exact" }),
+        supabase.from("games").select("plays", { count: "exact" }),
         supabase.from("content_flags").select("*", { count: "exact", head: true }).eq("status", "pending"),
       ]);
 
@@ -381,8 +383,20 @@ const Admin = () => {
         activeFlags: flagsResult.count || 0,
         totalPlays: totalPlays,
       });
+      
+      console.log("📊 Admin stats updated:", {
+        totalUsers: usersResult.count,
+        totalGames: gamesResult.count,
+        activeFlags: flagsResult.count,
+        totalPlays
+      });
     } catch (error: any) {
       console.error("Error fetching stats:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch admin stats",
+        variant: "destructive",
+      });
     }
   };
 
