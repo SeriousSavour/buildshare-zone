@@ -401,9 +401,49 @@ const GameDetail = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-12 relative z-10 max-w-[100vw] flex flex-col items-center">
+      {/* Fullscreen Game View */}
+      {isFullscreen && game?.game_url && (
+        <>
+          <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-primary/90 to-purple-600/90 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-lg">
+            <h1 className="text-2xl font-bold text-white">
+              🎮 {game.title}
+            </h1>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleExitFullscreen}
+                className="text-white hover:bg-white/20"
+              >
+                <Minimize2 className="w-4 h-4 mr-2" />
+                Exit Fullscreen
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleExitFullscreen}
+                className="text-white hover:bg-white/20"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+          <iframe
+            src={game.game_url}
+            title={game.title}
+            className="fixed inset-0 w-screen h-screen z-[99] border-none"
+            style={{ paddingTop: '64px' }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </>
+      )}
+
+      {!isFullscreen && (
+        <>
+          <Navigation />
+          
+          <div className="container mx-auto px-4 py-12 relative z-10 max-w-[100vw] flex flex-col items-center">
         {/* Back Button */}
         <div className="w-full max-w-7xl mb-8">
           <Button
@@ -484,12 +524,12 @@ const GameDetail = () => {
                     </>
                   )}
 
-                  <iframe
+                   <iframe
                     ref={iframeRef}
                     src={game.game_url}
                     title={game.title}
-                    className={isFullscreen ? "fixed inset-0 z-[99] w-screen h-screen border-none" : "border-2 border-primary/20 rounded-lg shadow-2xl"}
-                    style={isFullscreen ? {} : {
+                    className="border-2 border-primary/20 rounded-lg shadow-2xl"
+                    style={{
                       width: `${iframeSize.width}px`,
                       height: `${iframeSize.height}px`,
                     }}
@@ -680,33 +720,7 @@ const GameDetail = () => {
           </div>
         </div>
       </div>
-
-      {/* Fullscreen Controls */}
-      {isFullscreen && game?.game_url && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-primary/90 to-purple-600/90 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-lg">
-          <h1 className="text-2xl font-bold text-white">
-            🎮 {game.title}
-          </h1>
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleExitFullscreen}
-              className="text-white hover:bg-white/20"
-            >
-              <Minimize2 className="w-4 h-4 mr-2" />
-              Exit Fullscreen
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleExitFullscreen}
-              className="text-white hover:bg-white/20"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
