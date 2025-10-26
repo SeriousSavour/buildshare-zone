@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
-import { User, Upload, Settings, Trophy, Heart, Gamepad2 } from "lucide-react";
+import { User, Upload, Settings, Trophy, Heart, Gamepad2, Shield } from "lucide-react";
 
 interface Particle {
   id: number;
@@ -33,10 +33,12 @@ const Profile = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [stats, setStats] = useState({ gamesCreated: 0, totalLikes: 0, totalPlays: 0 });
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchProfile();
     fetchStats();
+    checkAdminStatus();
   }, []);
 
   useEffect(() => {
@@ -107,6 +109,34 @@ const Profile = () => {
       toast.error(error.message || "Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkAdminStatus = async () => {
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) return;
+
+    try {
+      const { data: userData } = await supabase.rpc('get_user_by_session', {
+        _session_token: sessionToken
+      });
+
+      if (!userData || userData.length === 0) return;
+
+      const userId = userData[0].user_id;
+
+      // Check if user has admin role
+      const { data: roles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      const hasAdminRole = roles?.some(r => r.role === 'admin') || false;
+      setIsAdmin(hasAdminRole);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
     }
   };
 
@@ -411,6 +441,28 @@ const Profile = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Admin Panel Button */}
+            {isAdmin && (
+              <Card className="animate-fade-in-delay-4 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 border-primary/50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    Admin Access
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => navigate('/admin')}
+                    className="w-full gap-2 bg-gradient-to-r from-primary to-primary-glow hover-scale hover-glow"
+                    size="lg"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Open Admin Panel
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
