@@ -108,7 +108,7 @@ const Create = () => {
         setUploadProgress(25);
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        imageUrl = await uploadFile(imageFile, 'game-images', fileName);
+        imageUrl = await uploadFile(imageFile, 'game-assets', `game-images/${fileName}`);
         setUploadProgress(50);
       }
 
@@ -117,7 +117,7 @@ const Create = () => {
         setUploadProgress(60);
         const fileExt = gameFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        gameUrl = await uploadFile(gameFile, 'game-files', fileName);
+        gameUrl = await uploadFile(gameFile, 'game-assets', `game-files/${fileName}`);
         setUploadProgress(80);
       }
 
