@@ -259,14 +259,6 @@ const GameDetail = () => {
 
   const handleExitFullscreen = () => {
     setIsFullscreen(false);
-    // Restore iframe to original container
-    const originalContainer = document.querySelector('.relative.inline-block');
-    if (originalContainer && iframeRef.current) {
-      originalContainer.appendChild(iframeRef.current);
-      iframeRef.current.style.width = `${iframeSize.width}px`;
-      iframeRef.current.style.height = `${iframeSize.height}px`;
-      iframeRef.current.className = 'border-2 border-primary/20 rounded-lg shadow-2xl';
-    }
   };
 
   const fetchComments = async () => {
@@ -496,8 +488,8 @@ const GameDetail = () => {
                     ref={iframeRef}
                     src={game.game_url}
                     title={game.title}
-                    className="border-2 border-primary/20 rounded-lg shadow-2xl"
-                    style={{
+                    className={isFullscreen ? "fixed inset-0 z-[99] w-screen h-screen border-none" : "border-2 border-primary/20 rounded-lg shadow-2xl"}
+                    style={isFullscreen ? {} : {
                       width: `${iframeSize.width}px`,
                       height: `${iframeSize.height}px`,
                     }}
@@ -689,48 +681,31 @@ const GameDetail = () => {
         </div>
       </div>
 
-      {/* Fullscreen Overlay */}
-      {isFullscreen && game?.game_url && iframeRef.current && (
-        <div className="fixed inset-0 z-[100] bg-background flex flex-col">
-          {/* Header Bar */}
-          <div className="bg-gradient-to-r from-primary/90 to-purple-600/90 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-lg">
-            <h1 className="text-2xl font-bold text-white">
-              🎮 {game.title}
-            </h1>
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleExitFullscreen}
-                className="text-white hover:bg-white/20"
-              >
-                <Minimize2 className="w-4 h-4 mr-2" />
-                Exit Fullscreen
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleExitFullscreen}
-                className="text-white hover:bg-white/20"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+      {/* Fullscreen Controls */}
+      {isFullscreen && game?.game_url && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-primary/90 to-purple-600/90 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-lg">
+          <h1 className="text-2xl font-bold text-white">
+            🎮 {game.title}
+          </h1>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleExitFullscreen}
+              className="text-white hover:bg-white/20"
+            >
+              <Minimize2 className="w-4 h-4 mr-2" />
+              Exit Fullscreen
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleExitFullscreen}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </div>
-
-          {/* Game iframe container - will be moved here via portal */}
-          <div 
-            className="flex-1 relative bg-black"
-            ref={(el) => {
-              if (el && iframeRef.current && !el.contains(iframeRef.current)) {
-                // Move the iframe to fullscreen container
-                el.appendChild(iframeRef.current);
-                iframeRef.current.style.width = '100%';
-                iframeRef.current.style.height = '100%';
-                iframeRef.current.className = 'w-full h-full border-none';
-              }
-            }}
-          />
         </div>
       )}
     </div>
