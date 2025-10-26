@@ -140,35 +140,30 @@ const GameCard = ({
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-          {imageUrl && !imageError ? (
+          {imageUrl ? (
             <>
-              {imageLoading && (
-                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15 z-10">
-                  <Play className="w-20 h-20 text-primary/60 animate-pulse" />
-                </div>
-              )}
               <img
                 src={imageUrl}
                 alt={title}
-                className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-                onLoad={() => {
-                  console.log('Image loaded successfully:', title, imageUrl);
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                onLoad={(e) => {
+                  console.log('✅ Image loaded:', title);
+                  e.currentTarget.style.opacity = '1';
                   setImageLoading(false);
+                  setImageError(false);
                 }}
                 onError={(e) => {
-                  console.error('Image failed to load:', title, imageUrl, e);
+                  console.error('❌ Image error for:', title, imageUrl);
                   setImageError(true);
                   setImageLoading(false);
                 }}
-                loading="eager"
-                crossOrigin="anonymous"
+                style={{ opacity: imageLoading && !imageError ? 0 : 1, transition: 'opacity 0.3s' }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
               <Play className="w-20 h-20 text-primary/60 animate-pulse" />
-              {imageError && <p className="absolute bottom-2 text-xs text-muted-foreground">Image failed to load</p>}
             </div>
           )}
           
