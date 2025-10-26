@@ -50,11 +50,20 @@ const GameCard = ({
   const [localLikes, setLocalLikes] = useState(likes);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl);
 
   // Debug image loading
   useEffect(() => {
-    console.log('GameCard mounted:', { title, imageUrl });
-  }, [title, imageUrl]);
+    console.log('GameCard mounted:', { title, imageUrl, currentImageUrl });
+    
+    // If image URL is from game-images bucket directly, try to fix it
+    if (imageUrl?.includes('/game-images/') && !imageUrl?.includes('/game-assets/')) {
+      const fileName = imageUrl.split('/game-images/')[1];
+      const correctedUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-assets/game-images/${fileName}`;
+      console.log('Correcting image URL from:', imageUrl, 'to:', correctedUrl);
+      setCurrentImageUrl(correctedUrl);
+    }
+  }, [title, imageUrl, currentImageUrl]);
 
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -140,10 +149,10 @@ const GameCard = ({
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-          {imageUrl ? (
+          {currentImageUrl ? (
             <>
               <img
-                src={imageUrl}
+                src={currentImageUrl}
                 alt={title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 onLoad={(e) => {
@@ -153,8 +162,17 @@ const GameCard = ({
                   setImageError(false);
                 }}
                 onError={(e) => {
-                  console.error('❌ Image error for:', title, imageUrl);
-                  setImageError(true);
+                  console.error('❌ Image error for:', title, currentImageUrl);
+                  
+                  // Try alternative URL format
+                  if (currentImageUrl?.includes('/game-assets/game-images/')) {
+                    const fileName = currentImageUrl.split('/game-assets/game-images/')[1];
+                    const altUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-images/${fileName}`;
+                    console.log('Trying alternative URL:', altUrl);
+                    setCurrentImageUrl(altUrl);
+                  } else {
+                    setImageError(true);
+                  }
                   setImageLoading(false);
                 }}
                 style={{ opacity: imageLoading && !imageError ? 0 : 1, transition: 'opacity 0.3s' }}
