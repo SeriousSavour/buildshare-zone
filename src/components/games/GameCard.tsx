@@ -1,7 +1,7 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Play, MessageSquare, Share2, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
@@ -50,6 +50,11 @@ const GameCard = ({
   const [localLikes, setLocalLikes] = useState(likes);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+
+  // Debug image loading
+  useEffect(() => {
+    console.log('GameCard mounted:', { title, imageUrl });
+  }, [title, imageUrl]);
 
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -138,7 +143,7 @@ const GameCard = ({
           {imageUrl && !imageError ? (
             <>
               {imageLoading && (
-                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
+                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15 z-10">
                   <Play className="w-20 h-20 text-primary/60 animate-pulse" />
                 </div>
               )}
@@ -146,18 +151,24 @@ const GameCard = ({
                 src={imageUrl}
                 alt={title}
                 className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
-                onLoad={() => setImageLoading(false)}
-                onError={() => {
+                onLoad={() => {
+                  console.log('Image loaded successfully:', title, imageUrl);
+                  setImageLoading(false);
+                }}
+                onError={(e) => {
+                  console.error('Image failed to load:', title, imageUrl, e);
                   setImageError(true);
                   setImageLoading(false);
                 }}
-                loading="lazy"
+                loading="eager"
+                crossOrigin="anonymous"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
               <Play className="w-20 h-20 text-primary/60 animate-pulse" />
+              {imageError && <p className="absolute bottom-2 text-xs text-muted-foreground">Image failed to load</p>}
             </div>
           )}
           
