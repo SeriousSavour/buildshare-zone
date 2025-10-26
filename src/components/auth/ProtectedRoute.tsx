@@ -16,6 +16,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
   }, []);
 
   const checkAuth = async () => {
+    console.log("🔒 ProtectedRoute checkAuth - Starting, requireAdmin:", requireAdmin);
+    
     // Try localStorage first, then sessionStorage as fallback
     let sessionToken = localStorage.getItem("session_token");
     
@@ -28,6 +30,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     }
     
     if (!sessionToken) {
+      console.log("🔒 ProtectedRoute - No session token found");
       setIsAuthenticated(false);
       setIsAdmin(false);
       return;
@@ -35,12 +38,16 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
 
     try {
       // Verify the session is still valid
+      console.log("🔒 ProtectedRoute - Verifying session");
       const { data, error } = await supabase.rpc("get_user_by_session", {
         _session_token: sessionToken,
       });
 
+      console.log("🔒 ProtectedRoute - User data:", data);
+      console.log("🔒 ProtectedRoute - User error:", error);
+
       if (error || !data || data.length === 0) {
-        // Session is invalid, clear storage
+        console.log("🔒 ProtectedRoute - Session invalid, clearing storage");
         setIsAuthenticated(false);
         setIsAdmin(false);
         localStorage.removeItem("session_token");
@@ -51,6 +58,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
 
       // Check admin role if required
       if (requireAdmin) {
+        console.log("🔒 ProtectedRoute - Admin required, checking roles for user:", data[0].user_id);
+        
         // Set session context before querying roles
         await supabase.rpc('set_session_context', { _session_token: sessionToken });
         
@@ -59,16 +68,18 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
           .select("role")
           .eq("user_id", data[0].user_id);
 
-        console.log("ProtectedRoute admin check - User ID:", data[0].user_id);
-        console.log("ProtectedRoute admin check - Role data:", roleData);
-        console.log("ProtectedRoute admin check - Role error:", roleError);
+        console.log("🔒 ProtectedRoute admin check - Role data:", roleData);
+        console.log("🔒 ProtectedRoute admin check - Role error:", roleError);
 
         const hasAdminRole = roleData?.some(r => r.role === "admin") || false;
-        console.log("ProtectedRoute admin check - Has admin role:", hasAdminRole);
+        console.log("🔒 ProtectedRoute admin check - Has admin role:", hasAdminRole);
+        
         setIsAdmin(hasAdminRole);
         setIsAuthenticated(true);
+        
+        console.log("🔒 ProtectedRoute - Set isAdmin to:", hasAdminRole);
       } else {
-        // Not checking admin, so set to false and mark as authenticated
+        console.log("🔒 ProtectedRoute - Admin not required, setting authenticated");
         setIsAdmin(false);
         setIsAuthenticated(true);
       }
@@ -77,7 +88,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
       localStorage.setItem("session_token", sessionToken);
       sessionStorage.setItem("session_token", sessionToken);
     } catch (error) {
-      console.error("Auth check failed:", error);
+      console.error("🔒 ProtectedRoute - Auth check failed:", error);
       setIsAuthenticated(false);
       setIsAdmin(false);
       localStorage.removeItem("session_token");
