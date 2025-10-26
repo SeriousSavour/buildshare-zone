@@ -51,6 +51,9 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
 
       // Check admin role if required
       if (requireAdmin) {
+        // Set session context before querying roles
+        await supabase.rpc('set_session_context', { _session_token: sessionToken });
+        
         const { data: roleData, error: roleError } = await supabase
           .from("user_roles")
           .select("role")
