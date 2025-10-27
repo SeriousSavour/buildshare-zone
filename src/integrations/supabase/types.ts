@@ -689,6 +689,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quests: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          quest_type: string
+          requirement_count: number
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          quest_type: string
+          requirement_count?: number
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          quest_type?: string
+          requirement_count?: number
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       tools: {
         Row: {
           category: string
@@ -855,6 +894,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_quest_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress: number
+          quest_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: number
+          quest_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: number
+          quest_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1138,6 +1218,17 @@ export type Database = {
           username: string
         }[]
       }
+      get_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          quests_completed: number
+          total_xp: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_profile_by_session: {
         Args: { _session_token: string }
         Returns: {
@@ -1371,6 +1462,10 @@ export type Database = {
           title: string
           updated_at: string
         }[]
+      }
+      update_quest_progress: {
+        Args: { _increment?: number; _quest_type: string; _user_id: string }
+        Returns: boolean
       }
       update_username_with_context: {
         Args: { _new_username: string; _session_token: string }

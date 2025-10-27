@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { StyledText } from "@/components/ui/styled-text";
+import { useQuestTracking } from "@/hooks/useQuestTracking";
 
 interface GameCardProps {
   id: string;
@@ -44,6 +45,7 @@ const GameCard = ({
   onDelete,
 }: GameCardProps) => {
   const navigate = useNavigate();
+  const { trackQuestProgress } = useQuestTracking();
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localLiked, setLocalLiked] = useState(isLiked);
@@ -90,6 +92,11 @@ const GameCard = ({
       setLocalLikes(data.like_count);
       onLikeToggle?.();
 
+      // Track quest progress if liked
+      if (data.is_liked) {
+        await trackQuestProgress('like_games', userId);
+      }
+
       toast.success(data.is_liked ? "Game liked!" : "Like removed");
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -99,7 +106,13 @@ const GameCard = ({
     }
   };
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
+    // Track play quest progress
+    try {
+      await trackQuestProgress('play_games');
+    } catch (error) {
+      console.error('Error tracking play quest:', error);
+    }
     navigate(`/games/${id}`);
   };
 

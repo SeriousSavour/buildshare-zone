@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { Users, UserPlus, UserMinus, Check, X, Search } from "lucide-react";
+import { useQuestTracking } from "@/hooks/useQuestTracking";
 
 interface Friend {
   id: string;
@@ -33,6 +34,7 @@ interface Friend {
 }
 
 const Friends = () => {
+  const { trackQuestProgress } = useQuestTracking();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [searchUsername, setSearchUsername] = useState("");
   const [loading, setLoading] = useState(true);
@@ -141,6 +143,9 @@ const Friends = () => {
       if (error) throw error;
 
       if (data.success) {
+        // Track quest progress
+        await trackQuestProgress('add_friends');
+        
         toast.success("Friend request accepted!");
         fetchFriends();
       } else {

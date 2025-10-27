@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { StyledKeyword } from "@/components/ui/styled-text";
+import { Leaderboard } from "@/components/leaderboard/Leaderboard";
 interface Particle {
   id: number;
   emoji: string;
@@ -421,6 +422,9 @@ const Games = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-12 relative z-10">
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
         {/* Header with enhanced design */}
         <div className="mb-12 space-y-6 animate-fade-in text-center">
           <div className="space-y-4">
@@ -547,6 +551,15 @@ const Games = () => {
           </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
           </div>}
+          </div>
+
+          {/* Right Sidebar - Leaderboard */}
+          <div className="hidden lg:block w-96 flex-shrink-0">
+            <div className="sticky top-8">
+              <Leaderboard />
+            </div>
+          </div>
+        </div>
       </div>
     </div>;
 };

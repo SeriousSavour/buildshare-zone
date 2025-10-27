@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { User, Upload, Settings, Trophy, Heart, Gamepad2, Shield } from "lucide-react";
+import { useQuestTracking } from "@/hooks/useQuestTracking";
 
 interface Particle {
   id: number;
@@ -26,6 +27,7 @@ interface ProfileData {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { trackQuestProgress } = useQuestTracking();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -188,6 +190,7 @@ const Profile = () => {
     setUploading(true);
     try {
       let avatarUrl = profile.avatar_url;
+      const hadNoAvatar = !profile.avatar_url;
 
       // Upload avatar if selected
       if (avatarFile) {
@@ -218,6 +221,11 @@ const Profile = () => {
         .eq('user_id', profile.user_id);
 
       if (error) throw error;
+
+      // Track quest progress if avatar was just uploaded
+      if (avatarFile && hadNoAvatar) {
+        await trackQuestProgress('upload_avatar', profile.user_id);
+      }
 
       toast.success("Profile updated successfully!");
       fetchProfile();

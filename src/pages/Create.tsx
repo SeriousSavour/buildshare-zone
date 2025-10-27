@@ -8,9 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { toast } from "sonner";
 import { Plus, Upload } from "lucide-react";
+import { useQuestTracking } from "@/hooks/useQuestTracking";
 
 const Create = () => {
   const navigate = useNavigate();
+  const { trackQuestProgress } = useQuestTracking();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -142,6 +144,9 @@ const Create = () => {
       // Clear games cache so the new game appears immediately
       localStorage.removeItem('games_cache');
       localStorage.removeItem('games_cache_timestamp');
+      
+      // Track quest progress
+      await trackQuestProgress('create_game');
       
       toast.success("Game created successfully!");
       

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
+import { Leaderboard } from "@/components/leaderboard/Leaderboard";
 
 interface Particle {
   id: number;
@@ -214,6 +215,22 @@ const Index = () => {
               <span className="font-medium">No ads or spam</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Leaderboard Section */}
+      <section className="py-16 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold gradient-text-animated text-glow mb-4">
+              Top Quest Champions 🏆
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Complete quests to climb the ranks!
+            </p>
+          </div>
+          <Leaderboard />
         </div>
       </section>
 
