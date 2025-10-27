@@ -52,14 +52,78 @@ const GameCard = ({
   const [localLikes, setLocalLikes] = useState(likes);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
-  const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
 
-  // Reset image state when imageUrl changes
+  // Fetch image through proxy as blob and convert to object URL
   useEffect(() => {
-    setCurrentImageUrl(imageUrl);
-    setImageError(false);
-    setImageLoading(true);
+    if (!imageUrl) {
+      setCurrentImageUrl(null);
+      setImageLoading(false);
+      return;
+    }
+
+    let objectUrl: string | null = null;
+    const loadImage = async () => {
+      try {
+        setImageLoading(true);
+        setImageError(false);
+        
+        // Fetch image through proxied fetch
+        const response = await fetch(imageUrl);
+        if (!response.ok) throw new Error('Failed to load image');
+        
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setCurrentImageUrl(objectUrl);
+        setImageLoading(false);
+      } catch (error) {
+        console.error('Error loading image:', error);
+        setImageError(true);
+        setImageLoading(false);
+      }
+    };
+
+    loadImage();
+
+    // Cleanup object URL on unmount
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [imageUrl]);
+
+  // Fetch creator avatar through proxy
+  useEffect(() => {
+    if (!creatorAvatar) {
+      setCurrentAvatarUrl(null);
+      return;
+    }
+
+    let objectUrl: string | null = null;
+    const loadAvatar = async () => {
+      try {
+        const response = await fetch(creatorAvatar);
+        if (!response.ok) throw new Error('Failed to load avatar');
+        
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setCurrentAvatarUrl(objectUrl);
+      } catch (error) {
+        console.error('Error loading avatar:', error);
+        setCurrentAvatarUrl(null);
+      }
+    };
+
+    loadAvatar();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [creatorAvatar]);
 
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -158,39 +222,24 @@ const GameCard = ({
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
           {currentImageUrl ? (
             <>
-              <img
-                src={currentImageUrl}
-                alt={title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                onLoad={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                  setImageLoading(false);
-                  setImageError(false);
-                }}
-                onError={(e) => {
-                  // Try alternative URL formats for backward compatibility
-                  if (currentImageUrl?.includes('/game-assets/game-images/')) {
-                    // Try game-images bucket directly
-                    const fileName = currentImageUrl.split('/game-assets/game-images/')[1];
-                    const altUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-images/${fileName}`;
-                    if (currentImageUrl !== altUrl) {
-                      setCurrentImageUrl(altUrl);
-                      return;
-                    }
-                  } else if (currentImageUrl?.includes('/game-images/') && !currentImageUrl?.includes('/game-assets/')) {
-                    // Try game-assets/game-images folder
-                    const fileName = currentImageUrl.split('/game-images/')[1];
-                    const altUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/storage/v1/object/public/game-assets/game-images/${fileName}`;
-                    if (currentImageUrl !== altUrl) {
-                      setCurrentImageUrl(altUrl);
-                      return;
-                    }
-                  }
-                  setImageError(true);
-                  setImageLoading(false);
-                }}
-                style={{ opacity: imageLoading && !imageError ? 0 : 1, transition: 'opacity 0.3s' }}
-              />
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-card/50">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              )}
+              {!imageError && currentImageUrl && (
+                <img
+                  src={currentImageUrl}
+                  alt={title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}
+                />
+              )}
+              {imageError && (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
+                  <Play className="w-20 h-20 text-primary/60 animate-pulse" />
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </>
           ) : (
@@ -217,9 +266,9 @@ const GameCard = ({
         
         <div className="flex items-center justify-between text-sm pt-2">
           <div className="flex items-center gap-3">
-            {creatorAvatar ? (
+            {currentAvatarUrl ? (
               <img
-                src={creatorAvatar}
+                src={currentAvatarUrl}
                 alt={creatorName}
                 className="w-8 h-8 rounded-full object-cover border-2 border-primary/30 ring-2 ring-card group-hover:ring-primary/20 transition-all"
               />
