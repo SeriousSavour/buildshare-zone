@@ -423,9 +423,8 @@ const Games = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-12 relative z-10">
-        <div className="flex gap-8">
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
+        {/* Main Content - Full Width */}
+        <div className="w-full">
         {/* Header with enhanced design */}
         <div className="mb-12 space-y-6 animate-fade-in text-center">
           <div className="space-y-4">
@@ -552,15 +551,15 @@ const Games = () => {
           </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
           </div>}
-          </div>
+        </div>
+      </div>
 
-          {/* Right Sidebar - Quests & Leaderboard */}
-          <div className="hidden xl:block w-80 flex-shrink-0">
-            <div className="sticky top-4 space-y-4 pr-2">
-              <QuestList />
-              <Leaderboard />
-            </div>
-          </div>
+      {/* Fixed Right Sidebar - Quests & Leaderboard */}
+      <div className="hidden xl:block fixed right-0 top-20 bottom-0 w-80 z-20 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-l from-background/95 via-background/80 to-transparent pointer-events-none" />
+        <div className="relative h-full overflow-y-auto py-4 pr-4 pl-2 pointer-events-auto space-y-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+          <QuestList />
+          <Leaderboard />
         </div>
       </div>
     </div>;
