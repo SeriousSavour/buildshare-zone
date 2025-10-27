@@ -58,43 +58,29 @@ const GameCard = ({
   // Fetch image through proxy as blob and convert to object URL
   useEffect(() => {
     if (!imageUrl) {
-      console.log('[GameCard] No imageUrl provided for:', title);
       setCurrentImageUrl(null);
       setImageLoading(false);
       return;
     }
 
-    console.log('[GameCard] Loading image for:', title, 'URL:', imageUrl);
     let objectUrl: string | null = null;
     const loadImage = async () => {
       try {
         setImageLoading(true);
         setImageError(false);
         
-        console.log('[GameCard] Fetching image:', imageUrl);
-        // Fetch image through proxied fetch
         const response = await fetch(imageUrl);
-        console.log('[GameCard] Fetch response status:', response.status, response.statusText);
-        console.log('[GameCard] Response headers:', Object.fromEntries(response.headers.entries()));
-        
         if (!response.ok) {
-          throw new Error(`Failed to load image: ${response.status} ${response.statusText}`);
+          throw new Error(`Failed to load image: ${response.status}`);
         }
         
-        const contentType = response.headers.get('content-type');
-        console.log('[GameCard] Content-Type:', contentType);
-        
         const blob = await response.blob();
-        console.log('[GameCard] Blob created:', blob.size, 'bytes, type:', blob.type);
-        
         objectUrl = URL.createObjectURL(blob);
-        console.log('[GameCard] Object URL created:', objectUrl);
         
         setCurrentImageUrl(objectUrl);
         setImageLoading(false);
-        console.log('[GameCard] Image loaded successfully for:', title);
       } catch (error) {
-        console.error('[GameCard] Error loading image for:', title, error);
+        console.error('Error loading image:', error);
         setImageError(true);
         setImageLoading(false);
       }
@@ -102,10 +88,8 @@ const GameCard = ({
 
     loadImage();
 
-    // Cleanup object URL on unmount
     return () => {
       if (objectUrl) {
-        console.log('[GameCard] Cleaning up object URL for:', title);
         URL.revokeObjectURL(objectUrl);
       }
     };

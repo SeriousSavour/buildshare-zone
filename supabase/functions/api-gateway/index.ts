@@ -132,15 +132,26 @@ async function fetchThroughProxy(
       offset += arr.length;
     }
 
-    const responseText = new TextDecoder().decode(fullResponse);
+    // Find header delimiter in binary data without decoding everything
+    const delimiter = new Uint8Array([13, 10, 13, 10]); // \r\n\r\n
+    let headerEndIndex = -1;
+    for (let i = 0; i <= fullResponse.length - 4; i++) {
+      if (fullResponse[i] === delimiter[0] && 
+          fullResponse[i + 1] === delimiter[1] && 
+          fullResponse[i + 2] === delimiter[2] && 
+          fullResponse[i + 3] === delimiter[3]) {
+        headerEndIndex = i;
+        break;
+      }
+    }
     
-    // Split headers and body
-    const headerEndIndex = responseText.indexOf('\r\n\r\n');
     if (headerEndIndex === -1) {
       throw new Error('Invalid HTTP response: no header delimiter found');
     }
     
-    const headerSection = responseText.substring(0, headerEndIndex);
+    // Only decode headers as text, keep body as binary
+    const headerBytes = fullResponse.slice(0, headerEndIndex);
+    const headerSection = new TextDecoder().decode(headerBytes);
     const bodyStartIndex = headerEndIndex + 4;
 
     // Parse status line
