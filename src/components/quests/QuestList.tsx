@@ -104,10 +104,10 @@ export const QuestList = () => {
   }
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-card/80 border-primary/30 hover:border-primary/50 transition-all duration-300">
-      <div className="flex items-center gap-2 mb-6">
-        <Trophy className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold gradient-text-animated">Active Quests</h2>
+    <Card className="p-4 bg-gradient-to-br from-card to-card/80 border-primary/30 hover:border-primary/50 transition-all duration-300">
+      <div className="flex items-center gap-2 mb-4">
+        <Trophy className="w-5 h-5 text-primary" />
+        <h2 className="text-xl font-bold gradient-text-animated">Quests</h2>
       </div>
       
       {!userId && (
@@ -116,9 +116,9 @@ export const QuestList = () => {
         </p>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {quests.length === 0 ? (
-          <p className="text-muted-foreground text-center py-4">No active quests available</p>
+          <p className="text-muted-foreground text-center py-3 text-sm">No active quests</p>
         ) : (
           quests.map((quest) => {
             const completed = isQuestCompleted(quest.id);
@@ -128,42 +128,42 @@ export const QuestList = () => {
             return (
               <div
                 key={quest.id}
-                className={`p-4 rounded-lg border transition-all duration-300 ${
+                className={`p-3 rounded-lg border transition-all duration-300 ${
                   completed
                     ? 'bg-primary/10 border-primary/50'
                     : 'bg-muted/30 border-border/50 hover:bg-muted/50'
                 }`}
               >
-                <div className="flex items-start gap-3 mb-2">
-                  <span className="text-2xl mt-1">{quest.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">{quest.name}</h3>
+                <div className="flex items-start gap-2 mb-2">
+                  <span className="text-xl">{quest.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 mb-1">
+                      <h3 className="font-semibold text-sm truncate">{quest.name}</h3>
                       {completed && (
-                        <CheckCircle className="w-4 h-4 text-primary" />
+                        <CheckCircle className="w-3 h-3 text-primary flex-shrink-0" />
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                       {quest.description}
                     </p>
                     
                     {userId && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">
-                            Progress: {progressText}
+                            {progressText}
                           </span>
                           <span className="text-primary font-semibold">
-                            {quest.xp_reward} XP
+                            +{quest.xp_reward} XP
                           </span>
                         </div>
-                        <Progress value={progressPercent} className="h-2" />
+                        <Progress value={progressPercent} className="h-1.5" />
                       </div>
                     )}
                     
                     {!userId && (
-                      <span className="text-sm text-primary font-semibold">
-                        Reward: {quest.xp_reward} XP
+                      <span className="text-xs text-primary font-semibold">
+                        +{quest.xp_reward} XP
                       </span>
                     )}
                   </div>
@@ -175,9 +175,9 @@ export const QuestList = () => {
       </div>
 
       {userId && (
-        <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/50">
-          <p className="text-sm text-muted-foreground">
-            💡 <strong>Tip:</strong> Complete quests to earn XP and climb the leaderboard!
+        <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+          <p className="text-xs text-muted-foreground">
+            💡 Complete quests to earn XP!
           </p>
         </div>
       )}

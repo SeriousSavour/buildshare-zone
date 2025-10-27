@@ -555,8 +555,8 @@ const Games = () => {
           </div>
 
           {/* Right Sidebar - Quests & Leaderboard */}
-          <div className="hidden lg:block w-96 flex-shrink-0">
-            <div className="sticky top-8 space-y-6">
+          <div className="hidden xl:block w-80 flex-shrink-0">
+            <div className="sticky top-4 space-y-4 pr-2">
               <QuestList />
               <Leaderboard />
             </div>
