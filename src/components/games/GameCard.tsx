@@ -55,7 +55,7 @@ const GameCard = ({
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
 
-  // Load images - use direct URLs for external images, blob URLs for Supabase storage
+  // Load images - use direct URLs, proxy handles everything
   useEffect(() => {
     if (!imageUrl) {
       setCurrentImageUrl(null);
@@ -63,89 +63,13 @@ const GameCard = ({
       return;
     }
 
-    // Check if this is a Supabase storage URL
-    const isSupabaseStorage = imageUrl.includes('supabase.co/storage');
-    
-    if (!isSupabaseStorage) {
-      // For external images (like Google), use them directly
-      setCurrentImageUrl(imageUrl);
-      setImageLoading(true); // Will be set to false by img onLoad
-      return;
-    }
+    setCurrentImageUrl(imageUrl);
+    setImageLoading(true);
+  }, [imageUrl]);
 
-    // For Supabase storage, use blob approach to go through proxy
-    let objectUrl: string | null = null;
-    const loadImage = async () => {
-      try {
-        setImageLoading(true);
-        setImageError(false);
-        
-        const response = await fetch(imageUrl);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load image: ${response.status}`);
-        }
-        
-        const blob = await response.blob();
-        objectUrl = URL.createObjectURL(blob);
-        
-        setCurrentImageUrl(objectUrl);
-        // Keep imageLoading true until img onLoad fires
-      } catch (error) {
-        console.error(`[${title}] Error loading image:`, error);
-        setImageError(true);
-        setImageLoading(false);
-      }
-    };
-
-    loadImage();
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [imageUrl, title]);
-
-  // Load creator avatar - use direct URLs for external images
+  // Load creator avatar - use direct URLs
   useEffect(() => {
-    if (!creatorAvatar) {
-      setCurrentAvatarUrl(null);
-      return;
-    }
-
-    // Check if this is a Supabase storage URL
-    const isSupabaseStorage = creatorAvatar.includes('supabase.co/storage');
-    
-    if (!isSupabaseStorage) {
-      // For external images, use them directly
-      setCurrentAvatarUrl(creatorAvatar);
-      return;
-    }
-
-    // For Supabase storage, use blob approach
-    let objectUrl: string | null = null;
-    const loadAvatar = async () => {
-      try {
-        const response = await fetch(creatorAvatar);
-        if (!response.ok) throw new Error('Failed to load avatar');
-        
-        const blob = await response.blob();
-        objectUrl = URL.createObjectURL(blob);
-        setCurrentAvatarUrl(objectUrl);
-      } catch (error) {
-        console.error('Error loading avatar:', error);
-        setCurrentAvatarUrl(null);
-      }
-    };
-
-    loadAvatar();
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
+    setCurrentAvatarUrl(creatorAvatar || null);
   }, [creatorAvatar]);
 
   const handleLike = async () => {
@@ -258,7 +182,8 @@ const GameCard = ({
                   setImageLoading(false);
                   setImageError(false);
                 }}
-                onError={() => {
+                onError={(e) => {
+                  console.error(`[${title}] Image failed to load:`, currentImageUrl);
                   setImageError(true);
                   setImageLoading(false);
                 }}
