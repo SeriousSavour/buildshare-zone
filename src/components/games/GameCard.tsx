@@ -55,7 +55,7 @@ const GameCard = ({
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
 
-  // Load images - use direct URLs, proxy handles everything
+  // Load images - fetch all images and convert to blob URLs to handle CORS
   useEffect(() => {
     if (!imageUrl) {
       setCurrentImageUrl(null);
@@ -63,13 +63,66 @@ const GameCard = ({
       return;
     }
 
-    setCurrentImageUrl(imageUrl);
-    setImageLoading(true);
-  }, [imageUrl]);
+    let objectUrl: string | null = null;
+    const loadImage = async () => {
+      try {
+        setImageLoading(true);
+        setImageError(false);
+        
+        const response = await fetch(imageUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load image: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setCurrentImageUrl(objectUrl);
+      } catch (error) {
+        console.error(`[${title}] Error loading image:`, error);
+        setImageError(true);
+        setImageLoading(false);
+      }
+    };
 
-  // Load creator avatar - use direct URLs
+    loadImage();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [imageUrl, title]);
+
+  // Load creator avatar - fetch and convert to blob URLs
   useEffect(() => {
-    setCurrentAvatarUrl(creatorAvatar || null);
+    if (!creatorAvatar) {
+      setCurrentAvatarUrl(null);
+      return;
+    }
+
+    let objectUrl: string | null = null;
+    const loadAvatar = async () => {
+      try {
+        const response = await fetch(creatorAvatar);
+        if (!response.ok) throw new Error('Failed to load avatar');
+        
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setCurrentAvatarUrl(objectUrl);
+      } catch (error) {
+        console.error('Error loading avatar:', error);
+        setCurrentAvatarUrl(null);
+      }
+    };
+
+    loadAvatar();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [creatorAvatar]);
 
   const handleLike = async () => {
