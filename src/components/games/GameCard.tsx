@@ -55,7 +55,7 @@ const GameCard = ({
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
 
-  // Fetch image through proxy as blob and convert to object URL
+  // Load images - use direct URLs for external images, blob URLs for Supabase storage
   useEffect(() => {
     if (!imageUrl) {
       setCurrentImageUrl(null);
@@ -63,22 +63,30 @@ const GameCard = ({
       return;
     }
 
+    // Check if this is a Supabase storage URL
+    const isSupabaseStorage = imageUrl.includes('supabase.co/storage');
+    
+    if (!isSupabaseStorage) {
+      // For external images (like Google), use them directly
+      setCurrentImageUrl(imageUrl);
+      setImageLoading(true); // Will be set to false by img onLoad
+      return;
+    }
+
+    // For Supabase storage, use blob approach to go through proxy
     let objectUrl: string | null = null;
     const loadImage = async () => {
       try {
         setImageLoading(true);
         setImageError(false);
         
-        console.log(`[${title}] Fetching image from:`, imageUrl);
         const response = await fetch(imageUrl);
-        console.log(`[${title}] Fetch response status:`, response.status, 'content-type:', response.headers.get('content-type'));
         
         if (!response.ok) {
           throw new Error(`Failed to load image: ${response.status}`);
         }
         
         const blob = await response.blob();
-        console.log(`[${title}] Blob created - size:`, blob.size, 'type:', blob.type);
         objectUrl = URL.createObjectURL(blob);
         
         setCurrentImageUrl(objectUrl);
@@ -99,13 +107,23 @@ const GameCard = ({
     };
   }, [imageUrl, title]);
 
-  // Fetch creator avatar through proxy
+  // Load creator avatar - use direct URLs for external images
   useEffect(() => {
     if (!creatorAvatar) {
       setCurrentAvatarUrl(null);
       return;
     }
 
+    // Check if this is a Supabase storage URL
+    const isSupabaseStorage = creatorAvatar.includes('supabase.co/storage');
+    
+    if (!isSupabaseStorage) {
+      // For external images, use them directly
+      setCurrentAvatarUrl(creatorAvatar);
+      return;
+    }
+
+    // For Supabase storage, use blob approach
     let objectUrl: string | null = null;
     const loadAvatar = async () => {
       try {
@@ -225,10 +243,6 @@ const GameCard = ({
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-          {(() => {
-            console.log(`[${title}] RENDER - currentImageUrl:`, currentImageUrl, 'imageLoading:', imageLoading, 'imageError:', imageError);
-            return null;
-          })()}
           {currentImageUrl ? (
             <>
               {imageLoading && (
@@ -236,33 +250,22 @@ const GameCard = ({
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               )}
-              {!imageError && currentImageUrl && (
-                <img
-                  src={currentImageUrl}
-                  alt={title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  onLoad={(e) => {
-                    console.log(`[${title}] IMG onLoad fired - naturalWidth:`, (e.target as HTMLImageElement).naturalWidth, 'naturalHeight:', (e.target as HTMLImageElement).naturalHeight);
-                    setImageLoading(false);
-                  }}
-                  onError={(e) => {
-                    const img = e.target as HTMLImageElement;
-                    console.log(`[${title}] IMG onError fired - src:`, img.src, 'current blob URL:', currentImageUrl);
-                    
-                    // Try to fetch the blob URL to see what's in it
-                    fetch(currentImageUrl)
-                      .then(r => r.blob())
-                      .then(b => console.log(`[${title}] Blob URL fetch successful - size:`, b.size, 'type:', b.type))
-                      .catch(err => console.log(`[${title}] Blob URL fetch failed:`, err));
-                    
-                    setImageError(true);
-                    setImageLoading(false);
-                  }}
-                  style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}
-                />
-              )}
+              <img
+                src={currentImageUrl}
+                alt={title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                onLoad={() => {
+                  setImageLoading(false);
+                  setImageError(false);
+                }}
+                onError={() => {
+                  setImageError(true);
+                  setImageLoading(false);
+                }}
+                style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}
+              />
               {imageError && (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
+                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
                   <Play className="w-20 h-20 text-primary/60 animate-pulse" />
                 </div>
               )}
