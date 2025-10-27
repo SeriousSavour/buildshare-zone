@@ -241,12 +241,20 @@ const GameCard = ({
                   src={currentImageUrl}
                   alt={title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  onLoad={() => {
-                    console.log(`[${title}] IMG onLoad fired`);
+                  onLoad={(e) => {
+                    console.log(`[${title}] IMG onLoad fired - naturalWidth:`, (e.target as HTMLImageElement).naturalWidth, 'naturalHeight:', (e.target as HTMLImageElement).naturalHeight);
                     setImageLoading(false);
                   }}
                   onError={(e) => {
-                    console.log(`[${title}] IMG onError fired`, e);
+                    const img = e.target as HTMLImageElement;
+                    console.log(`[${title}] IMG onError fired - src:`, img.src, 'current blob URL:', currentImageUrl);
+                    
+                    // Try to fetch the blob URL to see what's in it
+                    fetch(currentImageUrl)
+                      .then(r => r.blob())
+                      .then(b => console.log(`[${title}] Blob URL fetch successful - size:`, b.size, 'type:', b.type))
+                      .catch(err => console.log(`[${title}] Blob URL fetch failed:`, err));
+                    
                     setImageError(true);
                     setImageLoading(false);
                   }}
