@@ -9,6 +9,7 @@ import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { StyledKeyword } from "@/components/ui/styled-text";
 import { Leaderboard } from "@/components/leaderboard/Leaderboard";
+import { QuestList } from "@/components/quests/QuestList";
 interface Particle {
   id: number;
   emoji: string;
@@ -553,9 +554,10 @@ const Games = () => {
           </div>}
           </div>
 
-          {/* Right Sidebar - Leaderboard */}
+          {/* Right Sidebar - Quests & Leaderboard */}
           <div className="hidden lg:block w-96 flex-shrink-0">
-            <div className="sticky top-8">
+            <div className="sticky top-8 space-y-6">
+              <QuestList />
               <Leaderboard />
             </div>
           </div>
