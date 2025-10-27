@@ -56,9 +56,12 @@ const GameDetail = () => {
       checkIfLiked();
       fetchComments();
       
-      // Set up realtime subscription
-      const cleanup = subscribeToComments();
-      return cleanup;
+      // Poll for new comments every 5 seconds (proxy-safe polling instead of WebSocket)
+      const interval = setInterval(() => {
+        fetchComments();
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [id]);
 
@@ -301,57 +304,6 @@ const GameDetail = () => {
     }
   };
 
-  const subscribeToComments = () => {
-    const channel = supabase
-      .channel(`game-comments-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'game_comments',
-          filter: `game_id=eq.${id}`
-        },
-        (payload) => {
-          console.log('New comment received:', payload);
-          fetchComments(); // Refresh all comments when a new one is added
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'game_comments',
-          filter: `game_id=eq.${id}`
-        },
-        (payload) => {
-          console.log('Comment updated:', payload);
-          fetchComments(); // Refresh when a comment is updated
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'game_comments',
-          filter: `game_id=eq.${id}`
-        },
-        (payload) => {
-          console.log('Comment deleted:', payload);
-          fetchComments(); // Refresh when a comment is deleted
-        }
-      )
-      .subscribe((status) => {
-        console.log('Comments subscription status:', status);
-      });
-
-    return () => {
-      console.log('Unsubscribing from comments');
-      supabase.removeChannel(channel);
-    };
-  };
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
