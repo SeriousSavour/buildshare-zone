@@ -78,7 +78,7 @@ const GameCard = ({
         objectUrl = URL.createObjectURL(blob);
         
         setCurrentImageUrl(objectUrl);
-        setImageLoading(false);
+        // Keep imageLoading true until img onLoad fires
       } catch (error) {
         console.error('Error loading image:', error);
         setImageError(true);
@@ -237,6 +237,15 @@ const GameCard = ({
                   src={currentImageUrl}
                   alt={title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  onLoad={() => {
+                    console.log(`[${title}] IMG onLoad fired`);
+                    setImageLoading(false);
+                  }}
+                  onError={(e) => {
+                    console.log(`[${title}] IMG onError fired`, e);
+                    setImageError(true);
+                    setImageLoading(false);
+                  }}
                   style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}
                 />
               )}
