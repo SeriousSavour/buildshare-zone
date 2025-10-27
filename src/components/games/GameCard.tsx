@@ -221,6 +221,10 @@ const GameCard = ({
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
+          {(() => {
+            console.log(`[${title}] RENDER - currentImageUrl:`, currentImageUrl, 'imageLoading:', imageLoading, 'imageError:', imageError);
+            return null;
+          })()}
           {currentImageUrl ? (
             <>
               {imageLoading && (
