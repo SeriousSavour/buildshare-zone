@@ -69,18 +69,22 @@ const GameCard = ({
         setImageLoading(true);
         setImageError(false);
         
+        console.log(`[${title}] Fetching image from:`, imageUrl);
         const response = await fetch(imageUrl);
+        console.log(`[${title}] Fetch response status:`, response.status, 'content-type:', response.headers.get('content-type'));
+        
         if (!response.ok) {
           throw new Error(`Failed to load image: ${response.status}`);
         }
         
         const blob = await response.blob();
+        console.log(`[${title}] Blob created - size:`, blob.size, 'type:', blob.type);
         objectUrl = URL.createObjectURL(blob);
         
         setCurrentImageUrl(objectUrl);
         // Keep imageLoading true until img onLoad fires
       } catch (error) {
-        console.error('Error loading image:', error);
+        console.error(`[${title}] Error loading image:`, error);
         setImageError(true);
         setImageLoading(false);
       }
