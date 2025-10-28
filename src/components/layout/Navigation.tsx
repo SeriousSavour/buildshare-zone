@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield, Bug, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -93,6 +93,14 @@ const Navigation = () => {
             <Link to="/chat" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
               <MessageCircle className="w-4 h-4" />
               <span>Chat</span>
+            </Link>
+            <Link to="/bug-report" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <Bug className="w-4 h-4" />
+              <span>Bug Report</span>
+            </Link>
+            <Link to="/contact" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+              <Mail className="w-4 h-4" />
+              <span>Contact</span>
             </Link>
           </div>
 
