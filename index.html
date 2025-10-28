@@ -36,6 +36,55 @@
         window.top.location = window.self.location;
       }
       
+      // Block outgoing redirects from malicious scripts/extensions
+      const originalWindowOpen = window.open;
+      const originalLocationAssign = window.location.assign;
+      const originalLocationReplace = window.location.replace;
+      const currentOrigin = window.location.origin;
+      
+      // Override window.open
+      window.open = function(url, target, features) {
+        if (url && !url.startsWith(currentOrigin) && !url.startsWith('/')) {
+          console.warn('Blocked unauthorized window.open to:', url);
+          return null;
+        }
+        return originalWindowOpen.call(window, url, target, features);
+      };
+      
+      // Override location.assign
+      window.location.assign = function(url) {
+        if (!url.startsWith(currentOrigin) && !url.startsWith('/')) {
+          console.warn('Blocked unauthorized location.assign to:', url);
+          return;
+        }
+        return originalLocationAssign.call(window.location, url);
+      };
+      
+      // Override location.replace
+      window.location.replace = function(url) {
+        if (!url.startsWith(currentOrigin) && !url.startsWith('/')) {
+          console.warn('Blocked unauthorized location.replace to:', url);
+          return;
+        }
+        return originalLocationReplace.call(window.location, url);
+      };
+      
+      // Monitor location.href changes
+      let lastHref = window.location.href;
+      Object.defineProperty(window.location, 'href', {
+        get: function() {
+          return lastHref;
+        },
+        set: function(url) {
+          if (!url.startsWith(currentOrigin) && !url.startsWith('/')) {
+            console.warn('Blocked unauthorized location.href change to:', url);
+            return lastHref;
+          }
+          lastHref = url;
+          window.location.assign(url);
+        }
+      });
+      
       // Enhanced referrer protection with blocking
       const allowedDomains = [
         'localhost',
