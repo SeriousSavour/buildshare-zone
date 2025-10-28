@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Send to admin
       emailResponse = await resend.emails.send({
         from: "GameVault <onboarding@resend.dev>",
-        to: ["admin@yourdomain.com"], // Replace with your admin email
+        to: ["theplasticegg@gmail.com"],
         subject: `Bug Report: ${title}`,
         html: `
           <h1>New Bug Report</h1>
@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Send to admin
       emailResponse = await resend.emails.send({
         from: "GameVault <onboarding@resend.dev>",
-        to: ["admin@yourdomain.com"], // Replace with your admin email
+        to: ["theplasticegg@gmail.com"],
         subject: `Contact Form: ${subject}`,
         html: `
           <h1>New Contact Message</h1>
