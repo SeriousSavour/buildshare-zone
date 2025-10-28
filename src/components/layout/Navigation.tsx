@@ -1,5 +1,11 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield, Bug, Mail } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -94,14 +100,17 @@ const Navigation = () => {
               <MessageCircle className="w-4 h-4" />
               <span>Chat</span>
             </Link>
-            <Link to="/bug-report" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
-              <Bug className="w-4 h-4" />
-              <span>Bug Report</span>
-            </Link>
-            <Link to="/contact" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
-              <Mail className="w-4 h-4" />
-              <span>Contact</span>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
+                <MoreHorizontal className="w-4 h-4" />
+                <span>Extra</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => navigate("/help")}>
+                  Help & Contact
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Auth Buttons */}
