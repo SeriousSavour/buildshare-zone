@@ -76,6 +76,25 @@ interface Game {
   created_at: string;
 }
 
+interface BugReport {
+  id: string;
+  title: string;
+  description: string;
+  email: string;
+  status: string;
+  created_at: string;
+}
+
+interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+  created_at: string;
+}
+
 const Admin = () => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -84,6 +103,8 @@ const Admin = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [blockedWords, setBlockedWords] = useState<BlockedWord[]>([]);
   const [games, setGames] = useState<Game[]>([]);
+  const [bugReports, setBugReports] = useState<BugReport[]>([]);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalGames: 0, activeFlags: 0, totalPlays: 0 });
   
   // Network diagnostics state
@@ -148,6 +169,8 @@ const Admin = () => {
     fetchBlockedWords();
     fetchGames();
     fetchStats();
+    fetchBugReports();
+    fetchContactMessages();
   }, []);
 
   const fetchUsers = async () => {
@@ -397,6 +420,34 @@ const Admin = () => {
         description: "Failed to fetch admin stats",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchBugReports = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("bug_reports")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setBugReports(data || []);
+    } catch (error: any) {
+      console.error("Error fetching bug reports:", error);
+    }
+  };
+
+  const fetchContactMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("contact_messages")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setContactMessages(data || []);
+    } catch (error: any) {
+      console.error("Error fetching contact messages:", error);
     }
   };
 
@@ -751,7 +802,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="w-full animate-fade-in-delay-2">
-          <TabsList className="grid w-full grid-cols-7 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
+          <TabsList className="grid w-full grid-cols-9 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
             <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Users className="w-4 h-4" />
               Users
@@ -763,6 +814,14 @@ const Admin = () => {
             <TabsTrigger value="flags" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Flag className="w-4 h-4" />
               Flags
+            </TabsTrigger>
+            <TabsTrigger value="bugs" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
+              <Flag className="w-4 h-4" />
+              Bug Reports
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
+              <ScrollText className="w-4 h-4" />
+              Contact
             </TabsTrigger>
             <TabsTrigger value="announcements" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Megaphone className="w-4 h-4" />
@@ -1234,6 +1293,179 @@ const Admin = () => {
                   <div className="text-center py-16">
                     <ScrollText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
                     <p className="text-xl text-muted-foreground">No audit logs yet</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Bug Reports Tab */}
+          <TabsContent value="bugs" className="space-y-6">
+            <Card className="p-8 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 rounded-2xl shadow-lg">
+              <h2 className="text-3xl font-bold mb-6 gradient-text flex items-center gap-3">
+                <Flag className="w-8 h-8" />
+                Bug Reports
+              </h2>
+              
+              <div className="space-y-3">
+                {bugReports.length > 0 ? (
+                  bugReports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="flex items-start justify-between p-6 bg-muted/30 border-2 border-border/30 rounded-xl hover:border-primary/40 transition-all hover-lift"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <p className="font-bold text-lg">{report.title}</p>
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                            report.status === 'resolved' 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : report.status === 'reviewed' 
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-orange-500/20 text-orange-400'
+                          }`}>
+                            {report.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{report.description}</p>
+                        <div className="flex gap-4 text-xs text-muted-foreground">
+                          <span>📧 {report.email}</span>
+                          <span>📅 {new Date(report.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {report.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await supabase
+                                  .from('bug_reports')
+                                  .update({ status: 'reviewed' })
+                                  .eq('id', report.id);
+                                fetchBugReports();
+                                toast({ title: "Success", description: "Marked as reviewed" });
+                              } catch (error: any) {
+                                toast({ title: "Error", description: error.message, variant: "destructive" });
+                              }
+                            }}
+                          >
+                            Mark Reviewed
+                          </Button>
+                        )}
+                        {report.status === 'reviewed' && (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await supabase
+                                  .from('bug_reports')
+                                  .update({ status: 'resolved' })
+                                  .eq('id', report.id);
+                                fetchBugReports();
+                                toast({ title: "Success", description: "Marked as resolved" });
+                              } catch (error: any) {
+                                toast({ title: "Error", description: error.message, variant: "destructive" });
+                              }
+                            }}
+                          >
+                            Mark Resolved
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <Flag className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                    <p className="text-xl text-muted-foreground">No bug reports yet</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Contact Messages Tab */}
+          <TabsContent value="contact" className="space-y-6">
+            <Card className="p-8 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 rounded-2xl shadow-lg">
+              <h2 className="text-3xl font-bold mb-6 gradient-text flex items-center gap-3">
+                <ScrollText className="w-8 h-8" />
+                Contact Messages
+              </h2>
+              
+              <div className="space-y-3">
+                {contactMessages.length > 0 ? (
+                  contactMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className="flex items-start justify-between p-6 bg-muted/30 border-2 border-border/30 rounded-xl hover:border-primary/40 transition-all hover-lift"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <p className="font-bold text-lg">{message.subject}</p>
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                            message.status === 'resolved' 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : message.status === 'reviewed' 
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-orange-500/20 text-orange-400'
+                          }`}>
+                            {message.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{message.message}</p>
+                        <div className="flex gap-4 text-xs text-muted-foreground">
+                          <span>👤 {message.name}</span>
+                          <span>📧 {message.email}</span>
+                          <span>📅 {new Date(message.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {message.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await supabase
+                                  .from('contact_messages')
+                                  .update({ status: 'reviewed' })
+                                  .eq('id', message.id);
+                                fetchContactMessages();
+                                toast({ title: "Success", description: "Marked as reviewed" });
+                              } catch (error: any) {
+                                toast({ title: "Error", description: error.message, variant: "destructive" });
+                              }
+                            }}
+                          >
+                            Mark Reviewed
+                          </Button>
+                        )}
+                        {message.status === 'reviewed' && (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await supabase
+                                  .from('contact_messages')
+                                  .update({ status: 'resolved' })
+                                  .eq('id', message.id);
+                                fetchContactMessages();
+                                toast({ title: "Success", description: "Marked as resolved" });
+                              } catch (error: any) {
+                                toast({ title: "Error", description: error.message, variant: "destructive" });
+                              }
+                            }}
+                          >
+                            Mark Resolved
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <ScrollText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                    <p className="text-xl text-muted-foreground">No contact messages yet</p>
                   </div>
                 )}
               </div>

@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,48 +38,57 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const requestData: HelpRequest = await req.json();
     
-    let emailResponse;
+    let result;
     
     if (requestData.type === 'bug') {
       const { title, description, email } = requestData;
       
-      // Send to admin
-      emailResponse = await resend.emails.send({
-        from: "GameVault <onboarding@resend.dev>",
-        to: ["theplasticegg@gmail.com"],
-        subject: `Bug Report: ${title}`,
-        html: `
-          <h1>New Bug Report</h1>
-          <p><strong>Title:</strong> ${title}</p>
-          <p><strong>Description:</strong></p>
-          <p>${description.replace(/\n/g, '<br>')}</p>
-          <p><strong>Reporter Email:</strong> ${email}</p>
-        `,
-      });
+      // Store bug report in database
+      const { data, error } = await supabase
+        .from('bug_reports')
+        .insert({
+          title,
+          description,
+          email,
+          status: 'pending'
+        })
+        .select()
+        .single();
       
-      console.log("Bug report email sent:", emailResponse);
+      if (error) {
+        console.error("Error storing bug report:", error);
+        throw error;
+      }
+      
+      console.log("Bug report stored:", data);
+      result = data;
       
     } else if (requestData.type === 'contact') {
       const { name, email, subject, message } = requestData;
       
-      // Send to admin
-      emailResponse = await resend.emails.send({
-        from: "GameVault <onboarding@resend.dev>",
-        to: ["theplasticegg@gmail.com"],
-        subject: `Contact Form: ${subject}`,
-        html: `
-          <h1>New Contact Message</h1>
-          <p><strong>From:</strong> ${name} (${email})</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, '<br>')}</p>
-        `,
-      });
+      // Store contact message in database
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .insert({
+          name,
+          email,
+          subject,
+          message,
+          status: 'pending'
+        })
+        .select()
+        .single();
       
-      console.log("Contact email sent:", emailResponse);
+      if (error) {
+        console.error("Error storing contact message:", error);
+        throw error;
+      }
+      
+      console.log("Contact message stored:", data);
+      result = data;
     }
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true, data: result }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
