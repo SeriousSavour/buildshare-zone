@@ -36,24 +36,33 @@
         window.top.location = window.self.location;
       }
       
-      // Basic referrer protection
+      // Enhanced referrer protection with blocking
       const allowedDomains = [
         'localhost',
         '127.0.0.1',
         'lovable.app',
-        // Add your custom domain here when you set it up
-        // 'yourdomain.com'
+        window.location.hostname // Always allow current domain
       ];
       
       if (document.referrer) {
-        const referrerHost = new URL(document.referrer).hostname;
-        const currentHost = window.location.hostname;
-        
-        if (referrerHost !== currentHost && !allowedDomains.some(domain => 
-          referrerHost.includes(domain) || currentHost.includes(domain)
-        )) {
-          // Optionally redirect or show warning
-          console.warn('Unauthorized referrer detected:', referrerHost);
+        try {
+          const referrerHost = new URL(document.referrer).hostname;
+          const currentHost = window.location.hostname;
+          
+          // Check if referrer is unauthorized
+          if (referrerHost !== currentHost && !allowedDomains.some(domain => 
+            referrerHost.includes(domain) || currentHost.includes(domain)
+          )) {
+            // Block access and redirect to home
+            console.warn('Unauthorized referrer detected:', referrerHost);
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><h1>Access Denied</h1></div>';
+            setTimeout(() => {
+              window.location.href = window.location.origin;
+            }, 1000);
+          }
+        } catch (e) {
+          // If referrer parsing fails, allow access
+          console.log('Referrer check bypassed');
         }
       }
       
