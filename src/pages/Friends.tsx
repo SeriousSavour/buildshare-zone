@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 
 interface Particle {
   id: number;
@@ -221,6 +222,7 @@ const Friends = () => {
       </div>
 
       <Navigation />
+      <AnnouncementBanner />
       
       <div className="container mx-auto px-4 py-12 relative z-10 max-w-4xl">
         {/* Header */}

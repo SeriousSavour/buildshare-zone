@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Help from "./pages/Help";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AdminAuth from "./components/admin/AdminAuth";
 
 const queryClient = new QueryClient();
 
@@ -59,7 +60,7 @@ const App = () => {
               <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><Admin /></ProtectedRoute>} />
+              <Route path="/admin" element={<AdminAuth><Admin /></AdminAuth>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/help" element={<Help />} />
               <Route path="*" element={<Navigate to="/" replace />} />

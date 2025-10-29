@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 
 interface Particle {
   id: number;
@@ -60,6 +61,7 @@ const Settings = () => {
       </div>
 
       <Navigation />
+      <AnnouncementBanner />
       <div className="container mx-auto px-4 py-8 relative z-10 max-w-4xl">
         <h1 className="text-4xl font-bold mb-8 gradient-text">Settings</h1>
         

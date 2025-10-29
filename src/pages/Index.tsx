@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import { Leaderboard } from "@/components/leaderboard/Leaderboard";
 
 interface Particle {
@@ -14,7 +15,6 @@ interface Particle {
 }
 
 const Index = () => {
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -83,41 +83,7 @@ const Index = () => {
       </div>
       
       <Navigation />
-      
-      {/* Enhanced Announcement Banner */}
-      {showAnnouncement && (
-        <div className="bg-gradient-to-r from-primary/15 via-accent/10 to-primary/15 border-b-2 border-primary/30 backdrop-blur-sm relative overflow-hidden">
-          {/* Animated background decoration */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-float-delayed pointer-events-none" />
-          
-          <div className="container mx-auto px-4 py-4 relative z-10">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center animate-bounce-slow glow-orange">
-                  <span className="text-3xl">🎃</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                  <span className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/90 bg-clip-text">
-                    🎃 Halloween Special Event! 🎃
-                  </span>
-                  <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-primary/50" />
-                  <span className="text-base text-muted-foreground/90">
-                    Join the spooky fun with exclusive Halloween games and rewards! 👻
-                  </span>
-                </div>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setShowAnnouncement(false)}
-                className="hover:bg-primary/10 hover:text-primary transition-all duration-300 hover-scale rounded-full h-10 w-10 p-0"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnnouncementBanner />
 
       {/* Hero Section with Halloween Icons */}
       <section className="relative overflow-hidden py-24 px-4">

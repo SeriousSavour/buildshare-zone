@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -749,6 +750,7 @@ const Admin = () => {
       </div>
 
       <Navigation />
+      <AnnouncementBanner />
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Enhanced Header */}
         <div className="flex items-center gap-4 mb-10 animate-fade-in">

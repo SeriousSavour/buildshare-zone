@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import GameCard from "@/components/games/GameCard";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
 import { Input } from "@/components/ui/input";
@@ -421,6 +422,7 @@ const Games = () => {
       </div>
       
       <Navigation />
+      <AnnouncementBanner />
       
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Main Content - Full Width */}

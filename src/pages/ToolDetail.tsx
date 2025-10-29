@@ -9,6 +9,7 @@ interface Particle {
   size: number;
 }
 import Navigation from "@/components/layout/Navigation";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
@@ -151,6 +152,7 @@ const ToolDetail = () => {
       </div>
 
       <Navigation />
+      <AnnouncementBanner />
       
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Back Button */}
