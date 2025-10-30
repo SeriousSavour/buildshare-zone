@@ -225,17 +225,23 @@ const Create = () => {
 
               <div className="space-y-2">
                 <label htmlFor="game_url" className="text-sm font-medium">
-                  Game URL *
+                  Game URL {!gameFile && "*"}
                 </label>
                 <Input
                   id="game_url"
                   type="url"
-                  required
+                  required={!gameFile}
                   value={formData.game_url}
                   onChange={(e) => setFormData({...formData, game_url: e.target.value})}
                   placeholder="https://example.com/game"
                   className="bg-muted/50"
+                  disabled={!!gameFile}
                 />
+                {gameFile && (
+                  <p className="text-xs text-muted-foreground">
+                    Game URL is not needed when uploading a file
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
