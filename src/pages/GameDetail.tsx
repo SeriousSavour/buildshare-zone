@@ -546,6 +546,18 @@ const GameDetail = () => {
                   <Maximize2 className="w-5 h-5" />
                   Open in Fullscreen
                 </Button>
+                
+                {/* Fix HTML Button */}
+                {(game.game_url?.includes('.html') || game.game_url?.includes('.htm')) && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={fixHtmlContentType}
+                    className="gap-2 w-full max-w-md"
+                  >
+                    🔧 Fix HTML Display
+                  </Button>
+                )}
 
                 {/* Comments Section */}
                 <Card className="w-full max-w-4xl">
@@ -655,17 +667,6 @@ const GameDetail = () => {
                   </Button>
                 </div>
 
-                {/* Fix HTML Button for creators/admins */}
-                {game.game_url?.endsWith('.html') && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fixHtmlContentType}
-                    className="w-full text-xs"
-                  >
-                    🔧 Fix HTML Display
-                  </Button>
-                )}
 
                 {/* Genre Badge */}
                 <div className="flex items-center gap-2">
