@@ -143,8 +143,8 @@ const Create = () => {
       setUploadProgress(100);
       
       // Clear games cache so the new game appears immediately
-      localStorage.removeItem('games_cache');
-      localStorage.removeItem('games_cache_timestamp');
+      localStorage.removeItem('games_cache_v2');
+      localStorage.removeItem('games_cache_v2_timestamp');
       
       // Track quest progress
       await trackQuestProgress('create_game');
