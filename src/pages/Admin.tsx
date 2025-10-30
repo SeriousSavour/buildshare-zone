@@ -133,6 +133,12 @@ const Admin = () => {
   const [newBlockedWord, setNewBlockedWord] = useState("");
   const [wordSeverity, setWordSeverity] = useState("moderate");
   
+  // Game editing state
+  const [editingGame, setEditingGame] = useState<Game | null>(null);
+  const [editGameTitle, setEditGameTitle] = useState("");
+  const [editGameDescription, setEditGameDescription] = useState("");
+  const [editGameGenre, setEditGameGenre] = useState("");
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -633,6 +639,67 @@ const Admin = () => {
     }
   };
 
+  const handleEditGame = (game: Game) => {
+    setEditingGame(game);
+    setEditGameTitle(game.title);
+    setEditGameDescription(game.description || "");
+    setEditGameGenre(game.genre);
+  };
+
+  const handleUpdateGame = async () => {
+    if (!editingGame || !editGameTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Game title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const sessionToken = localStorage.getItem("session_token");
+    if (!sessionToken) return;
+
+    setLoading(true);
+    try {
+      await supabase.rpc('set_session_context', { _session_token: sessionToken });
+      
+      const { error } = await supabase
+        .from("games")
+        .update({
+          title: editGameTitle.trim(),
+          description: editGameDescription.trim() || null,
+          genre: editGameGenre,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", editingGame.id);
+
+      if (error) throw error;
+
+      // Clear games cache so the Games page updates
+      localStorage.removeItem('games_cache');
+      localStorage.removeItem('games_cache_timestamp');
+
+      toast({
+        title: "Success",
+        description: "Game updated successfully",
+      });
+      
+      setEditingGame(null);
+      setEditGameTitle("");
+      setEditGameDescription("");
+      setEditGameGenre("");
+      fetchGames();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteGame = async (gameId: string) => {
     if (!window.confirm("Are you sure you want to delete this game?")) {
       return;
@@ -952,6 +1019,53 @@ const Admin = () => {
                 <Gamepad2 className="w-8 h-8" />
                 Game Management
               </h2>
+              
+              {/* Edit Game Form */}
+              {editingGame && (
+                <div className="mb-8 p-6 bg-primary/5 border-2 border-primary/20 rounded-xl space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Edit Game</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingGame(null);
+                        setEditGameTitle("");
+                        setEditGameDescription("");
+                        setEditGameGenre("");
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Input
+                    placeholder="Game title..."
+                    value={editGameTitle}
+                    onChange={(e) => setEditGameTitle(e.target.value)}
+                    className="h-12 bg-card/50 border-2 border-border/50 rounded-xl"
+                  />
+                  <Textarea
+                    placeholder="Game description..."
+                    value={editGameDescription}
+                    onChange={(e) => setEditGameDescription(e.target.value)}
+                    className="min-h-24 bg-card/50 border-2 border-border/50 rounded-xl"
+                  />
+                  <Input
+                    placeholder="Genre..."
+                    value={editGameGenre}
+                    onChange={(e) => setEditGameGenre(e.target.value)}
+                    className="h-12 bg-card/50 border-2 border-border/50 rounded-xl"
+                  />
+                  <Button
+                    onClick={handleUpdateGame}
+                    disabled={loading || !editGameTitle.trim()}
+                    className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange font-semibold"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              )}
+              
               <div className="space-y-3">
                 {games.map((game) => (
                   <div
@@ -984,16 +1098,27 @@ const Admin = () => {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteGame(game.id)}
-                      disabled={loading}
-                      className="hover-scale shadow-lg"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditGame(game)}
+                        disabled={loading}
+                        className="hover-scale border-2"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteGame(game.id)}
+                        disabled={loading}
+                        className="hover-scale shadow-lg"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 {games.length === 0 && (
