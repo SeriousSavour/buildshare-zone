@@ -63,9 +63,18 @@ export const api = {
   
   async updateGame(id: string, data: any) {
     const sessionToken = localStorage.getItem('session_token');
+    // Transform data keys to match RPC function parameters (add underscore prefix)
+    const transformedData: any = {};
+    if (data.title !== undefined) transformedData._title = data.title;
+    if (data.description !== undefined) transformedData._description = data.description;
+    if (data.genre !== undefined) transformedData._genre = data.genre;
+    if (data.max_players !== undefined) transformedData._max_players = data.max_players;
+    if (data.game_url !== undefined) transformedData._game_url = data.game_url;
+    if (data.image_url !== undefined) transformedData._image_url = data.image_url;
+    
     return apiCall('/rest/v1/rpc/update_game_with_context', {
       method: 'POST',
-      body: { _session_token: sessionToken, _game_id: id, ...data },
+      body: { _session_token: sessionToken, _game_id: id, ...transformedData },
     });
   },
   
