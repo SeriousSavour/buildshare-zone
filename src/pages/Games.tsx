@@ -60,6 +60,35 @@ const Games = () => {
     fetchPopularGames();
     fetchCurrentUser();
   }, []);
+
+  // Real-time subscription for automatic cache invalidation
+  useEffect(() => {
+    const channel = supabase
+      .channel('games-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events: INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'games'
+        },
+        (payload) => {
+          console.log('Game data changed, invalidating cache:', payload);
+          // Clear cache
+          localStorage.removeItem('games_cache_v2');
+          localStorage.removeItem('games_cache_v2_timestamp');
+          // Refetch data
+          fetchGames();
+          fetchPopularGames();
+          toast.success('Games updated!');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
   useEffect(() => {
     const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
     let particleId = 0;
