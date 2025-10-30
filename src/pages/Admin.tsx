@@ -659,11 +659,17 @@ const Admin = () => {
 
     setLoading(true);
     try {
-      await api.updateGame(editingGame.id, {
-        title: editGameTitle.trim(),
-        description: editGameDescription.trim() || null,
-        genre: editGameGenre,
+      const sessionToken = localStorage.getItem('session_token');
+      
+      const { error } = await supabase.rpc('update_game_with_context', {
+        _session_token: sessionToken,
+        _game_id: editingGame.id,
+        _title: editGameTitle.trim(),
+        _description: editGameDescription.trim() || null,
+        _genre: editGameGenre,
       });
+
+      if (error) throw error;
 
       // Clear games cache so the Games page updates
       localStorage.removeItem('games_cache_v2');
@@ -680,9 +686,10 @@ const Admin = () => {
       setEditGameGenre("");
       fetchGames();
     } catch (error: any) {
+      console.error('Update error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'Failed to update game',
         variant: "destructive",
       });
     } finally {
