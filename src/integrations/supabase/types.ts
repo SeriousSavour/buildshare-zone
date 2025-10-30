@@ -1167,6 +1167,7 @@ export type Database = {
           }
       create_game_with_context: {
         Args: {
+          _category?: string
           _description: string
           _game_url: string
           _genre: string
