@@ -1,5 +1,5 @@
 // Clean API wrapper - no Supabase exposed to browser
-const API_BASE = "https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/proxy-entry";
+const API_BASE = "https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/api-gateway";
 
 interface ApiOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
