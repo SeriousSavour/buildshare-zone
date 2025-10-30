@@ -216,11 +216,20 @@ const Create = () => {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/<script[^>]*>.*?<\/script>/gi, '');
+                    if (value.length <= 1000) {
+                      setFormData({...formData, description: value});
+                    }
+                  }}
                   placeholder="Describe your game..."
                   rows={4}
                   className="bg-muted/50"
+                  maxLength={1000}
                 />
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.description.length}/1000 characters
+                </p>
               </div>
 
               <div className="space-y-2">
