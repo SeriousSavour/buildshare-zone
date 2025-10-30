@@ -52,91 +52,6 @@ const GameCard = ({
   const [localLikes, setLocalLikes] = useState(likes);
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
-
-  // Load images - fetch all images and convert to blob URLs to handle CORS
-  useEffect(() => {
-    if (!imageUrl) {
-      setCurrentImageUrl(null);
-      setImageLoading(false);
-      return;
-    }
-
-    let objectUrl: string | null = null;
-    const loadImage = async () => {
-      try {
-        setImageLoading(true);
-        setImageError(false);
-        
-        console.log(`[${title}] Starting image fetch from:`, imageUrl);
-        const response = await fetch(imageUrl);
-        console.log(`[${title}] Fetch response:`, response.status, response.ok);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load image: ${response.status}`);
-        }
-        
-        const arrayBuffer = await response.arrayBuffer();
-        // Determine correct MIME type from URL extension or default to webp
-        const mimeType = imageUrl.endsWith('.webp') ? 'image/webp' 
-          : imageUrl.endsWith('.png') ? 'image/png'
-          : imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') ? 'image/jpeg'
-          : imageUrl.endsWith('.gif') ? 'image/gif'
-          : 'image/webp';
-        
-        const blob = new Blob([arrayBuffer], { type: mimeType });
-        console.log(`[${title}] Blob created:`, blob.type, blob.size, 'bytes');
-        objectUrl = URL.createObjectURL(blob);
-        console.log(`[${title}] Object URL created:`, objectUrl);
-        setCurrentImageUrl(objectUrl);
-      } catch (error) {
-        console.error(`[${title}] Error loading image:`, error);
-        setImageError(true);
-        setImageLoading(false);
-      }
-    };
-
-    loadImage();
-
-    return () => {
-      if (objectUrl) {
-        console.log(`[${title}] Revoking object URL:`, objectUrl);
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [imageUrl, title]);
-
-  // Load creator avatar - fetch and convert to blob URLs
-  useEffect(() => {
-    if (!creatorAvatar) {
-      setCurrentAvatarUrl(null);
-      return;
-    }
-
-    let objectUrl: string | null = null;
-    const loadAvatar = async () => {
-      try {
-        const response = await fetch(creatorAvatar);
-        if (!response.ok) throw new Error('Failed to load avatar');
-        
-        const blob = await response.blob();
-        objectUrl = URL.createObjectURL(blob);
-        setCurrentAvatarUrl(objectUrl);
-      } catch (error) {
-        console.error('Error loading avatar:', error);
-        setCurrentAvatarUrl(null);
-      }
-    };
-
-    loadAvatar();
-
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [creatorAvatar]);
 
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -233,7 +148,7 @@ const GameCard = ({
     <Card className="group overflow-hidden hover-lift hover-glow transition-all duration-500 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-primary/60 animate-slide-up rounded-2xl shadow-lg relative">
       <CardHeader className="p-0 relative">
         <div className="aspect-video overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-          {currentImageUrl ? (
+          {imageUrl && !imageError ? (
             <>
               {imageLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-card/50">
@@ -241,25 +156,20 @@ const GameCard = ({
                 </div>
               )}
               <img
-                src={currentImageUrl}
+                src={imageUrl}
                 alt={title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 onLoad={() => {
                   setImageLoading(false);
                   setImageError(false);
                 }}
-                onError={(e) => {
-                  console.error(`[${title}] Image failed to load:`, currentImageUrl);
+                onError={() => {
                   setImageError(true);
                   setImageLoading(false);
                 }}
                 style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}
+                crossOrigin="anonymous"
               />
-              {imageError && (
-                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/15 to-accent/15">
-                  <Play className="w-20 h-20 text-primary/60 animate-pulse" />
-                </div>
-              )}
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </>
           ) : (
@@ -286,11 +196,15 @@ const GameCard = ({
         
         <div className="flex items-center justify-between text-sm pt-2">
           <div className="flex items-center gap-3">
-            {currentAvatarUrl ? (
+            {creatorAvatar ? (
               <img
-                src={currentAvatarUrl}
+                src={creatorAvatar}
                 alt={creatorName}
                 className="w-8 h-8 rounded-full object-cover border-2 border-primary/30 ring-2 ring-card group-hover:ring-primary/20 transition-all"
+                crossOrigin="anonymous"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center border-2 border-primary/30">
