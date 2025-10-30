@@ -429,7 +429,6 @@ const GameDetail = () => {
             style={{ paddingTop: '64px' }}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
             onLoad={handleIframeLoad}
             onError={handleIframeError}
           />
@@ -532,7 +531,6 @@ const GameDetail = () => {
                      }}
                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                      allowFullScreen
-                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                      onLoad={handleIframeLoad}
                      onError={handleIframeError}
                    />
