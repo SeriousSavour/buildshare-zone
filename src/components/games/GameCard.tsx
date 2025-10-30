@@ -77,7 +77,15 @@ const GameCard = ({
           throw new Error(`Failed to load image: ${response.status}`);
         }
         
-        const blob = await response.blob();
+        const arrayBuffer = await response.arrayBuffer();
+        // Determine correct MIME type from URL extension or default to webp
+        const mimeType = imageUrl.endsWith('.webp') ? 'image/webp' 
+          : imageUrl.endsWith('.png') ? 'image/png'
+          : imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') ? 'image/jpeg'
+          : imageUrl.endsWith('.gif') ? 'image/gif'
+          : 'image/webp';
+        
+        const blob = new Blob([arrayBuffer], { type: mimeType });
         console.log(`[${title}] Blob created:`, blob.type, blob.size, 'bytes');
         objectUrl = URL.createObjectURL(blob);
         console.log(`[${title}] Object URL created:`, objectUrl);
