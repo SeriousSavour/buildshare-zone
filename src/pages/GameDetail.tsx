@@ -49,7 +49,8 @@ const GameDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [resolvedGameUrl, setResolvedGameUrl] = useState<string | null>(null);
+  const [htmlContent, setHtmlContent] = useState<string | null>(null);
+  const [useDirectUrl, setUseDirectUrl] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -66,13 +67,13 @@ const GameDetail = () => {
     }
   }, [id]);
 
-  // Check if HTML file references external resources
+  // Embed HTML content directly like Google Sites
   useEffect(() => {
-    const checkAndResolveGameUrl = async () => {
+    const embedGameHtml = async () => {
       if (!game?.game_url) return;
       
-      // If it's from Supabase storage and is an HTML file, check for external base href
-      if (game.game_url.includes('supabase.co/storage') && game.game_url.endsWith('.html')) {
+      // If it's an HTML file from storage, fetch and embed it
+      if (game.game_url.endsWith('.html')) {
         try {
           const response = await fetch(game.game_url);
           const html = await response.text();
@@ -81,23 +82,33 @@ const GameDetail = () => {
           const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
           if (baseMatch && baseMatch[1]) {
             const baseUrl = baseMatch[1];
-            // If base href is external, use it directly
+            // If base href points to external resources, use that URL directly
             if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-              console.log('Found external base URL:', baseUrl);
-              setResolvedGameUrl(baseUrl);
+              console.log('Loading game from external URL:', baseUrl);
+              setUseDirectUrl(true);
+              setHtmlContent(baseUrl);
               return;
             }
           }
+          
+          // Otherwise embed the HTML content directly (Google Sites style)
+          console.log('Embedding HTML content directly');
+          setHtmlContent(html);
+          setUseDirectUrl(false);
         } catch (error) {
-          console.error('Error checking HTML file:', error);
+          console.error('Error fetching HTML:', error);
+          // Fallback to direct URL
+          setHtmlContent(game.game_url);
+          setUseDirectUrl(true);
         }
+      } else {
+        // For non-HTML files, use direct URL
+        setHtmlContent(game.game_url);
+        setUseDirectUrl(true);
       }
-      
-      // Otherwise use the original URL
-      setResolvedGameUrl(game.game_url);
     };
     
-    checkAndResolveGameUrl();
+    embedGameHtml();
   }, [game?.game_url]);
 
   const fetchGame = async () => {
@@ -458,7 +469,7 @@ const GameDetail = () => {
             </div>
           </div>
           <iframe
-            src={resolvedGameUrl || game.game_url}
+            {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
@@ -559,7 +570,7 @@ const GameDetail = () => {
 
                    <iframe
                      ref={iframeRef}
-                     src={resolvedGameUrl || game.game_url}
+                     {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
                      title={game.title}
                      className="border-2 border-primary/20 rounded-lg shadow-2xl"
                      style={{
