@@ -261,6 +261,48 @@ const GameDetail = () => {
     toast.success("Link copied to clipboard!");
   };
 
+  const fixHtmlContentType = async () => {
+    if (!game?.game_url) return;
+    
+    try {
+      // Extract the file path from the URL
+      const url = new URL(game.game_url);
+      const pathParts = url.pathname.split('/');
+      const bucketIndex = pathParts.findIndex(part => part === 'public') + 1;
+      const bucket = pathParts[bucketIndex];
+      const filePath = pathParts.slice(bucketIndex + 1).join('/');
+      
+      if (!filePath.endsWith('.html') && !filePath.endsWith('.htm')) {
+        toast.error("This is not an HTML file");
+        return;
+      }
+
+      toast.info("Fixing HTML content type...");
+
+      // Download the existing file
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from(bucket)
+        .download(filePath);
+
+      if (downloadError) throw downloadError;
+
+      // Re-upload with correct content type
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, fileData, {
+          contentType: 'text/html',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+      
+      toast.success("Content type fixed! Refresh the page to see the game render correctly.");
+    } catch (error) {
+      console.error('Error fixing content type:', error);
+      toast.error("Failed to fix content type. Make sure you have permission to modify this file.");
+    }
+  };
+
   const handleFullscreen = () => {
     setIsFullscreen(true);
   };
@@ -612,6 +654,18 @@ const GameDetail = () => {
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
+
+                {/* Fix HTML Button for creators/admins */}
+                {game.game_url?.endsWith('.html') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fixHtmlContentType}
+                    className="w-full text-xs"
+                  >
+                    🔧 Fix HTML Display
+                  </Button>
+                )}
 
                 {/* Genre Badge */}
                 <div className="flex items-center gap-2">
