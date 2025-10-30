@@ -73,11 +73,22 @@ const Create = () => {
       await supabase.rpc('set_session_context', { _session_token: sessionToken });
     }
     
+    // Detect content type based on file extension for better compatibility
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    let contentType = file.type || 'application/octet-stream';
+    
+    // Ensure HTML files are served with correct MIME type
+    if (fileExt === 'html' || fileExt === 'htm') {
+      contentType = 'text/html';
+    } else if (fileExt === 'zip') {
+      contentType = 'application/zip';
+    }
+    
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(path, file, { 
         upsert: true,
-        contentType: file.type || 'application/octet-stream'
+        contentType: contentType
       });
 
     if (uploadError) throw uploadError;
