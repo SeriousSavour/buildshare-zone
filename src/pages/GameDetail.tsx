@@ -75,34 +75,40 @@ const GameDetail = () => {
       // If it's an HTML file from storage, fetch and embed it
       if (game.game_url.endsWith('.html')) {
         try {
+          console.log('Fetching HTML from:', game.game_url);
           const response = await fetch(game.game_url);
           const html = await response.text();
+          console.log('HTML fetched, length:', html.length);
           
           // Check for <base> tag with external href
           const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
           if (baseMatch && baseMatch[1]) {
             const baseUrl = baseMatch[1];
+            console.log('Found base URL:', baseUrl);
             // If base href points to external resources, use that URL directly
             if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-              console.log('Loading game from external URL:', baseUrl);
+              console.log('Using external URL directly:', baseUrl);
               setUseDirectUrl(true);
               setHtmlContent(baseUrl);
+              toast.success('Loading game from external source');
               return;
             }
           }
           
           // Otherwise embed the HTML content directly (Google Sites style)
-          console.log('Embedding HTML content directly');
+          console.log('Embedding HTML content with srcDoc');
           setHtmlContent(html);
           setUseDirectUrl(false);
         } catch (error) {
           console.error('Error fetching HTML:', error);
+          toast.error('Failed to load game');
           // Fallback to direct URL
           setHtmlContent(game.game_url);
           setUseDirectUrl(true);
         }
       } else {
         // For non-HTML files, use direct URL
+        console.log('Non-HTML file, using direct URL');
         setHtmlContent(game.game_url);
         setUseDirectUrl(true);
       }
@@ -473,6 +479,7 @@ const GameDetail = () => {
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             referrerPolicy="no-referrer"
@@ -577,6 +584,7 @@ const GameDetail = () => {
                        width: `${iframeSize.width}px`,
                        height: `${iframeSize.height}px`,
                      }}
+                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                      allowFullScreen
                      referrerPolicy="no-referrer"
