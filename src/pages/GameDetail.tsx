@@ -212,12 +212,17 @@ const GameDetail = () => {
 
   const incrementPlayCount = async () => {
     try {
-      await supabase
-        .from('games')
-        .update({ plays: (game?.plays || 0) + 1 })
-        .eq('id', id);
+      const { data, error } = await supabase.rpc('increment_game_plays', {
+        _game_id: id
+      });
       
-      setGame(prev => prev ? { ...prev, plays: prev.plays + 1 } : null);
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const newPlayCount = data[0].plays;
+        setGame(prev => prev ? { ...prev, plays: newPlayCount } : null);
+        console.log('Play count incremented to:', newPlayCount);
+      }
     } catch (error) {
       console.error('Error updating play count:', error);
     }
