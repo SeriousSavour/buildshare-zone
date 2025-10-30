@@ -1167,12 +1167,11 @@ export type Database = {
           }
       create_game_with_context: {
         Args: {
-          _category?: string
-          _description?: string
-          _game_url?: string
-          _genre?: string
+          _description: string
+          _game_url: string
+          _genre: string
           _image_url?: string
-          _max_players?: string
+          _max_players: string
           _session_token: string
           _title: string
         }
@@ -1512,24 +1511,9 @@ export type Database = {
           _image_url?: string
           _max_players?: string
           _session_token: string
-          _title: string
+          _title?: string
         }
-        Returns: {
-          category: string
-          created_at: string
-          creator_id: string
-          creator_name: string
-          description: string
-          game_url: string
-          genre: string
-          id: string
-          image_url: string
-          likes: number
-          max_players: string
-          plays: number
-          title: string
-          updated_at: string
-        }[]
+        Returns: boolean
       }
       update_quest_progress: {
         Args: { _increment?: number; _quest_type: string; _user_id: string }
