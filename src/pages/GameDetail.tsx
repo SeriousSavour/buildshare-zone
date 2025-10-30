@@ -49,6 +49,7 @@ const GameDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [resolvedGameUrl, setResolvedGameUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -64,6 +65,40 @@ const GameDetail = () => {
       return () => clearInterval(interval);
     }
   }, [id]);
+
+  // Check if HTML file references external resources
+  useEffect(() => {
+    const checkAndResolveGameUrl = async () => {
+      if (!game?.game_url) return;
+      
+      // If it's from Supabase storage and is an HTML file, check for external base href
+      if (game.game_url.includes('supabase.co/storage') && game.game_url.endsWith('.html')) {
+        try {
+          const response = await fetch(game.game_url);
+          const html = await response.text();
+          
+          // Check for <base> tag with external href
+          const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
+          if (baseMatch && baseMatch[1]) {
+            const baseUrl = baseMatch[1];
+            // If base href is external, use it directly
+            if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+              console.log('Found external base URL:', baseUrl);
+              setResolvedGameUrl(baseUrl);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error checking HTML file:', error);
+        }
+      }
+      
+      // Otherwise use the original URL
+      setResolvedGameUrl(game.game_url);
+    };
+    
+    checkAndResolveGameUrl();
+  }, [game?.game_url]);
 
   const fetchGame = async () => {
     try {
@@ -423,7 +458,7 @@ const GameDetail = () => {
             </div>
           </div>
           <iframe
-            src={game.game_url}
+            src={resolvedGameUrl || game.game_url}
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
@@ -524,7 +559,7 @@ const GameDetail = () => {
 
                    <iframe
                      ref={iframeRef}
-                     src={game.game_url}
+                     src={resolvedGameUrl || game.game_url}
                      title={game.title}
                      className="border-2 border-primary/20 rounded-lg shadow-2xl"
                      style={{
