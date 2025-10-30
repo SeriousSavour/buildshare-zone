@@ -1363,7 +1363,12 @@ export type Database = {
         Returns: boolean
       }
       hash_password: { Args: { _password: string }; Returns: string }
-      increment_game_plays: { Args: { game_id: string }; Returns: number }
+      increment_game_plays: {
+        Args: { _game_id: string }
+        Returns: {
+          plays: number
+        }[]
+      }
       increment_group_clicks: { Args: { group_id: string }; Returns: undefined }
       insert_game_comment: {
         Args: {
