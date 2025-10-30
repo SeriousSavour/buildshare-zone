@@ -69,14 +69,18 @@ const GameCard = ({
         setImageLoading(true);
         setImageError(false);
         
+        console.log(`[${title}] Starting image fetch from:`, imageUrl);
         const response = await fetch(imageUrl);
+        console.log(`[${title}] Fetch response:`, response.status, response.ok);
         
         if (!response.ok) {
           throw new Error(`Failed to load image: ${response.status}`);
         }
         
         const blob = await response.blob();
+        console.log(`[${title}] Blob created:`, blob.type, blob.size, 'bytes');
         objectUrl = URL.createObjectURL(blob);
+        console.log(`[${title}] Object URL created:`, objectUrl);
         setCurrentImageUrl(objectUrl);
       } catch (error) {
         console.error(`[${title}] Error loading image:`, error);
@@ -89,6 +93,7 @@ const GameCard = ({
 
     return () => {
       if (objectUrl) {
+        console.log(`[${title}] Revoking object URL:`, objectUrl);
         URL.revokeObjectURL(objectUrl);
       }
     };
