@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2 } from "lucide-react";
 
@@ -656,24 +657,13 @@ const Admin = () => {
       return;
     }
 
-    const sessionToken = localStorage.getItem("session_token");
-    if (!sessionToken) return;
-
     setLoading(true);
     try {
-      await supabase.rpc('set_session_context', { _session_token: sessionToken });
-      
-      const { error } = await supabase
-        .from("games")
-        .update({
-          title: editGameTitle.trim(),
-          description: editGameDescription.trim() || null,
-          genre: editGameGenre,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", editingGame.id);
-
-      if (error) throw error;
+      await api.updateGame(editingGame.id, {
+        title: editGameTitle.trim(),
+        description: editGameDescription.trim() || null,
+        genre: editGameGenre,
+      });
 
       // Clear games cache so the Games page updates
       localStorage.removeItem('games_cache_v2');
