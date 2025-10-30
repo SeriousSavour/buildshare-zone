@@ -113,9 +113,9 @@ const Games = () => {
   };
   const fetchGames = async () => {
     try {
-      // Check cache first
-      const cachedData = localStorage.getItem('games_cache');
-      const cacheTimestamp = localStorage.getItem('games_cache_timestamp');
+      // Check cache first (v2 cache key to force refresh)
+      const cachedData = localStorage.getItem('games_cache_v2');
+      const cacheTimestamp = localStorage.getItem('games_cache_v2_timestamp');
       const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
       
       if (cachedData && cacheTimestamp) {
@@ -191,12 +191,12 @@ const Games = () => {
           setFeaturedGame(featured);
         }
         
-        // Cache the data
-        localStorage.setItem('games_cache', JSON.stringify({
+        // Cache the data (v2 cache key)
+        localStorage.setItem('games_cache_v2', JSON.stringify({
           games: gamesWithAvatars,
           featuredGame: featured
         }));
-        localStorage.setItem('games_cache_timestamp', Date.now().toString());
+        localStorage.setItem('games_cache_v2_timestamp', Date.now().toString());
         
         setLoadingProgress(100);
       } else {
