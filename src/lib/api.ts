@@ -11,9 +11,12 @@ async function apiCall(endpoint: string, options: ApiOptions = {}) {
   const { method = 'GET', body, headers = {} } = options;
   
   const sessionToken = localStorage.getItem('session_token');
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bWV5a2FjZ2Jyc212Y3Z3cnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY3MDAsImV4cCI6MjA3MzQ2MjcwMH0.7J3jVdRgQeiaVvMnH9-xr-mA1fRCVr-JksDK5SklRJI';
   
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    'authorization': `Bearer ${SUPABASE_ANON_KEY}`,
   };
   
   if (sessionToken) {
