@@ -429,6 +429,8 @@ const GameDetail = () => {
             style={{ paddingTop: '64px' }}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
+            referrerPolicy="no-referrer"
+            loading="eager"
             onLoad={handleIframeLoad}
             onError={handleIframeError}
           />
@@ -531,6 +533,8 @@ const GameDetail = () => {
                      }}
                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                      allowFullScreen
+                     referrerPolicy="no-referrer"
+                     loading="eager"
                      onLoad={handleIframeLoad}
                      onError={handleIframeError}
                    />
