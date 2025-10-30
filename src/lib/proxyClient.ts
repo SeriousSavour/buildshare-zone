@@ -13,9 +13,12 @@ const proxyFetch: typeof fetch = async (input, init) => {
     return fetch(input, init);
   }
   
-  // Proxy ALL storage URLs including public ones for maximum protection
+  // Don't proxy storage URLs - they need to return binary data
+  if (url.includes('/storage/v1/object/')) {
+    return fetch(input, init);
+  }
   
-  // Proxy all Supabase REST API and storage calls
+  // Proxy all Supabase REST API calls
   if (url.includes('supabase.co')) {
     const targetUrl = new URL(url);
     const targetPath = targetUrl.pathname + targetUrl.search;
