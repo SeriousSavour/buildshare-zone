@@ -676,8 +676,8 @@ const Admin = () => {
       if (error) throw error;
 
       // Clear games cache so the Games page updates
-      localStorage.removeItem('games_cache');
-      localStorage.removeItem('games_cache_timestamp');
+      localStorage.removeItem('games_cache_v2');
+      localStorage.removeItem('games_cache_v2_timestamp');
 
       toast({
         title: "Success",
@@ -718,8 +718,8 @@ const Admin = () => {
       if (error) throw error;
 
       // Clear games cache so the Games page updates
-      localStorage.removeItem('games_cache');
-      localStorage.removeItem('games_cache_timestamp');
+      localStorage.removeItem('games_cache_v2');
+      localStorage.removeItem('games_cache_v2_timestamp');
 
       toast({
         title: "Success",
