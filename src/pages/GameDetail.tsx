@@ -270,6 +270,42 @@ const GameDetail = () => {
     setIsFullscreen(false);
   };
 
+  // Debug iframe loading
+  const handleIframeLoad = () => {
+    console.log('[IFRAME] Successfully loaded:', game?.game_url);
+    if (iframeRef.current) {
+      try {
+        const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+        console.log('[IFRAME] Content document:', iframeDoc);
+        console.log('[IFRAME] Document body:', iframeDoc?.body?.innerHTML?.substring(0, 200));
+      } catch (e) {
+        console.error('[IFRAME] Cross-origin access error:', e);
+      }
+    }
+  };
+
+  const handleIframeError = (e: any) => {
+    console.error('[IFRAME] Failed to load:', game?.game_url, e);
+  };
+
+  // Listen for messages from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      console.log('[IFRAME] Message received:', event.origin, event.data);
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Debug game URL
+  useEffect(() => {
+    if (game?.game_url) {
+      console.log('[DEBUG] Game URL:', game.game_url);
+      console.log('[DEBUG] Is HTML file:', game.game_url.includes('.html') || game.game_url.includes('.htm'));
+      console.log('[DEBUG] URL pathname:', new URL(game.game_url).pathname);
+    }
+  }, [game?.game_url]);
+
   const fetchComments = async () => {
     const sessionToken = localStorage.getItem('session_token');
     if (!sessionToken) {
@@ -394,6 +430,8 @@ const GameDetail = () => {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+            onLoad={handleIframeLoad}
+            onError={handleIframeError}
           />
         </>
       )}
@@ -495,6 +533,8 @@ const GameDetail = () => {
                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                      allowFullScreen
                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                     onLoad={handleIframeLoad}
+                     onError={handleIframeError}
                    />
                 </div>
 
