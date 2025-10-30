@@ -261,47 +261,6 @@ const GameDetail = () => {
     toast.success("Link copied to clipboard!");
   };
 
-  const fixHtmlContentType = async () => {
-    if (!game?.game_url) return;
-    
-    try {
-      // Extract the file path from the URL
-      const url = new URL(game.game_url);
-      const pathParts = url.pathname.split('/');
-      const bucketIndex = pathParts.findIndex(part => part === 'public') + 1;
-      const bucket = pathParts[bucketIndex];
-      const filePath = pathParts.slice(bucketIndex + 1).join('/');
-      
-      if (!filePath.endsWith('.html') && !filePath.endsWith('.htm')) {
-        toast.error("This is not an HTML file");
-        return;
-      }
-
-      toast.info("Fixing HTML content type...");
-
-      // Download the existing file
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from(bucket)
-        .download(filePath);
-
-      if (downloadError) throw downloadError;
-
-      // Re-upload with correct content type
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, fileData, {
-          contentType: 'text/html',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-      
-      toast.success("Content type fixed! Refresh the page to see the game render correctly.");
-    } catch (error) {
-      console.error('Error fixing content type:', error);
-      toast.error("Failed to fix content type. Make sure you have permission to modify this file.");
-    }
-  };
 
   const handleFullscreen = () => {
     setIsFullscreen(true);
@@ -432,8 +391,9 @@ const GameDetail = () => {
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
           />
         </>
       )}
@@ -524,17 +484,18 @@ const GameDetail = () => {
                   )}
 
                    <iframe
-                    ref={iframeRef}
-                    src={game.game_url}
-                    title={game.title}
-                    className="border-2 border-primary/20 rounded-lg shadow-2xl"
-                    style={{
-                      width: `${iframeSize.width}px`,
-                      height: `${iframeSize.height}px`,
-                    }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                     ref={iframeRef}
+                     src={game.game_url}
+                     title={game.title}
+                     className="border-2 border-primary/20 rounded-lg shadow-2xl"
+                     style={{
+                       width: `${iframeSize.width}px`,
+                       height: `${iframeSize.height}px`,
+                     }}
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                     allowFullScreen
+                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                   />
                 </div>
 
                 {/* Fullscreen Button */}
@@ -546,18 +507,6 @@ const GameDetail = () => {
                   <Maximize2 className="w-5 h-5" />
                   Open in Fullscreen
                 </Button>
-                
-                {/* Fix HTML Button */}
-                {(game.game_url?.includes('.html') || game.game_url?.includes('.htm')) && (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={fixHtmlContentType}
-                    className="gap-2 w-full max-w-md"
-                  >
-                    🔧 Fix HTML Display
-                  </Button>
-                )}
 
                 {/* Comments Section */}
                 <Card className="w-full max-w-4xl">
