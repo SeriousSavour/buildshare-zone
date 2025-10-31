@@ -67,6 +67,13 @@ const GameDetail = () => {
     }
   }, [id]);
 
+  // Helper function to decode HTML entities
+  const decodeHtmlEntities = (html: string): string => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = html;
+    return textarea.value;
+  };
+
   // Embed HTML content directly like Google Sites
   useEffect(() => {
     const embedGameHtml = async () => {
@@ -75,12 +82,15 @@ const GameDetail = () => {
       // Check if game_url is raw HTML code (starts with < or contains HTML tags)
       const isRawHtml = game.game_url.trim().startsWith('<') || 
                         game.game_url.includes('<!DOCTYPE') ||
-                        game.game_url.includes('<html');
+                        game.game_url.includes('<html') ||
+                        game.game_url.includes('&lt;'); // Also check for escaped HTML
       
       if (isRawHtml) {
-        // Raw HTML code - execute it directly using srcDoc (Google Sites style)
-        console.log('Raw HTML detected, executing with srcDoc');
-        setHtmlContent(game.game_url);
+        // Raw HTML code - decode any HTML entities and execute directly using srcDoc
+        console.log('Raw HTML detected, decoding and executing with srcDoc');
+        const decodedHtml = decodeHtmlEntities(game.game_url);
+        console.log('Decoded HTML preview:', decodedHtml.substring(0, 200));
+        setHtmlContent(decodedHtml);
         setUseDirectUrl(false);
         return;
       }
