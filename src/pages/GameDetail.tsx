@@ -72,6 +72,19 @@ const GameDetail = () => {
     const embedGameHtml = async () => {
       if (!game?.game_url) return;
       
+      // Check if game_url is raw HTML code (starts with < or contains HTML tags)
+      const isRawHtml = game.game_url.trim().startsWith('<') || 
+                        game.game_url.includes('<!DOCTYPE') ||
+                        game.game_url.includes('<html');
+      
+      if (isRawHtml) {
+        // Raw HTML code - execute it directly using srcDoc (Google Sites style)
+        console.log('Raw HTML detected, executing with srcDoc');
+        setHtmlContent(game.game_url);
+        setUseDirectUrl(false);
+        return;
+      }
+      
       // If it's an HTML file from storage, fetch and embed it
       if (game.game_url.endsWith('.html')) {
         try {
