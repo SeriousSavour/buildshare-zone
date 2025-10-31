@@ -181,21 +181,52 @@ const Admin = () => {
     fetchContactMessages();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (retryCount = 0) => {
     const sessionToken = localStorage.getItem("session_token");
-    if (!sessionToken) return;
+    if (!sessionToken) {
+      toast({
+        title: "Authentication Error",
+        description: "No session token found. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      const { data, error } = await supabase.rpc("get_users_with_roles", {
+      // Add timeout to prevent hanging on restricted networks
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Request timeout")), 15000)
+      );
+
+      const rpcPromise = supabase.rpc("get_users_with_roles", {
         _admin_session_token: sessionToken,
       });
 
-      if (error) throw error;
+      const { data, error } = await Promise.race([rpcPromise, timeoutPromise]) as any;
+
+      if (error) {
+        // Check if it's a token validation error
+        if (error.message?.includes("token") || error.message?.includes("session")) {
+          throw new Error("Session expired or invalid. Please log in again.");
+        }
+        throw error;
+      }
+
       setUsers(data || []);
+      console.log("✅ Users loaded successfully:", data?.length || 0);
     } catch (error: any) {
+      console.error("❌ Failed to fetch users:", error);
+      
+      // Retry logic for network errors (but not auth errors)
+      if (retryCount < 2 && error.message === "Request timeout") {
+        console.log(`🔄 Retrying user fetch (attempt ${retryCount + 2}/3)...`);
+        setTimeout(() => fetchUsers(retryCount + 1), 2000);
+        return;
+      }
+
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error Loading Users",
+        description: error.message || "Network error. Check your connection and try refreshing.",
         variant: "destructive",
       });
     }
