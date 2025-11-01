@@ -398,7 +398,6 @@ const Browser = () => {
                   src={getProxyUrl(tab.url)}
                   title={tab.title}
                   className="w-full h-full border-none"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
                   onLoad={() => setIsLoading(false)}
                   onError={() => {
                     setIsLoading(false);
