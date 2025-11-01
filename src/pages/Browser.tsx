@@ -141,7 +141,41 @@ const Browser = () => {
         }
       });
       
-      console.log('All CSS inlined, setting content');
+      // Rewrite all resource URLs to go through proxy
+      const rewriteUrl = (url: string): string => {
+        if (!url || url.startsWith('data:') || url.startsWith('blob:') || url.includes(proxyUrl)) {
+          return url;
+        }
+        try {
+          const absoluteUrl = new URL(url, fullUrl).href;
+          return `${proxyUrl}?url=${encodeURIComponent(absoluteUrl)}`;
+        } catch (e) {
+          return url;
+        }
+      };
+
+      // Rewrite script sources
+      html = html.replace(/<script([^>]*)\ssrc=["']([^"']+)["']/gi, (match, attrs, url) => {
+        return `<script${attrs} src="${rewriteUrl(url)}"`;
+      });
+
+      // Rewrite image sources
+      html = html.replace(/<img([^>]*)\ssrc=["']([^"']+)["']/gi, (match, attrs, url) => {
+        return `<img${attrs} src="${rewriteUrl(url)}"`;
+      });
+
+      // Rewrite link hrefs (for icons, fonts, etc - not stylesheets since we inlined them)
+      html = html.replace(/<link([^>]*)\shref=["']([^"']+)["'](?![^>]*stylesheet)/gi, (match, attrs, url) => {
+        return `<link${attrs} href="${rewriteUrl(url)}"`;
+      });
+
+      // Rewrite background images in inline styles
+      html = html.replace(/url\(["']?([^"')]+)["']?\)/gi, (match, url) => {
+        if (url.startsWith('data:') || url.startsWith('#')) return match;
+        return `url("${rewriteUrl(url)}")`;
+      });
+
+      console.log('All resources rewritten, setting content');
       setIframeContent(html);
       setIsLoading(false);
       
