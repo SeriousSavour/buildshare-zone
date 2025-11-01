@@ -210,32 +210,33 @@ const Browser = () => {
       <div className="flex flex-col border-b border-border bg-card/50 backdrop-blur-sm">
         {/* Tab Bar */}
         <div className="flex items-center gap-2 px-2 pt-2">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-            <TabsList className="h-auto bg-transparent p-0 gap-1">
-              {tabs.map(tab => (
-                <div key={tab.id} className="relative group">
-                  <TabsTrigger 
-                    value={tab.id}
-                    className="rounded-t-lg rounded-b-none px-4 py-2 data-[state=active]:bg-background"
+          <div className="flex-1 flex items-center gap-1">
+            {tabs.map(tab => (
+              <div 
+                key={tab.id} 
+                className={`relative group cursor-pointer px-4 py-2 rounded-t-lg rounded-b-none transition-colors ${
+                  activeTab === tab.id ? 'bg-background' : 'hover:bg-background/50'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  <span className="max-w-[150px] truncate text-sm">{tab.title}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-5 h-5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeTab(tab.id);
+                    }}
                   >
-                    <Globe className="w-4 h-4 mr-2" />
-                    <span className="max-w-[150px] truncate">{tab.title}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-5 h-5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        closeTab(tab.id);
-                      }}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </TabsTrigger>
+                    <X className="w-3 h-3" />
+                  </Button>
                 </div>
-              ))}
-            </TabsList>
-          </Tabs>
+              </div>
+            ))}
+          </div>
           
           <Button
             variant="ghost"
@@ -351,48 +352,50 @@ const Browser = () => {
       </div>
 
       {/* Browser Content */}
-      <div className="flex-1 relative overflow-hidden bg-muted/30">
-        {tabs.map(tab => (
-          <TabsContent 
-            key={tab.id} 
-            value={tab.id} 
-            className="h-full m-0 data-[state=active]:flex flex-col"
-          >
-            {tab.url ? (
-              <iframe
-                ref={iframeRef}
-                src={getProxyUrl(tab.url)}
-                className="w-full h-full border-0"
-                title={tab.title}
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-6">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
-                  <Shield className="w-24 h-24 text-primary relative" />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 relative overflow-hidden bg-muted/30">
+          {tabs.map(tab => (
+            <TabsContent 
+              key={tab.id} 
+              value={tab.id} 
+              className="h-full m-0 data-[state=active]:flex flex-col"
+            >
+              {tab.url ? (
+                <iframe
+                  ref={iframeRef}
+                  src={getProxyUrl(tab.url)}
+                  className="w-full h-full border-0"
+                  title={tab.title}
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                    <Shield className="w-24 h-24 text-primary relative" />
+                  </div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    Shadow Browser
+                  </h1>
+                  <p className="text-muted-foreground text-lg">
+                    Secure, Private, Anonymous
+                  </p>
+                  <div className="flex gap-4 mt-4">
+                    <Button onClick={() => navigate('/games')} size="lg" className="gap-2">
+                      <Gamepad2 className="w-5 h-5" />
+                      Browse Games
+                    </Button>
+                    <Button onClick={() => navigateToUrl('google.com')} variant="outline" size="lg" className="gap-2">
+                      <Globe className="w-5 h-5" />
+                      Start Browsing
+                    </Button>
+                  </div>
                 </div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  Shadow Browser
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                  Secure, Private, Anonymous
-                </p>
-                <div className="flex gap-4 mt-4">
-                  <Button onClick={() => navigate('/games')} size="lg" className="gap-2">
-                    <Gamepad2 className="w-5 h-5" />
-                    Browse Games
-                  </Button>
-                  <Button onClick={() => navigateToUrl('google.com')} variant="outline" size="lg" className="gap-2">
-                    <Globe className="w-5 h-5" />
-                    Start Browsing
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </div>
+              )}
+            </TabsContent>
+          ))}
+        </div>
+      </Tabs>
     </div>
   );
 };
