@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import "./browser-content.css";
 
 interface Tab {
   id: string;
@@ -113,27 +114,18 @@ const Browser = () => {
       const cssPromises = cssLinks.map(async (linkTag) => {
         const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
         if (hrefMatch) {
-          const cssUrl = hrefMatch[1];
+          let cssUrl = hrefMatch[1];
           try {
             console.log('Fetching CSS:', cssUrl);
-            const cssProxyUrl = getProxyUrl(cssUrl);
-            const cssResponse = await fetch(cssProxyUrl);
+            
+            // CSS URLs are already proxied by edge function, fetch directly
+            const cssResponse = await fetch(cssUrl);
             
             if (cssResponse.ok) {
               let cssContent = await cssResponse.text();
               
-              // Rewrite URLs inside CSS to use proxy (fonts, images, etc)
-              cssContent = cssContent.replace(/url\(["']?([^"')]+)["']?\)/gi, (match, url) => {
-                if (url.startsWith('data:') || url.startsWith('#') || url.includes(proxyUrl)) {
-                  return match;
-                }
-                try {
-                  const absoluteUrl = new URL(url, cssUrl).href;
-                  return `url("${proxyUrl}?url=${encodeURIComponent(absoluteUrl)}")`;
-                } catch (e) {
-                  return match;
-                }
-              });
+              // Rewrite URLs inside CSS - these are also already proxied by edge function
+              // Just keep them as-is
               
               console.log('✓ Inlined CSS from:', cssUrl, '- Length:', cssContent.length);
               return { linkTag, styleTag: `<style data-href="${cssUrl}">${cssContent}</style>` };
@@ -158,59 +150,8 @@ const Browser = () => {
       // DON'T remove the proxy interceptor - it's needed for dynamic requests
       // The edge function injects it to handle fetch/XHR/forms
       
-      // Add base tag if missing (critical for relative URLs)
-      const baseUrl = new URL(fullUrl);
-      if (!html.includes('<base')) {
-        html = html.replace(
-          /<head>/i,
-          `<head><base href="${baseUrl.origin}/">`
-        );
-      }
-      
-      // Rewrite all resource URLs to go through proxy
-      const rewriteUrl = (url: string): string => {
-        if (!url || url.startsWith('data:') || url.startsWith('blob:') || url.includes(proxyUrl)) {
-          return url;
-        }
-        try {
-          const absoluteUrl = new URL(url, fullUrl).href;
-          return `${proxyUrl}?url=${encodeURIComponent(absoluteUrl)}`;
-        } catch (e) {
-          return url;
-        }
-      };
-
-      // Rewrite script sources
-      html = html.replace(/<script([^>]*)\ssrc=["']([^"']+)["']/gi, (match, attrs, url) => {
-        if (url.startsWith('data:') || url.startsWith('javascript:')) return match;
-        return `<script${attrs} src="${rewriteUrl(url)}"`;
-      });
-
-      // Rewrite image sources
-      html = html.replace(/<img([^>]*)\ssrc=["']([^"']+)["']/gi, (match, attrs, url) => {
-        if (url.startsWith('data:')) return match;
-        return `<img${attrs} src="${rewriteUrl(url)}"`;
-      });
-
-      // Rewrite link hrefs (for icons, fonts, preloads - not stylesheets since we inlined them)
-      html = html.replace(/<link([^>]*)\shref=["']([^"']+)["'](?![^>]*stylesheet)/gi, (match, attrs, url) => {
-        return `<link${attrs} href="${rewriteUrl(url)}"`;
-      });
-
-      // Rewrite form actions
-      html = html.replace(/<form([^>]*)\saction=["']([^"']+)["']/gi, (match, attrs, url) => {
-        if (url.startsWith('#') || url.startsWith('javascript:')) return match;
-        return `<form${attrs} action="${rewriteUrl(url)}"`;
-      });
-
-      // Rewrite background images in inline styles
-      html = html.replace(/style=["']([^"']*)["']/gi, (match, styleContent) => {
-        const rewrittenStyle = styleContent.replace(/url\(["']?([^"')]+)["']?\)/gi, (urlMatch, url) => {
-          if (url.startsWith('data:') || url.startsWith('#')) return urlMatch;
-          return `url("${rewriteUrl(url)}")`;
-        });
-        return `style="${rewrittenStyle}"`;
-      });
+      // Edge function already handles ALL URL rewriting (scripts, images, links, forms, CSS urls)
+      // We just need to inline the CSS for better performance
 
       console.log('All resources rewritten, setting content');
       
@@ -522,9 +463,9 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {/* Direct content injection like Shadow browser */}
+                {/* Direct content injection like Shadow browser - isolated from our CSS */}
                 <div 
-                  className="w-full h-full overflow-auto bg-background"
+                  id="browser-content-container"
                   dangerouslySetInnerHTML={{ __html: iframeContent }}
                   onClick={(e) => {
                     // Intercept link clicks to keep navigation in proxy
@@ -547,7 +488,11 @@ const Browser = () => {
                     }
                   }}
                   style={{ 
-                    colorScheme: 'auto',
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'auto',
+                    position: 'relative',
+                    zIndex: 1,
                   }}
                 />
               </div>
