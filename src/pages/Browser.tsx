@@ -99,75 +99,11 @@ const Browser = () => {
         throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
       }
       
-      let html = await response.text();
-      console.log('Fetched HTML length:', html.length);
-      console.log('First 200 chars:', html.substring(0, 200));
+      const html = await response.text();
+      console.log('✓ Fetched HTML, length:', html.length);
       
-      // Extract and inline all CSS
-      const cssLinkRegex = /<link[^>]*rel=["']stylesheet["'][^>]*>/gi;
-      const cssLinks = html.match(cssLinkRegex) || [];
-      
-      console.log('Found CSS links:', cssLinks.length);
-      
-      // Fetch all CSS files in parallel (optional optimization)
-      const cssPromises = cssLinks.map(async (linkTag) => {
-        const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
-        if (hrefMatch) {
-          let cssUrl = hrefMatch[1];
-          try {
-            console.log('Fetching CSS:', cssUrl);
-            
-            // CSS URLs are already proxied by edge function, fetch directly
-            const cssResponse = await fetch(cssUrl);
-            
-            if (cssResponse.ok) {
-              let cssContent = await cssResponse.text();
-              
-              console.log('✓ Inlined CSS from:', cssUrl, '- Length:', cssContent.length);
-              return { linkTag, styleTag: `<style data-href="${cssUrl}">${cssContent}</style>` };
-            } else {
-              console.warn('CSS fetch failed with status:', cssResponse.status, '- keeping link tag');
-              return null; // Keep original link tag
-            }
-          } catch (e) {
-            console.error('✗ Failed to fetch CSS:', cssUrl, e, '- keeping link tag');
-            return null; // Keep original link tag on error
-          }
-        }
-        return null;
-      });
-      
-      // Wait for all CSS to be fetched
-      const cssResults = await Promise.all(cssPromises);
-      
-      // Replace link tags with inline styles ONLY if fetch succeeded
-      cssResults.forEach(result => {
-        if (result) {
-          html = html.replace(result.linkTag, result.styleTag);
-        }
-        // If result is null, leave the original <link> tag in place
-      });
-      
-      // DON'T remove the proxy interceptor - it's needed for dynamic requests
-      // The edge function injects it to handle fetch/XHR/forms
-      
-      // Edge function already handles ALL URL rewriting (scripts, images, links, forms, CSS urls)
-      // We just need to inline the CSS for better performance
-
-      console.log('All resources rewritten, setting content');
-      console.log('HTML preview (first 500 chars):', html.substring(0, 500));
-      console.log('HTML contains <body>:', html.includes('<body>'));
-      console.log('HTML contains <script>:', html.includes('<script>'));
-      
-      // Ensure HTML is not double-encoded
-      if (html.includes('&lt;') || html.includes('&gt;')) {
-        console.error('⚠️ HTML appears to be encoded! Decoding...');
-        const textarea = document.createElement('textarea');
-        textarea.innerHTML = html;
-        html = textarea.value;
-      }
-      
-      // Use direct HTML injection (Shadow browser approach - no iframe sandboxing)
+      // Edge function already handles ALL URL rewriting and proxy injection
+      // Just set the content directly
       setIframeContent(html);
       setIsLoading(false);
       
