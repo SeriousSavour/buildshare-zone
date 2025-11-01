@@ -109,7 +109,8 @@ const Browser = () => {
       
       console.log('Found CSS links:', cssLinks.length);
       
-      for (const linkTag of cssLinks) {
+      // Fetch all CSS files in parallel
+      const cssPromises = cssLinks.map(async (linkTag) => {
         const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
         if (hrefMatch) {
           const cssUrl = hrefMatch[1];
@@ -120,16 +121,27 @@ const Browser = () => {
             
             if (cssResponse.ok) {
               const cssContent = await cssResponse.text();
-              const styleTag = `<style data-href="${cssUrl}">${cssContent}</style>`;
-              html = html.replace(linkTag, styleTag);
-              console.log('Inlined CSS from:', cssUrl);
+              console.log('✓ Inlined CSS from:', cssUrl, '- Length:', cssContent.length);
+              return { linkTag, styleTag: `<style data-href="${cssUrl}">${cssContent}</style>` };
             }
           } catch (e) {
-            console.error('Failed to fetch CSS:', cssUrl, e);
+            console.error('✗ Failed to fetch CSS:', cssUrl, e);
           }
         }
-      }
+        return null;
+      });
       
+      // Wait for all CSS to be fetched
+      const cssResults = await Promise.all(cssPromises);
+      
+      // Replace all link tags with inline styles
+      cssResults.forEach(result => {
+        if (result) {
+          html = html.replace(result.linkTag, result.styleTag);
+        }
+      });
+      
+      console.log('All CSS inlined, setting content');
       setIframeContent(html);
       setIsLoading(false);
       
