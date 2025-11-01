@@ -392,7 +392,7 @@ const Browser = () => {
             >
             {tab.url ? (
               <div className="relative w-full h-full">
-                {isLoading && (
+                {isLoading && activeTab === tab.id && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
                     <div className="flex flex-col items-center gap-4">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -400,7 +400,7 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {loadError && (
+                {loadError && activeTab === tab.id && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
                     <div className="max-w-md p-6 rounded-lg border border-destructive bg-destructive/10">
                       <h3 className="text-lg font-semibold text-destructive mb-2">Failed to Load</h3>
@@ -411,17 +411,19 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {/* Use iframe with srcdoc for proper HTML document rendering */}
-                <iframe
-                  ref={iframeRef}
-                  srcDoc={iframeContent}
-                  style={{ 
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                  }}
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                />
+                {iframeContent && activeTab === tab.id && (
+                  <iframe
+                    ref={iframeRef}
+                    srcDoc={iframeContent}
+                    title={tab.title}
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      border: 'none',
+                    }}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                  />
+                )}
               </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
