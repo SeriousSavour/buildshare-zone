@@ -193,13 +193,15 @@ serve(async (req) => {
 
       html = html.replace('</head>', `${injectedScript}</head>`);
 
+      // Create response headers explicitly
+      const htmlHeaders = new Headers(corsHeaders);
+      htmlHeaders.set('Content-Type', 'text/html; charset=utf-8');
+      htmlHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      htmlHeaders.set('X-Content-Type-Options', 'nosniff');
+
       return new Response(html, {
         status: response.status,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache',
-        },
+        headers: htmlHeaders,
       });
     }
 
@@ -227,13 +229,14 @@ serve(async (req) => {
         }
       );
 
+      // Create response headers explicitly for CSS
+      const cssHeaders = new Headers(corsHeaders);
+      cssHeaders.set('Content-Type', 'text/css; charset=utf-8');
+      cssHeaders.set('Cache-Control', 'public, max-age=3600');
+
       return new Response(css, {
         status: response.status,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/css; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600',
-        },
+        headers: cssHeaders,
       });
     }
 
