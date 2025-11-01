@@ -31,7 +31,6 @@ const Browser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [iframeContent, setIframeContent] = useState<string>("");
-  const [iframeBlobUrl, setIframeBlobUrl] = useState<string>("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
@@ -198,16 +197,7 @@ const Browser = () => {
 
       console.log('All resources rewritten, setting content');
       
-      // Create blob URL instead of using srcDoc (fixes font/resource loading)
-      const blob = new Blob([html], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // Cleanup old blob URL
-      if (iframeBlobUrl) {
-        URL.revokeObjectURL(iframeBlobUrl);
-      }
-      
-      setIframeBlobUrl(blobUrl);
+      // Use direct HTML injection (Shadow browser approach - no iframe sandboxing)
       setIframeContent(html);
       setIsLoading(false);
       
@@ -515,12 +505,13 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                <iframe
-                  ref={iframeRef}
-                  src={iframeBlobUrl}
-                  className="w-full h-full border-0"
-                  title={tab.title}
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
+                {/* Direct content injection like Shadow browser */}
+                <div 
+                  className="w-full h-full overflow-auto bg-background"
+                  dangerouslySetInnerHTML={{ __html: iframeContent }}
+                  style={{ 
+                    colorScheme: 'auto',
+                  }}
                 />
               </div>
             ) : (
