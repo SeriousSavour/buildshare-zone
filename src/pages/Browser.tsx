@@ -28,6 +28,8 @@ const Browser = () => {
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
@@ -70,6 +72,9 @@ const Browser = () => {
   const navigateToUrl = (url: string) => {
     if (!url) return;
 
+    setIsLoading(true);
+    setLoadError(null);
+
     // Add protocol if missing
     let fullUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')) {
@@ -79,6 +84,7 @@ const Browser = () => {
     // Handle special shadow:// protocol
     if (fullUrl.startsWith('shadow://')) {
       handleSpecialProtocol(fullUrl);
+      setIsLoading(false);
       return;
     }
 
@@ -360,15 +366,41 @@ const Browser = () => {
               value={tab.id} 
               className="h-full m-0 data-[state=active]:flex flex-col"
             >
-              {tab.url ? (
-              <iframe
-                ref={iframeRef}
-                src={getProxyUrl(tab.url)}
-                className="w-full h-full border-0 bg-white"
-                title={tab.title}
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-              />
-              ) : (
+            {tab.url ? (
+              <div className="relative w-full h-full">
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                      <p className="text-muted-foreground">Loading {tab.title}...</p>
+                    </div>
+                  </div>
+                )}
+                {loadError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
+                    <div className="max-w-md p-6 rounded-lg border border-destructive bg-destructive/10">
+                      <h3 className="text-lg font-semibold text-destructive mb-2">Failed to Load</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{loadError}</p>
+                      <Button onClick={() => navigateToUrl(tab.url)} variant="outline">
+                        Try Again
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <iframe
+                  ref={iframeRef}
+                  src={getProxyUrl(tab.url)}
+                  className="w-full h-full border-0"
+                  title={tab.title}
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+                  onLoad={() => setIsLoading(false)}
+                  onError={() => {
+                    setIsLoading(false);
+                    setLoadError("This website cannot be loaded through the proxy. It may be blocking iframe embedding or have strict security policies.");
+                  }}
+                />
+              </div>
+            ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
                   <div className="relative">
                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
