@@ -30,6 +30,7 @@ const Browser = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [iframeContent, setIframeContent] = useState<string>("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
@@ -69,11 +70,12 @@ const Browser = () => {
     }
   };
 
-  const navigateToUrl = (url: string) => {
+  const navigateToUrl = async (url: string) => {
     if (!url) return;
 
     setIsLoading(true);
     setLoadError(null);
+    setIframeContent("");
 
     // Add protocol if missing
     let fullUrl = url;
@@ -88,19 +90,39 @@ const Browser = () => {
       return;
     }
 
-    setTabs(tabs.map(tab => {
-      if (tab.id === activeTab) {
-        const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-        return {
-          ...tab,
-          url: fullUrl,
-          title: new URL(fullUrl).hostname,
-          history: newHistory,
-          historyIndex: newHistory.length - 1
-        };
+    // Fetch content through proxy
+    try {
+      const proxyUrl = getProxyUrl(fullUrl);
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
       }
-      return tab;
-    }));
+      
+      const html = await response.text();
+      console.log('Fetched HTML length:', html.length);
+      console.log('First 200 chars:', html.substring(0, 200));
+      setIframeContent(html);
+      setIsLoading(false);
+      
+      setTabs(tabs.map(tab => {
+        if (tab.id === activeTab) {
+          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+          return {
+            ...tab,
+            url: fullUrl,
+            title: new URL(fullUrl).hostname,
+            history: newHistory,
+            historyIndex: newHistory.length - 1
+          };
+        }
+        return tab;
+      }));
+    } catch (error) {
+      console.error('Failed to load URL:', error);
+      setIsLoading(false);
+      setLoadError(error instanceof Error ? error.message : 'Failed to load website');
+    }
   };
 
   const handleSpecialProtocol = (url: string) => {
@@ -389,15 +411,10 @@ const Browser = () => {
                 )}
                 <iframe
                   ref={iframeRef}
-                  src={getProxyUrl(tab.url)}
+                  srcDoc={iframeContent}
                   className="w-full h-full border-0"
                   title={tab.title}
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-                  onLoad={() => setIsLoading(false)}
-                  onError={() => {
-                    setIsLoading(false);
-                    setLoadError("This website cannot be loaded through the proxy. It may be blocking iframe embedding or have strict security policies.");
-                  }}
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
                 />
               </div>
             ) : (
