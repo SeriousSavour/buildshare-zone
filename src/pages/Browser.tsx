@@ -109,7 +109,7 @@ const Browser = () => {
       
       console.log('Found CSS links:', cssLinks.length);
       
-      // Fetch all CSS files in parallel
+      // Fetch all CSS files in parallel (optional optimization)
       const cssPromises = cssLinks.map(async (linkTag) => {
         const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
         if (hrefMatch) {
@@ -123,14 +123,15 @@ const Browser = () => {
             if (cssResponse.ok) {
               let cssContent = await cssResponse.text();
               
-              // Rewrite URLs inside CSS - these are also already proxied by edge function
-              // Just keep them as-is
-              
               console.log('✓ Inlined CSS from:', cssUrl, '- Length:', cssContent.length);
               return { linkTag, styleTag: `<style data-href="${cssUrl}">${cssContent}</style>` };
+            } else {
+              console.warn('CSS fetch failed with status:', cssResponse.status, '- keeping link tag');
+              return null; // Keep original link tag
             }
           } catch (e) {
-            console.error('✗ Failed to fetch CSS:', cssUrl, e);
+            console.error('✗ Failed to fetch CSS:', cssUrl, e, '- keeping link tag');
+            return null; // Keep original link tag on error
           }
         }
         return null;
@@ -139,11 +140,12 @@ const Browser = () => {
       // Wait for all CSS to be fetched
       const cssResults = await Promise.all(cssPromises);
       
-      // Replace all link tags with inline styles
+      // Replace link tags with inline styles ONLY if fetch succeeded
       cssResults.forEach(result => {
         if (result) {
           html = html.replace(result.linkTag, result.styleTag);
         }
+        // If result is null, leave the original <link> tag in place
       });
       
       // DON'T remove the proxy interceptor - it's needed for dynamic requests
