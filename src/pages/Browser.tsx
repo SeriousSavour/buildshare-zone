@@ -47,12 +47,18 @@ const Browser = () => {
       const iframe = iframeRef.current;
       try {
         console.log('✓ Injecting HTML into iframe for:', currentTab.url);
-        iframe.contentWindow?.document.open();
-        iframe.contentWindow?.document.write(currentTab.content);
-        iframe.contentWindow?.document.close();
-        console.log('✓ HTML injected successfully');
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc) {
+          doc.open();
+          doc.write(currentTab.content);
+          doc.close();
+          console.log('✓ HTML injected successfully');
+        } else {
+          console.error('❌ Cannot access iframe document');
+        }
       } catch (error) {
         console.error('❌ Failed to inject HTML:', error);
+        setLoadError('Failed to render content: ' + (error instanceof Error ? error.message : 'Unknown error'));
       }
     }
   }, [currentTab?.content, currentTab?.url, isLoading]);
