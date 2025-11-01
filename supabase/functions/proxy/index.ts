@@ -44,9 +44,26 @@ serve(async (req) => {
     console.log('Content-Type:', contentType);
     console.log('Response status:', response.status);
     
-    // For HTML content, rewrite all URLs
+    // Get the body as text/binary
+    const body = contentType.includes('text/') || contentType.includes('application/json') || contentType.includes('application/javascript')
+      ? await response.text()
+      : await response.arrayBuffer();
+    
+    // Force correct MIME type for rendering
+    let finalContentType = contentType || 'application/octet-stream';
     if (contentType.includes('text/html')) {
-      let html = await response.text();
+      finalContentType = 'text/html; charset=utf-8';
+    } else if (contentType.includes('text/css')) {
+      finalContentType = 'text/css; charset=utf-8';
+    } else if (contentType.includes('application/javascript') || contentType.includes('text/javascript')) {
+      finalContentType = 'application/javascript; charset=utf-8';
+    } else if (contentType.includes('application/json')) {
+      finalContentType = 'application/json; charset=utf-8';
+    }
+    
+    // For HTML content, rewrite all URLs
+    if (finalContentType.includes('text/html') && typeof body === 'string') {
+      let html = body;
       const baseUrl = new URL(targetUrl);
       const proxyBaseUrl = `${url.origin}/functions/v1/proxy`;
 
@@ -196,7 +213,7 @@ serve(async (req) => {
       // Create response headers explicitly
       const htmlHeaders = new Headers(corsHeaders);
       htmlHeaders.set('Content-Type', 'text/html; charset=utf-8');
-      htmlHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      htmlHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       htmlHeaders.set('X-Content-Type-Options', 'nosniff');
 
       return new Response(html, {
@@ -206,8 +223,8 @@ serve(async (req) => {
     }
 
     // For CSS, rewrite url() references
-    if (contentType.includes('text/css')) {
-      let css = await response.text();
+    if (finalContentType.includes('text/css') && typeof body === 'string') {
+      let css = body;
       const baseUrl = new URL(targetUrl);
       // Force HTTPS for proxy URL
       const proxyUrl = new URL(`${url.origin}/functions/v1/proxy`);
@@ -240,14 +257,12 @@ serve(async (req) => {
       });
     }
 
-    // For all other content (JS, images, etc.), return as-is
-    const content = await response.arrayBuffer();
-    
+    // For all other content (JS, images, etc.), return with correct Content-Type
     const responseHeaders = new Headers(corsHeaders);
-    responseHeaders.set('Content-Type', contentType || 'application/octet-stream');
+    responseHeaders.set('Content-Type', finalContentType);
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
     
-    return new Response(content, {
+    return new Response(body, {
       status: response.status,
       headers: responseHeaders,
     });
