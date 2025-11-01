@@ -155,8 +155,17 @@ const Browser = () => {
         }
       });
       
-      // Remove the proxy interceptor script injected by edge function (causes conflicts)
-      html = html.replace(/<script>\s*\(function\(\)\s*\{[\s\S]*?Proxy interceptor active[\s\S]*?}\)\(\);\s*<\/script>/gi, '');
+      // DON'T remove the proxy interceptor - it's needed for dynamic requests
+      // The edge function injects it to handle fetch/XHR/forms
+      
+      // Add base tag if missing (critical for relative URLs)
+      const baseUrl = new URL(fullUrl);
+      if (!html.includes('<base')) {
+        html = html.replace(
+          /<head>/i,
+          `<head><base href="${baseUrl.origin}/">`
+        );
+      }
       
       // Rewrite all resource URLs to go through proxy
       const rewriteUrl = (url: string): string => {
@@ -173,17 +182,25 @@ const Browser = () => {
 
       // Rewrite script sources
       html = html.replace(/<script([^>]*)\ssrc=["']([^"']+)["']/gi, (match, attrs, url) => {
+        if (url.startsWith('data:') || url.startsWith('javascript:')) return match;
         return `<script${attrs} src="${rewriteUrl(url)}"`;
       });
 
       // Rewrite image sources
       html = html.replace(/<img([^>]*)\ssrc=["']([^"']+)["']/gi, (match, attrs, url) => {
+        if (url.startsWith('data:')) return match;
         return `<img${attrs} src="${rewriteUrl(url)}"`;
       });
 
-      // Rewrite link hrefs (for icons, fonts, etc - not stylesheets since we inlined them)
+      // Rewrite link hrefs (for icons, fonts, preloads - not stylesheets since we inlined them)
       html = html.replace(/<link([^>]*)\shref=["']([^"']+)["'](?![^>]*stylesheet)/gi, (match, attrs, url) => {
         return `<link${attrs} href="${rewriteUrl(url)}"`;
+      });
+
+      // Rewrite form actions
+      html = html.replace(/<form([^>]*)\saction=["']([^"']+)["']/gi, (match, attrs, url) => {
+        if (url.startsWith('#') || url.startsWith('javascript:')) return match;
+        return `<form${attrs} action="${rewriteUrl(url)}"`;
       });
 
       // Rewrite background images in inline styles
@@ -517,8 +534,15 @@ const Browser = () => {
                       if (href && !href.startsWith('javascript:') && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('Intercepted link click:', href);
-                        navigateToUrl(href);
+                        
+                        // Handle relative URLs properly
+                        try {
+                          const absoluteUrl = new URL(href, currentTab?.url || '').href;
+                          console.log('Intercepted link click, navigating to:', absoluteUrl);
+                          navigateToUrl(absoluteUrl);
+                        } catch (err) {
+                          console.error('Invalid URL:', href, err);
+                        }
                       }
                     }
                   }}
