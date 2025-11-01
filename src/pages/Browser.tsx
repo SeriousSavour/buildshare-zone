@@ -94,7 +94,6 @@ const Browser = () => {
     try {
       const proxyUrl = getProxyUrl(fullUrl);
       console.log('🔄 Fetching URL:', fullUrl);
-      console.log('🔄 Via proxy:', proxyUrl);
       
       const response = await fetch(proxyUrl);
       
@@ -104,31 +103,23 @@ const Browser = () => {
       
       const html = await response.text();
       console.log('✓ Fetched HTML, length:', html.length);
-      console.log('✓ First 100 chars:', html.substring(0, 100));
-      console.log('✓ Contains <html>:', html.includes('<html>'));
-      console.log('✓ Contains <body>:', html.includes('<body>'));
       
-      // Create a Blob URL to ensure proper HTML rendering
-      const blob = new Blob([html], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
-      console.log('✓ Created Blob URL:', blobUrl);
+      // Use data URL for maximum compatibility
+      const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+      console.log('✓ Created data URL');
       
-      // Store the blob URL in the tab
+      // Store the data URL in the tab
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
           console.log('✓ Setting content for tab:', tab.id);
-          // Revoke old blob URL if it exists
-          if (tab.content && tab.content.startsWith('blob:')) {
-            URL.revokeObjectURL(tab.content);
-          }
           return {
             ...tab,
             url: fullUrl,
             title: new URL(fullUrl).hostname,
             history: newHistory,
             historyIndex: newHistory.length - 1,
-            content: blobUrl
+            content: dataUrl
           };
         }
         return tab;
