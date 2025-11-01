@@ -41,6 +41,18 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
+  // Inject HTML into iframe when content changes
+  useEffect(() => {
+    if (currentTab?.content && iframeRef.current) {
+      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+      if (iframeDoc) {
+        iframeDoc.open();
+        iframeDoc.write(currentTab.content);
+        iframeDoc.close();
+      }
+    }
+  }, [currentTab?.content, currentTab?.id]);
+
   const addNewTab = () => {
     const newTab: Tab = {
       id: Date.now().toString(),
@@ -409,20 +421,10 @@ const Browser = () => {
                   </div>
                 )}
                 <iframe
-                  key={`iframe-${tab.id}-${tab.url}`}
+                  key={`iframe-${tab.id}`}
                   ref={activeTab === tab.id ? iframeRef : null}
                   title={tab.title}
                   className="w-full h-full border-none"
-                  onLoad={() => {
-                    if (tab.content && iframeRef.current) {
-                      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-                      if (iframeDoc) {
-                        iframeDoc.open();
-                        iframeDoc.write(tab.content);
-                        iframeDoc.close();
-                      }
-                    }
-                  }}
                 />
               </div>
             ) : (
