@@ -150,11 +150,11 @@ serve(async (req) => {
         }
       );
 
-      // Add base tag
+      // Add base tag to resolve relative URLs
       if (!html.includes('<base')) {
         html = html.replace(
           /<head>/i,
-          `<head><base href="${baseUrl.origin}/">`
+          `<head><base href="${baseUrl.href}">`
         );
       }
 
@@ -169,36 +169,77 @@ serve(async (req) => {
             const proxyUrl = '${httpsProxyUrl}';
             const baseUrl = '${baseUrl.href}';
             
-            // Override fetch to proxy requests
+            // Helper to convert URL to proxy URL
+            function toProxyUrl(url) {
+              if (!url || typeof url !== 'string') return url;
+              if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('javascript:') || url.startsWith('#') || url.startsWith('mailto:') || url.startsWith('tel:')) {
+                return url;
+              }
+              try {
+                const absolute = new URL(url, baseUrl).href;
+                if (absolute.includes(proxyUrl)) return url;
+                return proxyUrl + '?url=' + encodeURIComponent(absolute);
+              } catch (e) {
+                return url;
+              }
+            }
+            
+            // Override fetch
             const originalFetch = window.fetch;
             window.fetch = function(url, options) {
-              if (typeof url === 'string' && !url.startsWith('data:') && !url.startsWith('blob:')) {
-                try {
-                  const absolute = new URL(url, baseUrl).href;
-                  if (!absolute.includes(proxyUrl)) {
-                    url = proxyUrl + '?url=' + encodeURIComponent(absolute);
-                  }
-                } catch (e) {
-                  console.error('Fetch proxy error:', e);
-                }
-              }
-              return originalFetch.call(window, url, options);
+              return originalFetch.call(window, toProxyUrl(url), options);
             };
 
             // Override XMLHttpRequest
             const originalOpen = XMLHttpRequest.prototype.open;
             XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-              if (typeof url === 'string' && !url.startsWith('data:') && !url.startsWith('blob:')) {
-                try {
-                  const absolute = new URL(url, baseUrl).href;
-                  if (!absolute.includes(proxyUrl)) {
-                    url = proxyUrl + '?url=' + encodeURIComponent(absolute);
-                  }
-                } catch (e) {
-                  console.error('XHR proxy error:', e);
+              return originalOpen.call(this, method, toProxyUrl(url), ...rest);
+            };
+
+            // Override Image constructor
+            const OriginalImage = window.Image;
+            window.Image = function() {
+              const img = new OriginalImage();
+              const originalSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+              Object.defineProperty(img, 'src', {
+                get: originalSrcDescriptor.get,
+                set: function(value) {
+                  originalSrcDescriptor.set.call(this, toProxyUrl(value));
+                }
+              });
+              return img;
+            };
+
+            // Override dynamic element creation
+            const originalCreateElement = document.createElement;
+            document.createElement = function(tagName, options) {
+              const element = originalCreateElement.call(document, tagName, options);
+              
+              if (tagName.toLowerCase() === 'script' || tagName.toLowerCase() === 'img' || tagName.toLowerCase() === 'iframe') {
+                const originalSrcDescriptor = Object.getOwnPropertyDescriptor(element.constructor.prototype, 'src');
+                if (originalSrcDescriptor) {
+                  Object.defineProperty(element, 'src', {
+                    get: originalSrcDescriptor.get,
+                    set: function(value) {
+                      originalSrcDescriptor.set.call(this, toProxyUrl(value));
+                    }
+                  });
                 }
               }
-              return originalOpen.call(this, method, url, ...rest);
+              
+              if (tagName.toLowerCase() === 'link') {
+                const originalHrefDescriptor = Object.getOwnPropertyDescriptor(element.constructor.prototype, 'href');
+                if (originalHrefDescriptor) {
+                  Object.defineProperty(element, 'href', {
+                    get: originalHrefDescriptor.get,
+                    set: function(value) {
+                      originalHrefDescriptor.set.call(this, toProxyUrl(value));
+                    }
+                  });
+                }
+              }
+              
+              return element;
             };
 
             // Intercept form submissions
@@ -206,11 +247,16 @@ serve(async (req) => {
               const form = e.target;
               if (form.action && !form.action.includes(proxyUrl)) {
                 e.preventDefault();
-                const action = new URL(form.action, baseUrl).href;
-                form.action = proxyUrl + '?url=' + encodeURIComponent(action);
+                form.action = toProxyUrl(form.action);
                 form.submit();
               }
             }, true);
+
+            // Intercept window.open
+            const originalWindowOpen = window.open;
+            window.open = function(url, ...args) {
+              return originalWindowOpen.call(window, toProxyUrl(url), ...args);
+            };
 
             console.log('Proxy interceptor active');
           })();
