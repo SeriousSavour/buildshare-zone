@@ -418,17 +418,22 @@ const Browser = () => {
                   <iframe
                     key={`iframe-${tab.id}-${tab.url}`}
                     ref={activeTab === tab.id ? iframeRef : null}
+                    src="about:blank"
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
                     onLoad={(e) => {
                       const iframe = e.currentTarget;
-                      if (iframe.contentWindow && tab.content) {
+                      if (iframe.contentWindow && tab.content && iframe.contentWindow.location.href === 'about:blank') {
                         console.log('✓ Iframe loaded, injecting HTML for tab:', tab.id);
-                        iframe.contentWindow.document.open();
-                        iframe.contentWindow.document.write(tab.content);
-                        iframe.contentWindow.document.close();
-                        console.log('✓ HTML injected successfully');
+                        try {
+                          iframe.contentWindow.document.open();
+                          iframe.contentWindow.document.write(tab.content);
+                          iframe.contentWindow.document.close();
+                          console.log('✓ HTML injected successfully');
+                        } catch (error) {
+                          console.error('❌ Failed to inject HTML:', error);
+                        }
                       }
                     }}
                     onError={(e) => console.error('❌ Iframe error:', e)}
