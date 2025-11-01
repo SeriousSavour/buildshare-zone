@@ -158,7 +158,7 @@ serve(async (req) => {
         );
       }
 
-      // Inject proxy interceptor script (with HTTPS URLs)
+      // Inject minimal proxy interceptor script
       const proxyUrl = new URL(proxyBaseUrl);
       proxyUrl.protocol = 'https:';
       const httpsProxyUrl = `${proxyUrl.origin}${proxyUrl.pathname}`;
@@ -184,74 +184,16 @@ serve(async (req) => {
               }
             }
             
-            // Override fetch
+            // Only intercept fetch and XHR - let everything else work normally
             const originalFetch = window.fetch;
             window.fetch = function(url, options) {
               return originalFetch.call(window, toProxyUrl(url), options);
             };
 
-            // Override XMLHttpRequest
             const originalOpen = XMLHttpRequest.prototype.open;
             XMLHttpRequest.prototype.open = function(method, url, ...rest) {
               return originalOpen.call(this, method, toProxyUrl(url), ...rest);
             };
-
-            // Override Image constructor
-            const OriginalImage = window.Image;
-            window.Image = function() {
-              const img = new OriginalImage();
-              const originalSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
-              Object.defineProperty(img, 'src', {
-                get: originalSrcDescriptor.get,
-                set: function(value) {
-                  originalSrcDescriptor.set.call(this, toProxyUrl(value));
-                }
-              });
-              return img;
-            };
-
-            // Override dynamic element creation
-            const originalCreateElement = document.createElement;
-            document.createElement = function(tagName, options) {
-              const element = originalCreateElement.call(document, tagName, options);
-              
-              if (tagName.toLowerCase() === 'script' || tagName.toLowerCase() === 'img' || tagName.toLowerCase() === 'iframe') {
-                const originalSrcDescriptor = Object.getOwnPropertyDescriptor(element.constructor.prototype, 'src');
-                if (originalSrcDescriptor) {
-                  Object.defineProperty(element, 'src', {
-                    get: originalSrcDescriptor.get,
-                    set: function(value) {
-                      originalSrcDescriptor.set.call(this, toProxyUrl(value));
-                    }
-                  });
-                }
-              }
-              
-              if (tagName.toLowerCase() === 'link') {
-                const originalHrefDescriptor = Object.getOwnPropertyDescriptor(element.constructor.prototype, 'href');
-                if (originalHrefDescriptor) {
-                  Object.defineProperty(element, 'href', {
-                    get: originalHrefDescriptor.get,
-                    set: function(value) {
-                      originalHrefDescriptor.set.call(this, toProxyUrl(value));
-                    }
-                  });
-                }
-              }
-              
-              return element;
-            };
-
-            // Intercept form submissions
-            document.addEventListener('submit', function(e) {
-              const form = e.target;
-              if (form.action && !form.action.includes(proxyUrl) && !form.action.startsWith('javascript:')) {
-                const proxyAction = toProxyUrl(form.action);
-                if (proxyAction !== form.action) {
-                  form.action = proxyAction;
-                }
-              }
-            }, true);
 
             console.log('Proxy interceptor active');
           })();
