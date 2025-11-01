@@ -104,11 +104,7 @@ const Browser = () => {
       const html = await response.text();
       console.log('✓ Fetched HTML, length:', html.length);
       
-      // Use data URL for maximum compatibility
-      const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-      console.log('✓ Created data URL');
-      
-      // Store the data URL in the tab
+      // Store raw HTML - we'll inject it using document.write
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
@@ -119,7 +115,7 @@ const Browser = () => {
             title: new URL(fullUrl).hostname,
             history: newHistory,
             historyIndex: newHistory.length - 1,
-            content: dataUrl
+            content: html
           };
         }
         return tab;
@@ -422,11 +418,19 @@ const Browser = () => {
                   <iframe
                     key={`iframe-${tab.id}-${tab.url}`}
                     ref={activeTab === tab.id ? iframeRef : null}
-                    src={tab.content}
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
-                    onLoad={() => console.log('✓ Iframe loaded for tab:', tab.id)}
+                    onLoad={(e) => {
+                      const iframe = e.currentTarget;
+                      if (iframe.contentWindow && tab.content) {
+                        console.log('✓ Iframe loaded, injecting HTML for tab:', tab.id);
+                        iframe.contentWindow.document.open();
+                        iframe.contentWindow.document.write(tab.content);
+                        iframe.contentWindow.document.close();
+                        console.log('✓ HTML injected successfully');
+                      }
+                    }}
                     onError={(e) => console.error('❌ Iframe error:', e)}
                   />
                 )}
