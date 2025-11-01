@@ -108,19 +108,27 @@ const Browser = () => {
       console.log('✓ Contains <html>:', html.includes('<html>'));
       console.log('✓ Contains <body>:', html.includes('<body>'));
       
-      // Edge function already handles ALL URL rewriting and proxy injection
-      // Store the content in the tab
+      // Create a Blob URL to ensure proper HTML rendering
+      const blob = new Blob([html], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      console.log('✓ Created Blob URL:', blobUrl);
+      
+      // Store the blob URL in the tab
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
           console.log('✓ Setting content for tab:', tab.id);
+          // Revoke old blob URL if it exists
+          if (tab.content && tab.content.startsWith('blob:')) {
+            URL.revokeObjectURL(tab.content);
+          }
           return {
             ...tab,
             url: fullUrl,
             title: new URL(fullUrl).hostname,
             history: newHistory,
             historyIndex: newHistory.length - 1,
-            content: html
+            content: blobUrl
           };
         }
         return tab;
@@ -423,7 +431,7 @@ const Browser = () => {
                   <iframe
                     key={`iframe-${tab.id}-${tab.url}`}
                     ref={activeTab === tab.id ? iframeRef : null}
-                    srcDoc={tab.content}
+                    src={tab.content}
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
