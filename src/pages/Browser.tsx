@@ -120,7 +120,21 @@ const Browser = () => {
             const cssResponse = await fetch(cssProxyUrl);
             
             if (cssResponse.ok) {
-              const cssContent = await cssResponse.text();
+              let cssContent = await cssResponse.text();
+              
+              // Rewrite URLs inside CSS to use proxy (fonts, images, etc)
+              cssContent = cssContent.replace(/url\(["']?([^"')]+)["']?\)/gi, (match, url) => {
+                if (url.startsWith('data:') || url.startsWith('#') || url.includes(proxyUrl)) {
+                  return match;
+                }
+                try {
+                  const absoluteUrl = new URL(url, cssUrl).href;
+                  return `url("${proxyUrl}?url=${encodeURIComponent(absoluteUrl)}")`;
+                } catch (e) {
+                  return match;
+                }
+              });
+              
               console.log('✓ Inlined CSS from:', cssUrl, '- Length:', cssContent.length);
               return { linkTag, styleTag: `<style data-href="${cssUrl}">${cssContent}</style>` };
             }
