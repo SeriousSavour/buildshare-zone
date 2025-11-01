@@ -153,6 +153,17 @@ const Browser = () => {
       // We just need to inline the CSS for better performance
 
       console.log('All resources rewritten, setting content');
+      console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+      console.log('HTML contains <body>:', html.includes('<body>'));
+      console.log('HTML contains <script>:', html.includes('<script>'));
+      
+      // Ensure HTML is not double-encoded
+      if (html.includes('&lt;') || html.includes('&gt;')) {
+        console.error('⚠️ HTML appears to be encoded! Decoding...');
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = html;
+        html = textarea.value;
+      }
       
       // Use direct HTML injection (Shadow browser approach - no iframe sandboxing)
       setIframeContent(html);
