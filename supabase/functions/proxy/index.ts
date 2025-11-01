@@ -202,12 +202,11 @@ serve(async (req) => {
 
       html = html.replace('</head>', `${injectedScript}</head>`);
 
-      // Create response headers explicitly
+      // Create response headers explicitly with correct Content-Type
       const htmlHeaders = new Headers(corsHeaders);
       htmlHeaders.set('Content-Type', 'text/html; charset=utf-8');
       htmlHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      htmlHeaders.set('Content-Disposition', 'inline');
-      htmlHeaders.set('X-Frame-Options', 'ALLOWALL');
+      htmlHeaders.set('X-Content-Type-Options', 'nosniff');
 
       return new Response(html, {
         status: response.status,
@@ -243,6 +242,7 @@ serve(async (req) => {
       const cssHeaders = new Headers(corsHeaders);
       cssHeaders.set('Content-Type', 'text/css; charset=utf-8');
       cssHeaders.set('Cache-Control', 'public, max-age=3600');
+      cssHeaders.set('X-Content-Type-Options', 'nosniff');
 
       return new Response(css, {
         status: response.status,
@@ -254,6 +254,7 @@ serve(async (req) => {
     const responseHeaders = new Headers(corsHeaders);
     responseHeaders.set('Content-Type', finalContentType);
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    responseHeaders.set('X-Content-Type-Options', 'nosniff');
     
     return new Response(body, {
       status: response.status,
