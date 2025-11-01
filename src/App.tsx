@@ -19,6 +19,7 @@ import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Help from "./pages/Help";
+import Shadow from "./pages/Shadow";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminAuth from "./components/admin/AdminAuth";
 
@@ -63,6 +64,7 @@ const App = () => {
               <Route path="/admin" element={<AdminAuth><Admin /></AdminAuth>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/help" element={<Help />} />
+              <Route path="/shadow" element={<Shadow />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
