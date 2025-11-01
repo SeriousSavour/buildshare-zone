@@ -17,20 +17,20 @@ interface Tab {
   title: string;
   history: string[];
   historyIndex: number;
+  content?: string; // Store HTML content per tab
 }
 
 const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0 }
+    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, content: "" }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [iframeContent, setIframeContent] = useState<string>("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
@@ -47,7 +47,8 @@ const Browser = () => {
       url: "",
       title: "New Tab",
       history: [""],
-      historyIndex: 0
+      historyIndex: 0,
+      content: ""
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
@@ -75,7 +76,6 @@ const Browser = () => {
 
     setIsLoading(true);
     setLoadError(null);
-    setIframeContent("");
 
     // Add protocol if missing
     let fullUrl = url;
@@ -93,6 +93,9 @@ const Browser = () => {
     // Fetch content through proxy
     try {
       const proxyUrl = getProxyUrl(fullUrl);
+      console.log('🔄 Fetching URL:', fullUrl);
+      console.log('🔄 Via proxy:', proxyUrl);
+      
       const response = await fetch(proxyUrl);
       
       if (!response.ok) {
@@ -101,27 +104,32 @@ const Browser = () => {
       
       const html = await response.text();
       console.log('✓ Fetched HTML, length:', html.length);
+      console.log('✓ First 100 chars:', html.substring(0, 100));
+      console.log('✓ Contains <html>:', html.includes('<html>'));
+      console.log('✓ Contains <body>:', html.includes('<body>'));
       
       // Edge function already handles ALL URL rewriting and proxy injection
-      // Just set the content directly
-      setIframeContent(html);
-      setIsLoading(false);
-      
+      // Store the content in the tab
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+          console.log('✓ Setting content for tab:', tab.id);
           return {
             ...tab,
             url: fullUrl,
             title: new URL(fullUrl).hostname,
             history: newHistory,
-            historyIndex: newHistory.length - 1
+            historyIndex: newHistory.length - 1,
+            content: html
           };
         }
         return tab;
       }));
+      
+      setIsLoading(false);
+      console.log('✓ Navigation complete');
     } catch (error) {
-      console.error('Failed to load URL:', error);
+      console.error('❌ Failed to load URL:', error);
       setIsLoading(false);
       setLoadError(error instanceof Error ? error.message : 'Failed to load website');
     }
@@ -411,17 +419,16 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {iframeContent && activeTab === tab.id && (
+                {tab.content && activeTab === tab.id && !isLoading && (
                   <iframe
-                    ref={iframeRef}
-                    srcDoc={iframeContent}
+                    key={`iframe-${tab.id}-${tab.url}`}
+                    ref={activeTab === tab.id ? iframeRef : null}
+                    srcDoc={tab.content}
                     title={tab.title}
-                    style={{ 
-                      width: '100%',
-                      height: '100%',
-                      border: 'none',
-                    }}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                    className="w-full h-full border-none"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
+                    onLoad={() => console.log('✓ Iframe loaded for tab:', tab.id)}
+                    onError={(e) => console.error('❌ Iframe error:', e)}
                   />
                 )}
               </div>
