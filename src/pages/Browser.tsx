@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import "./browser-content.css";
 
 interface Tab {
   id: string;
@@ -463,9 +462,8 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {/* Direct content injection like Shadow browser - isolated from our CSS */}
+                {/* Direct content injection - no CSS isolation needed */}
                 <div 
-                  id="browser-content-container"
                   dangerouslySetInnerHTML={{ __html: iframeContent }}
                   onClick={(e) => {
                     // Intercept link clicks to keep navigation in proxy
@@ -491,8 +489,6 @@ const Browser = () => {
                     width: '100%',
                     height: '100%',
                     overflow: 'auto',
-                    position: 'relative',
-                    zIndex: 1,
                   }}
                 />
               </div>
