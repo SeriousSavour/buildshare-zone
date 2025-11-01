@@ -245,18 +245,13 @@ serve(async (req) => {
             // Intercept form submissions
             document.addEventListener('submit', function(e) {
               const form = e.target;
-              if (form.action && !form.action.includes(proxyUrl)) {
-                e.preventDefault();
-                form.action = toProxyUrl(form.action);
-                form.submit();
+              if (form.action && !form.action.includes(proxyUrl) && !form.action.startsWith('javascript:')) {
+                const proxyAction = toProxyUrl(form.action);
+                if (proxyAction !== form.action) {
+                  form.action = proxyAction;
+                }
               }
             }, true);
-
-            // Intercept window.open
-            const originalWindowOpen = window.open;
-            window.open = function(url, ...args) {
-              return originalWindowOpen.call(window, toProxyUrl(url), ...args);
-            };
 
             console.log('Proxy interceptor active');
           })();
