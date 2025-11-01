@@ -99,9 +99,37 @@ const Browser = () => {
         throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
       }
       
-      const html = await response.text();
+      let html = await response.text();
       console.log('Fetched HTML length:', html.length);
       console.log('First 200 chars:', html.substring(0, 200));
+      
+      // Extract and inline all CSS
+      const cssLinkRegex = /<link[^>]*rel=["']stylesheet["'][^>]*>/gi;
+      const cssLinks = html.match(cssLinkRegex) || [];
+      
+      console.log('Found CSS links:', cssLinks.length);
+      
+      for (const linkTag of cssLinks) {
+        const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
+        if (hrefMatch) {
+          const cssUrl = hrefMatch[1];
+          try {
+            console.log('Fetching CSS:', cssUrl);
+            const cssProxyUrl = getProxyUrl(cssUrl);
+            const cssResponse = await fetch(cssProxyUrl);
+            
+            if (cssResponse.ok) {
+              const cssContent = await cssResponse.text();
+              const styleTag = `<style data-href="${cssUrl}">${cssContent}</style>`;
+              html = html.replace(linkTag, styleTag);
+              console.log('Inlined CSS from:', cssUrl);
+            }
+          } catch (e) {
+            console.error('Failed to fetch CSS:', cssUrl, e);
+          }
+        }
+      }
+      
       setIframeContent(html);
       setIsLoading(false);
       
