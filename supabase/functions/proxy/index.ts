@@ -44,6 +44,15 @@ serve(async (req) => {
     console.log('Content-Type:', contentType);
     console.log('Response status:', response.status);
     
+    // Handle 204 No Content - must not have a body
+    if (response.status === 204) {
+      const responseHeaders = new Headers(corsHeaders);
+      return new Response(null, {
+        status: 204,
+        headers: responseHeaders,
+      });
+    }
+    
     // Get the body as text/binary
     const body = contentType.includes('text/') || contentType.includes('application/json') || contentType.includes('application/javascript')
       ? await response.text()
