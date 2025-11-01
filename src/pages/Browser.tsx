@@ -509,6 +509,19 @@ const Browser = () => {
                 <div 
                   className="w-full h-full overflow-auto bg-background"
                   dangerouslySetInnerHTML={{ __html: iframeContent }}
+                  onClick={(e) => {
+                    // Intercept link clicks to keep navigation in proxy
+                    const target = (e.target as HTMLElement).closest('a');
+                    if (target && target.tagName === 'A') {
+                      const href = target.getAttribute('href');
+                      if (href && !href.startsWith('javascript:') && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Intercepted link click:', href);
+                        navigateToUrl(href);
+                      }
+                    }
+                  }}
                   style={{ 
                     colorScheme: 'auto',
                   }}
