@@ -41,6 +41,22 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
+  // Inject HTML into iframe when content is ready
+  useEffect(() => {
+    if (iframeRef.current && currentTab?.content && !isLoading) {
+      const iframe = iframeRef.current;
+      try {
+        console.log('✓ Injecting HTML into iframe for:', currentTab.url);
+        iframe.contentWindow?.document.open();
+        iframe.contentWindow?.document.write(currentTab.content);
+        iframe.contentWindow?.document.close();
+        console.log('✓ HTML injected successfully');
+      } catch (error) {
+        console.error('❌ Failed to inject HTML:', error);
+      }
+    }
+  }, [currentTab?.content, currentTab?.url, isLoading]);
+
   const addNewTab = () => {
     const newTab: Tab = {
       id: Date.now().toString(),
@@ -414,29 +430,13 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {tab.content && activeTab === tab.id && !isLoading && (
+                {activeTab === tab.id && !isLoading && (
                   <iframe
-                    key={`iframe-${tab.id}-${tab.url}`}
+                    key={`iframe-${tab.id}`}
                     ref={activeTab === tab.id ? iframeRef : null}
-                    src="about:blank"
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
-                    onLoad={(e) => {
-                      const iframe = e.currentTarget;
-                      if (iframe.contentWindow && tab.content && iframe.contentWindow.location.href === 'about:blank') {
-                        console.log('✓ Iframe loaded, injecting HTML for tab:', tab.id);
-                        try {
-                          iframe.contentWindow.document.open();
-                          iframe.contentWindow.document.write(tab.content);
-                          iframe.contentWindow.document.close();
-                          console.log('✓ HTML injected successfully');
-                        } catch (error) {
-                          console.error('❌ Failed to inject HTML:', error);
-                        }
-                      }
-                    }}
-                    onError={(e) => console.error('❌ Iframe error:', e)}
                   />
                 )}
               </div>
