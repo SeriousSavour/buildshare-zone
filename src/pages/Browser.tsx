@@ -17,14 +17,13 @@ interface Tab {
   title: string;
   history: string[];
   historyIndex: number;
-  content?: string;
 }
 
 const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, content: "" }
+    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0 }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
@@ -47,8 +46,7 @@ const Browser = () => {
       url: "",
       title: "New Tab",
       history: [""],
-      historyIndex: 0,
-      content: ""
+      historyIndex: 0
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
@@ -90,41 +88,22 @@ const Browser = () => {
       return;
     }
 
-    // Fetch HTML and convert to data URL to force rendering
-    try {
-      const proxyUrl = getProxyUrl(fullUrl);
-      const response = await fetch(proxyUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load: ${response.status}`);
+    // Load URL directly through proxy - let the proxy handle everything
+    setTabs(tabs.map(tab => {
+      if (tab.id === activeTab) {
+        const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+        return {
+          ...tab,
+          url: fullUrl,
+          title: new URL(fullUrl).hostname,
+          history: newHistory,
+          historyIndex: newHistory.length - 1
+        };
       }
-      
-      const html = await response.text();
-      
-      // Convert to data URL with explicit HTML content type
-      const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-      
-      setTabs(tabs.map(tab => {
-        if (tab.id === activeTab) {
-          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-          return {
-            ...tab,
-            url: fullUrl,
-            title: new URL(fullUrl).hostname,
-            history: newHistory,
-            historyIndex: newHistory.length - 1,
-            content: dataUrl
-          };
-        }
-        return tab;
-      }));
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Failed to load:', error);
-      setLoadError(error instanceof Error ? error.message : 'Failed to load website');
-      setIsLoading(false);
-    }
+      return tab;
+    }));
+    
+    setIsLoading(false);
   };
 
   const handleSpecialProtocol = (url: string) => {
@@ -182,8 +161,9 @@ const Browser = () => {
   };
 
   const refresh = () => {
-    if (currentTab?.url) {
-      navigateToUrl(currentTab.url);
+    if (currentTab?.url && iframeRef.current) {
+      const newKey = Date.now();
+      iframeRef.current.src = getProxyUrl(currentTab.url) + `&_t=${newKey}`;
     }
   };
 
@@ -411,20 +391,19 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {tab.content && (
-                  <iframe
-                    key={`iframe-${tab.id}-${tab.url}`}
-                    ref={activeTab === tab.id ? iframeRef : null}
-                    src={tab.content}
-                    title={tab.title}
-                    className="w-full h-full border-none"
-                    onLoad={() => setIsLoading(false)}
-                    onError={() => {
-                      setIsLoading(false);
-                      setLoadError('Failed to load website');
-                    }}
-                  />
-                )}
+                <iframe
+                  key={`iframe-${tab.id}-${tab.url}`}
+                  ref={activeTab === tab.id ? iframeRef : null}
+                  src={getProxyUrl(tab.url)}
+                  title={tab.title}
+                  className="w-full h-full border-none"
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+                  onLoad={() => setIsLoading(false)}
+                  onError={() => {
+                    setIsLoading(false);
+                    setLoadError('Failed to load website');
+                  }}
+                />
               </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
