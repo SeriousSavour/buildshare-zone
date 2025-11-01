@@ -106,6 +106,9 @@ const Navigation = () => {
                 <span>Extra</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => navigate("/shadow")}>
+                  Shadow Browser
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/help")}>
                   Help & Contact
                 </DropdownMenuItem>
