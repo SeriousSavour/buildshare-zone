@@ -93,13 +93,22 @@ const Browser = () => {
     // Fetch HTML content via proxy and inject with srcDoc
     try {
       const proxyUrl = getProxyUrl(fullUrl);
+      console.log('🌐 Fetching URL:', fullUrl);
+      console.log('📡 Proxy URL:', proxyUrl);
+      
       const response = await fetch(proxyUrl);
+      console.log('📥 Response status:', response.status);
+      console.log('📄 Content-Type:', response.headers.get('content-type'));
       
       if (!response.ok) {
         throw new Error(`Failed to load: ${response.status}`);
       }
       
       const html = await response.text();
+      console.log('📝 HTML length:', html.length);
+      console.log('🔍 HTML preview:', html.substring(0, 500));
+      console.log('🏷️ Has base tag:', html.includes('<base'));
+      console.log('🔧 Has proxy script:', html.includes('Proxy interceptor active'));
       
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
@@ -118,7 +127,7 @@ const Browser = () => {
       
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to load:', error);
+      console.error('❌ Failed to load:', error);
       setLoadError(error instanceof Error ? error.message : 'Failed to load website');
       setIsLoading(false);
     }
