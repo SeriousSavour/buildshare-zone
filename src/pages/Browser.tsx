@@ -408,15 +408,22 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {tab.content && (
-                  <iframe
-                    key={`iframe-${tab.id}-${tab.url}`}
-                    ref={activeTab === tab.id ? iframeRef : null}
-                    srcDoc={tab.content}
-                    title={tab.title}
-                    className="w-full h-full border-none"
-                  />
-                )}
+                <iframe
+                  key={`iframe-${tab.id}-${tab.url}`}
+                  ref={activeTab === tab.id ? iframeRef : null}
+                  title={tab.title}
+                  className="w-full h-full border-none"
+                  onLoad={() => {
+                    if (tab.content && iframeRef.current) {
+                      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+                      if (iframeDoc) {
+                        iframeDoc.open();
+                        iframeDoc.write(tab.content);
+                        iframeDoc.close();
+                      }
+                    }
+                  }}
+                />
               </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
