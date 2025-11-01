@@ -44,12 +44,21 @@ const Browser = () => {
   // Create blob URL for iframe when content changes
   useEffect(() => {
     if (currentTab?.content && iframeRef.current) {
-      const blob = new Blob([currentTab.content], { type: 'text/html' });
+      console.log('🎯 Creating blob URL for tab:', currentTab.id);
+      console.log('📄 Content length:', currentTab.content.length);
+      
+      const blob = new Blob([currentTab.content], { type: 'text/html; charset=utf-8' });
       const blobUrl = URL.createObjectURL(blob);
+      
+      console.log('🔗 Blob URL created:', blobUrl);
+      console.log('📦 Blob type:', blob.type);
+      console.log('📦 Blob size:', blob.size);
+      
       iframeRef.current.src = blobUrl;
       
       // Cleanup old blob URL
       return () => {
+        console.log('🧹 Cleaning up blob URL');
         URL.revokeObjectURL(blobUrl);
       };
     }
@@ -104,16 +113,22 @@ const Browser = () => {
       return;
     }
 
-    // Fetch HTML and inject via srcDoc to bypass content-type restrictions
+    // Fetch HTML and inject via blob URL
     try {
       const proxyUrl = getProxyUrl(fullUrl);
+      console.log('🔄 Fetching from proxy:', proxyUrl);
+      
       const response = await fetch(proxyUrl);
+      console.log('📥 Response status:', response.status);
+      console.log('📋 Content-Type:', response.headers.get('content-type'));
       
       if (!response.ok) {
         throw new Error(`Failed to load: ${response.status}`);
       }
       
       const html = await response.text();
+      console.log('✅ Fetched HTML length:', html.length);
+      console.log('🔍 HTML preview:', html.substring(0, 200));
       
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
@@ -132,7 +147,7 @@ const Browser = () => {
       
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to load:', error);
+      console.error('❌ Failed to load:', error);
       setLoadError(error instanceof Error ? error.message : 'Failed to load website');
       setIsLoading(false);
     }
