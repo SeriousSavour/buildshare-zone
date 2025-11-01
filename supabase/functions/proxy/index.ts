@@ -214,7 +214,7 @@ serve(async (req) => {
       const htmlHeaders = new Headers(corsHeaders);
       htmlHeaders.set('Content-Type', 'text/html; charset=utf-8');
       htmlHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      htmlHeaders.set('X-Content-Type-Options', 'nosniff');
+      htmlHeaders.set('Content-Disposition', 'inline');
 
       return new Response(html, {
         status: response.status,
