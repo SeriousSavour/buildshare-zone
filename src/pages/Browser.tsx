@@ -19,7 +19,7 @@ interface Tab {
   historyIndex: number;
 }
 
-const Shadow = () => {
+const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
@@ -200,7 +200,6 @@ const Shadow = () => {
 
   const getProxyUrl = (targetUrl: string) => {
     if (!targetUrl || targetUrl.startsWith('shadow://')) return '';
-    // Use the Supabase edge function
     const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
     return `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(targetUrl)}`;
   };
@@ -398,4 +397,4 @@ const Shadow = () => {
   );
 };
 
-export default Shadow;
+export default Browser;
