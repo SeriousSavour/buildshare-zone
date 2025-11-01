@@ -361,13 +361,12 @@ const Browser = () => {
               className="h-full m-0 data-[state=active]:flex flex-col"
             >
               {tab.url ? (
-                <iframe
-                  ref={iframeRef}
-                  src={getProxyUrl(tab.url)}
-                  className="w-full h-full border-0"
-                  title={tab.title}
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                />
+              <iframe
+                ref={iframeRef}
+                src={getProxyUrl(tab.url)}
+                className="w-full h-full border-0"
+                title={tab.title}
+              />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
                   <div className="relative">

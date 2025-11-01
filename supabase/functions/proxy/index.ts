@@ -144,7 +144,6 @@ serve(async (req) => {
         headers: {
           ...corsHeaders,
           'Content-Type': 'text/html; charset=utf-8',
-          'X-Frame-Options': 'SAMEORIGIN',
         },
       });
     }
