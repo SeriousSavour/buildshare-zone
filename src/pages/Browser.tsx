@@ -17,14 +17,13 @@ interface Tab {
   title: string;
   history: string[];
   historyIndex: number;
-  content?: string;
 }
 
 const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, content: "" }
+    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0 }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
@@ -41,37 +40,13 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
-  // Create blob URL for iframe when content changes
-  useEffect(() => {
-    if (currentTab?.content && iframeRef.current) {
-      console.log('🎯 Creating blob URL for tab:', currentTab.id);
-      console.log('📄 Content length:', currentTab.content.length);
-      
-      const blob = new Blob([currentTab.content], { type: 'text/html; charset=utf-8' });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      console.log('🔗 Blob URL created:', blobUrl);
-      console.log('📦 Blob type:', blob.type);
-      console.log('📦 Blob size:', blob.size);
-      
-      iframeRef.current.src = blobUrl;
-      
-      // Cleanup old blob URL
-      return () => {
-        console.log('🧹 Cleaning up blob URL');
-        URL.revokeObjectURL(blobUrl);
-      };
-    }
-  }, [currentTab?.content, currentTab?.id]);
-
   const addNewTab = () => {
     const newTab: Tab = {
       id: Date.now().toString(),
       url: "",
       title: "New Tab",
       history: [""],
-      historyIndex: 0,
-      content: ""
+      historyIndex: 0
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
@@ -113,44 +88,22 @@ const Browser = () => {
       return;
     }
 
-    // Fetch HTML and inject via blob URL
-    try {
-      const proxyUrl = getProxyUrl(fullUrl);
-      console.log('🔄 Fetching from proxy:', proxyUrl);
-      
-      const response = await fetch(proxyUrl);
-      console.log('📥 Response status:', response.status);
-      console.log('📋 Content-Type:', response.headers.get('content-type'));
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load: ${response.status}`);
+    // Update tab to load URL directly through proxy
+    setTabs(tabs.map(tab => {
+      if (tab.id === activeTab) {
+        const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+        return {
+          ...tab,
+          url: fullUrl,
+          title: new URL(fullUrl).hostname,
+          history: newHistory,
+          historyIndex: newHistory.length - 1
+        };
       }
-      
-      const html = await response.text();
-      console.log('✅ Fetched HTML length:', html.length);
-      console.log('🔍 HTML preview:', html.substring(0, 200));
-      
-      setTabs(tabs.map(tab => {
-        if (tab.id === activeTab) {
-          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-          return {
-            ...tab,
-            url: fullUrl,
-            title: new URL(fullUrl).hostname,
-            history: newHistory,
-            historyIndex: newHistory.length - 1,
-            content: html
-          };
-        }
-        return tab;
-      }));
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('❌ Failed to load:', error);
-      setLoadError(error instanceof Error ? error.message : 'Failed to load website');
-      setIsLoading(false);
-    }
+      return tab;
+    }));
+    
+    setIsLoading(false);
   };
 
   const handleSpecialProtocol = (url: string) => {
@@ -208,8 +161,9 @@ const Browser = () => {
   };
 
   const refresh = () => {
-    if (currentTab?.url) {
-      navigateToUrl(currentTab.url);
+    if (currentTab?.url && iframeRef.current) {
+      const newKey = Date.now();
+      iframeRef.current.src = getProxyUrl(currentTab.url) + `&_t=${newKey}`;
     }
   };
 
@@ -438,10 +392,16 @@ const Browser = () => {
                   </div>
                 )}
                 <iframe
-                  key={`iframe-${tab.id}`}
+                  key={`iframe-${tab.id}-${tab.url}`}
                   ref={activeTab === tab.id ? iframeRef : null}
+                  src={getProxyUrl(tab.url)}
                   title={tab.title}
                   className="w-full h-full border-none"
+                  onLoad={() => setIsLoading(false)}
+                  onError={() => {
+                    setIsLoading(false);
+                    setLoadError('Failed to load website');
+                  }}
                 />
               </div>
             ) : (

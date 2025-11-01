@@ -215,6 +215,7 @@ serve(async (req) => {
       htmlHeaders.set('Content-Type', 'text/html; charset=utf-8');
       htmlHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       htmlHeaders.set('Content-Disposition', 'inline');
+      htmlHeaders.set('X-Frame-Options', 'ALLOWALL');
 
       return new Response(html, {
         status: response.status,
