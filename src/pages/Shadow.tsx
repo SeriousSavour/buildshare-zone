@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { Search, X, Plus, ChevronLeft, ChevronRight, RotateCw, Home } from "lucide-react";
+import { Search, X, Plus, ChevronLeft, ChevronRight, RotateCw, Home, MoreVertical, Bookmark, Settings, Gamepad2, Bot, MessageSquare, Code, Monitor, Maximize } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface Tab {
   id: string;
@@ -11,12 +19,14 @@ interface Tab {
 }
 
 const Shadow = () => {
+  const { toast } = useToast();
   const [tabs, setTabs] = useState<Tab[]>([
     { id: "1", title: "Home", url: "shadow://home" }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [searchValue, setSearchValue] = useState("");
   const [addressBar, setAddressBar] = useState("shadow://home");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,12 +116,68 @@ const Shadow = () => {
     setAddressBar(tab?.url || "shadow://home");
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleMenuAction = (action: string) => {
+    switch (action) {
+      case "new-tab":
+        addNewTab();
+        break;
+      case "bookmark":
+        toast({ title: "Bookmark added", description: "Current page bookmarked" });
+        break;
+      case "settings":
+        toast({ title: "Settings", description: "Settings panel coming soon" });
+        break;
+      case "games":
+        window.location.href = "/games";
+        break;
+      case "ai":
+        toast({ title: "AI", description: "AI features coming soon" });
+        break;
+      case "chat":
+        window.location.href = "/chat";
+        break;
+      case "devtools":
+        toast({ title: "DevTools", description: "Opening developer tools" });
+        break;
+      case "discord":
+        window.open("https://discord.gg/goshadow", "_blank");
+        break;
+      case "fullscreen":
+        toggleFullscreen();
+        break;
+      case "about-blank":
+        const newId = String(Date.now());
+        setTabs([...tabs, { id: newId, title: "About:Blank", url: "about:blank" }]);
+        setActiveTab(newId);
+        setAddressBar("about:blank");
+        break;
+      default:
+        break;
+    }
+  };
+
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] flex flex-col">
+    <div className="min-h-screen shadow-gradient-bg flex flex-col">
+      {/* Animated light beams */}
+      <div className="light-beam" style={{ left: '20%', animationDelay: '0s' }}></div>
+      <div className="light-beam" style={{ left: '40%', animationDelay: '1s' }}></div>
+      <div className="light-beam" style={{ left: '60%', animationDelay: '2s' }}></div>
+      <div className="light-beam" style={{ left: '80%', animationDelay: '3s' }}></div>
+      
       {/* Tab Bar */}
-      <div className="bg-[#0d1221] border-b border-[#1a2332] px-2 pt-2">
+      <div className="bg-[#0d1221] border-b border-[#1a2332] px-2 pt-2 relative z-10">
         <div className="flex items-center gap-1">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1">
             <TabsList className="bg-transparent h-auto p-0 gap-1 justify-start">
@@ -147,7 +213,7 @@ const Shadow = () => {
       </div>
 
       {/* Navigation Bar */}
-      <div className="bg-[#0d1221] border-b border-[#1a2332] px-3 py-2">
+      <div className="bg-[#0d1221] border-b border-[#1a2332] px-3 py-2 relative z-10">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -194,17 +260,87 @@ const Shadow = () => {
               placeholder="Search or enter address"
             />
           </form>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#1a2332]"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-[#0d1221] border-[#1a2332] z-50" align="end">
+              <DropdownMenuItem onClick={() => handleMenuAction("new-tab")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Plus className="w-4 h-4 mr-2" />
+                New tab
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuAction("bookmark")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Bookmark className="w-4 h-4 mr-2" />
+                Add Bookmark
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[#1a2332]" />
+              <DropdownMenuItem onClick={() => handleMenuAction("settings")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuAction("games")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Gamepad2 className="w-4 h-4 mr-2" />
+                Games
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuAction("ai")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Bot className="w-4 h-4 mr-2" />
+                AI
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuAction("chat")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Chat
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[#1a2332]" />
+              <DropdownMenuItem onClick={() => handleMenuAction("devtools")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Code className="w-4 h-4 mr-2" />
+                Devtools
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuAction("discord")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Monitor className="w-4 h-4 mr-2" />
+                Discord
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuAction("fullscreen")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Maximize className="w-4 h-4 mr-2" />
+                Fullscreen
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[#1a2332]" />
+              <DropdownMenuItem onClick={() => handleMenuAction("about-blank")} className="text-white hover:bg-[#1a2332] cursor-pointer">
+                <Plus className="w-4 h-4 mr-2" />
+                Open About:Blank
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-10">
         {!currentTab?.url || currentTab.url === "shadow://home" ? (
           <div className="w-full max-w-2xl mx-auto text-center space-y-8">
+            {/* Shadow Logo */}
+            <div className="flex justify-center mb-6 animate-pulse-glow">
+              <svg width="80" height="80" viewBox="0 0 100 100" className="drop-shadow-2xl">
+                <path d="M50 10 L30 40 L50 35 L50 60 L70 30 L50 35 Z" fill="#6b9aff" />
+                <path d="M50 60 L30 90 L70 90 Z" fill="#4a7fff" opacity="0.7" />
+              </svg>
+            </div>
+            
             {/* Shadow Title */}
-            <h1 className="text-7xl md:text-8xl font-bold text-[#6b9aff] drop-shadow-[0_0_30px_rgba(107,154,255,0.5)] mb-12">
+            <h1 className="text-7xl md:text-8xl font-bold text-[#6b9aff] text-glow-blue mb-4">
               Shadow
             </h1>
+            
+            {/* Discord Link */}
+            <p className="text-gray-400 text-sm mb-12">
+              discord.gg/goshadow
+            </p>
 
             {/* Search Form */}
             <form onSubmit={handleSearch} className="relative">

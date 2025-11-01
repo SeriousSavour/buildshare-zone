@@ -56,8 +56,10 @@
     --glow-orange: 28 98% 58%;
     --glow-purple: 270 75% 60%;
     --glow-green: 145 65% 52%;
+    --glow-blue: 220 90% 65%;
     --gradient-primary: linear-gradient(135deg, hsl(28 98% 58%), hsl(28 98% 68%));
     --gradient-secondary: linear-gradient(135deg, hsl(265 70% 55%), hsl(270 75% 60%));
+    --gradient-shadow: linear-gradient(135deg, hsl(220 90% 20%), hsl(220 90% 40%));
   }
 
   .dark {
@@ -148,6 +150,48 @@
   .text-glow-purple {
     text-shadow: 0 0 20px hsl(var(--accent) / 0.6),
                  0 0 40px hsl(var(--accent) / 0.3);
+  }
+  
+  .text-glow-blue {
+    text-shadow: 0 0 30px hsl(220 90% 65% / 0.5),
+                 0 0 60px hsl(220 90% 65% / 0.3),
+                 0 0 90px hsl(220 90% 65% / 0.1);
+  }
+  
+  .shadow-gradient-bg {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d1526 50%, #1a2847 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shadow-gradient-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      hsl(220 90% 65% / 0.1) 25%,
+      hsl(220 90% 65% / 0.2) 50%,
+      hsl(220 90% 65% / 0.1) 75%,
+      transparent 100%
+    );
+    animation: sweep 8s ease-in-out infinite;
+  }
+  
+  .light-beam {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, 
+      transparent 0%,
+      hsl(220 90% 65% / 0.4) 50%,
+      transparent 100%
+    );
+    animation: beamMove 4s ease-in-out infinite;
+    filter: blur(2px);
   }
 }
 
@@ -437,4 +481,26 @@
 
 .animate-shimmer {
   animation: shimmer 2s infinite;
+}
+
+@keyframes sweep {
+  0%, 100% {
+    transform: translateX(0) rotate(25deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(50%) rotate(25deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes beamMove {
+  0%, 100% {
+    transform: translateX(0) scaleY(0.8);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(100px) scaleY(1);
+    opacity: 0.8;
+  }
 }
