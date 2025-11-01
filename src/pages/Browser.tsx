@@ -364,8 +364,9 @@ const Browser = () => {
               <iframe
                 ref={iframeRef}
                 src={getProxyUrl(tab.url)}
-                className="w-full h-full border-0"
+                className="w-full h-full border-0 bg-white"
                 title={tab.title}
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
               />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
