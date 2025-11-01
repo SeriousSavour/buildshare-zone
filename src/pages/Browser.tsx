@@ -41,28 +41,6 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
-  // Inject HTML into iframe when content is ready
-  useEffect(() => {
-    if (iframeRef.current && currentTab?.content && !isLoading) {
-      const iframe = iframeRef.current;
-      try {
-        console.log('✓ Injecting HTML into iframe for:', currentTab.url);
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (doc) {
-          doc.open();
-          doc.write(currentTab.content);
-          doc.close();
-          console.log('✓ HTML injected successfully');
-        } else {
-          console.error('❌ Cannot access iframe document');
-        }
-      } catch (error) {
-        console.error('❌ Failed to inject HTML:', error);
-        setLoadError('Failed to render content: ' + (error instanceof Error ? error.message : 'Unknown error'));
-      }
-    }
-  }, [currentTab?.content, currentTab?.url, isLoading]);
-
   const addNewTab = () => {
     const newTab: Tab = {
       id: Date.now().toString(),
@@ -436,14 +414,20 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {activeTab === tab.id && !isLoading && (
+                {activeTab === tab.id && tab.content && !isLoading && (
                   <iframe
                     key={`iframe-${tab.id}`}
                     ref={activeTab === tab.id ? iframeRef : null}
+                    srcDoc={tab.content}
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
                   />
+                )}
+                {activeTab === tab.id && !tab.content && !isLoading && (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">Enter a URL to browse</p>
+                  </div>
                 )}
               </div>
             ) : (
