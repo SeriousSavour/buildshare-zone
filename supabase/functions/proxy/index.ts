@@ -52,11 +52,14 @@ serve(async (req) => {
 
       console.log('Rewriting HTML URLs...');
 
-      // Helper function to convert any URL to proxy URL
+      // Helper function to convert any URL to proxy URL (MUST use https://)
       const toProxyUrl = (originalUrl: string): string => {
         try {
           const absolute = new URL(originalUrl, baseUrl).href;
-          return `${proxyBaseUrl}?url=${encodeURIComponent(absolute)}`;
+          // Force HTTPS for proxy URL to prevent mixed content errors
+          const proxyUrl = new URL(proxyBaseUrl);
+          proxyUrl.protocol = 'https:';
+          return `${proxyUrl.origin}${proxyUrl.pathname}?url=${encodeURIComponent(absolute)}`;
         } catch {
           return originalUrl;
         }
@@ -129,11 +132,15 @@ serve(async (req) => {
         );
       }
 
-      // Inject proxy interceptor script
+      // Inject proxy interceptor script (with HTTPS URLs)
+      const proxyUrl = new URL(proxyBaseUrl);
+      proxyUrl.protocol = 'https:';
+      const httpsProxyUrl = `${proxyUrl.origin}${proxyUrl.pathname}`;
+      
       const injectedScript = `
         <script>
           (function() {
-            const proxyUrl = '${proxyBaseUrl}';
+            const proxyUrl = '${httpsProxyUrl}';
             const baseUrl = '${baseUrl.href}';
             
             // Override fetch to proxy requests
@@ -200,7 +207,10 @@ serve(async (req) => {
     if (contentType.includes('text/css')) {
       let css = await response.text();
       const baseUrl = new URL(targetUrl);
-      const proxyBaseUrl = `${url.origin}/functions/v1/proxy`;
+      // Force HTTPS for proxy URL
+      const proxyUrl = new URL(`${url.origin}/functions/v1/proxy`);
+      proxyUrl.protocol = 'https:';
+      const proxyBaseUrl = `${proxyUrl.origin}${proxyUrl.pathname}`;
 
       css = css.replace(
         /url\(['"]?([^'")\s]+)['"]?\)/gi,
