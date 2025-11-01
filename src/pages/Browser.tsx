@@ -155,6 +155,9 @@ const Browser = () => {
         }
       });
       
+      // Remove the proxy interceptor script injected by edge function (causes conflicts)
+      html = html.replace(/<script>\s*\(function\(\)\s*\{[\s\S]*?Proxy interceptor active[\s\S]*?}\)\(\);\s*<\/script>/gi, '');
+      
       // Rewrite all resource URLs to go through proxy
       const rewriteUrl = (url: string): string => {
         if (!url || url.startsWith('data:') || url.startsWith('blob:') || url.includes(proxyUrl)) {
@@ -184,9 +187,12 @@ const Browser = () => {
       });
 
       // Rewrite background images in inline styles
-      html = html.replace(/url\(["']?([^"')]+)["']?\)/gi, (match, url) => {
-        if (url.startsWith('data:') || url.startsWith('#')) return match;
-        return `url("${rewriteUrl(url)}")`;
+      html = html.replace(/style=["']([^"']*)["']/gi, (match, styleContent) => {
+        const rewrittenStyle = styleContent.replace(/url\(["']?([^"')]+)["']?\)/gi, (urlMatch, url) => {
+          if (url.startsWith('data:') || url.startsWith('#')) return urlMatch;
+          return `url("${rewriteUrl(url)}")`;
+        });
+        return `style="${rewrittenStyle}"`;
       });
 
       console.log('All resources rewritten, setting content');
