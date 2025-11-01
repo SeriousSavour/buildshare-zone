@@ -475,34 +475,16 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {/* Direct content injection - no CSS isolation needed */}
-                <div 
-                  dangerouslySetInnerHTML={{ __html: iframeContent }}
-                  onClick={(e) => {
-                    // Intercept link clicks to keep navigation in proxy
-                    const target = (e.target as HTMLElement).closest('a');
-                    if (target && target.tagName === 'A') {
-                      const href = target.getAttribute('href');
-                      if (href && !href.startsWith('javascript:') && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Handle relative URLs properly
-                        try {
-                          const absoluteUrl = new URL(href, currentTab?.url || '').href;
-                          console.log('Intercepted link click, navigating to:', absoluteUrl);
-                          navigateToUrl(absoluteUrl);
-                        } catch (err) {
-                          console.error('Invalid URL:', href, err);
-                        }
-                      }
-                    }
-                  }}
+                {/* Use iframe with srcdoc for proper HTML document rendering */}
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={iframeContent}
                   style={{ 
                     width: '100%',
                     height: '100%',
-                    overflow: 'auto',
+                    border: 'none',
                   }}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
                 />
               </div>
             ) : (
