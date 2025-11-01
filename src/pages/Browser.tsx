@@ -17,13 +17,14 @@ interface Tab {
   title: string;
   history: string[];
   historyIndex: number;
+  content?: string;
 }
 
 const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0 }
+    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, content: "" }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
@@ -46,7 +47,8 @@ const Browser = () => {
       url: "",
       title: "New Tab",
       history: [""],
-      historyIndex: 0
+      historyIndex: 0,
+      content: ""
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
@@ -88,22 +90,38 @@ const Browser = () => {
       return;
     }
 
-    // Update tab with URL - iframe will load via src attribute
-    setTabs(tabs.map(tab => {
-      if (tab.id === activeTab) {
-        const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-        return {
-          ...tab,
-          url: fullUrl,
-          title: new URL(fullUrl).hostname,
-          history: newHistory,
-          historyIndex: newHistory.length - 1
-        };
+    // Fetch HTML and inject via srcDoc to bypass content-type restrictions
+    try {
+      const proxyUrl = getProxyUrl(fullUrl);
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load: ${response.status}`);
       }
-      return tab;
-    }));
-    
-    setIsLoading(false);
+      
+      const html = await response.text();
+      
+      setTabs(tabs.map(tab => {
+        if (tab.id === activeTab) {
+          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+          return {
+            ...tab,
+            url: fullUrl,
+            title: new URL(fullUrl).hostname,
+            history: newHistory,
+            historyIndex: newHistory.length - 1,
+            content: html
+          };
+        }
+        return tab;
+      }));
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Failed to load:', error);
+      setLoadError(error instanceof Error ? error.message : 'Failed to load website');
+      setIsLoading(false);
+    }
   };
 
   const handleSpecialProtocol = (url: string) => {
@@ -161,10 +179,8 @@ const Browser = () => {
   };
 
   const refresh = () => {
-    if (currentTab?.url && iframeRef.current) {
-      // Force reload by updating the iframe key
-      const newKey = Date.now();
-      iframeRef.current.src = getProxyUrl(currentTab.url) + `&_t=${newKey}`;
+    if (currentTab?.url) {
+      navigateToUrl(currentTab.url);
     }
   };
 
@@ -392,18 +408,15 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                <iframe
-                  key={`iframe-${tab.id}-${tab.url}`}
-                  ref={activeTab === tab.id ? iframeRef : null}
-                  src={getProxyUrl(tab.url)}
-                  title={tab.title}
-                  className="w-full h-full border-none"
-                  onLoad={() => setIsLoading(false)}
-                  onError={() => {
-                    setIsLoading(false);
-                    setLoadError('Failed to load website');
-                  }}
-                />
+                {tab.content && (
+                  <iframe
+                    key={`iframe-${tab.id}-${tab.url}`}
+                    ref={activeTab === tab.id ? iframeRef : null}
+                    srcDoc={tab.content}
+                    title={tab.title}
+                    className="w-full h-full border-none"
+                  />
+                )}
               </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
