@@ -32,6 +32,15 @@ const Browser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const blobUrlsRef = useRef<Map<string, string>>(new Map());
+
+  // Cleanup blob URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
+    };
+  }, []);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
@@ -90,7 +99,7 @@ const Browser = () => {
       return;
     }
 
-    // Fetch HTML content via proxy and inject with srcDoc
+    // Fetch HTML content via proxy and create blob URL
     try {
       const proxyUrl = getProxyUrl(fullUrl);
       console.log('🌐 Fetching URL:', fullUrl);
@@ -106,9 +115,21 @@ const Browser = () => {
       
       const html = await response.text();
       console.log('📝 HTML length:', html.length);
-      console.log('🔍 HTML preview:', html.substring(0, 500));
       console.log('🏷️ Has base tag:', html.includes('<base'));
       console.log('🔧 Has proxy script:', html.includes('Proxy interceptor active'));
+      
+      // Create blob URL with proper MIME type
+      const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Revoke old blob URL for this tab if it exists
+      const oldBlobUrl = blobUrlsRef.current.get(activeTab);
+      if (oldBlobUrl) {
+        URL.revokeObjectURL(oldBlobUrl);
+      }
+      blobUrlsRef.current.set(activeTab, blobUrl);
+      
+      console.log('🎯 Created blob URL:', blobUrl);
       
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
@@ -119,7 +140,7 @@ const Browser = () => {
             title: new URL(fullUrl).hostname,
             history: newHistory,
             historyIndex: newHistory.length - 1,
-            content: html
+            content: blobUrl
           };
         }
         return tab;
@@ -421,7 +442,7 @@ const Browser = () => {
                   <iframe
                     key={`iframe-${tab.id}-${tab.url}`}
                     ref={activeTab === tab.id ? iframeRef : null}
-                    srcDoc={tab.content}
+                    src={tab.content}
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
