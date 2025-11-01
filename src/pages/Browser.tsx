@@ -41,15 +41,17 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
-  // Inject HTML into iframe when content changes
+  // Create blob URL for iframe when content changes
   useEffect(() => {
     if (currentTab?.content && iframeRef.current) {
-      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-      if (iframeDoc) {
-        iframeDoc.open();
-        iframeDoc.write(currentTab.content);
-        iframeDoc.close();
-      }
+      const blob = new Blob([currentTab.content], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      iframeRef.current.src = blobUrl;
+      
+      // Cleanup old blob URL
+      return () => {
+        URL.revokeObjectURL(blobUrl);
+      };
     }
   }, [currentTab?.content, currentTab?.id]);
 
