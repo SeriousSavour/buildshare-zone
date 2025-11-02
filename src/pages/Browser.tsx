@@ -293,17 +293,10 @@ const Browser = () => {
       return '';
     }
     
-    // Use Cloudflare Worker if configured, otherwise fallback to Supabase
-    const workerUrl = import.meta.env.VITE_PROXY_WORKER_URL;
-    if (workerUrl) {
-      const proxyUrl = `${workerUrl}?url=${encodeURIComponent(targetUrl)}`;
-      console.log('🔧 Using Cloudflare Worker:', proxyUrl);
-      return proxyUrl;
-    }
-    
+    // Always use Supabase relay - this hides the actual proxy backend completely
     const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
-    const proxyUrl = `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(targetUrl)}`;
-    console.log('🔧 Using Supabase proxy:', proxyUrl);
+    const proxyUrl = `${supabaseUrl}/functions/v1/browser-proxy?url=${encodeURIComponent(targetUrl)}`;
+    console.log('🔒 Using secure relay proxy (backend hidden)');
     return proxyUrl;
   };
 
