@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Cloudflare Worker proxy URL - never exposed to client
-const PROXY_WORKER_URL = "https://fetchthebannafromthepantryitcantfindthishahawaitwhatyoudoing.theplasticegg.workers.dev";
+// Rammerhead proxy URL - never exposed to client
+const RAMMERHEAD_URL = "https://lightspeedv2.imdb.gq";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,8 +34,8 @@ serve(async (req) => {
 
     console.log(`[PROXY] Proxying request to: ${targetUrl}`);
 
-    // Build Cloudflare Worker proxy URL
-    const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(targetUrl)}`;
+    // Build Rammerhead proxy URL
+    const proxyUrl = `${RAMMERHEAD_URL}/${targetUrl}`;
     console.log(`[PROXY] Fetching via: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {

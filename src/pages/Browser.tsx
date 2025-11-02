@@ -107,31 +107,12 @@ const Browser = () => {
       console.log('🔗 Generated proxy URL:', proxyUrl);
       console.log('🔑 Worker URL from env:', import.meta.env.VITE_PROXY_WORKER_URL);
       
-      let response = await fetch(proxyUrl);
+      const response = await fetch(proxyUrl);
       console.log('📡 Fetch response status:', response.status);
       console.log('📄 Fetch response Content-Type:', response.headers.get('content-type'));
-      console.log('🔍 Using proxy:', proxyUrl.includes('workers.dev') ? 'CLOUDFLARE' : 'SUPABASE');
       
-      // If Cloudflare Worker is rate-limited or failed, fallback to Supabase
-      if (response.status === 429 || !response.ok) {
-        const errorText = await response.text();
-        console.log('⚠️ Primary proxy failed:', errorText);
-        console.log('🔄 Falling back to Supabase proxy...');
-        
-        const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
-        const fallbackUrl = `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(fullUrl)}`;
-        console.log('🔗 Fallback URL:', fallbackUrl);
-        
-        response = await fetch(fallbackUrl);
-        console.log('📡 Fallback response status:', response.status);
-        
-        if (!response.ok) {
-          const fallbackError = await response.text();
-          console.error('❌ Fallback also failed:', fallbackError);
-          throw new Error(`Both proxies failed. Primary: ${response.status}, Fallback error: ${fallbackError.substring(0, 100)}`);
-        }
-        
-        console.log('✅ Loaded via Supabase fallback');
+      if (!response.ok) {
+        throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
       }
       
       const html = await response.text();
