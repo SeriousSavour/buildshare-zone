@@ -233,6 +233,13 @@ const Browser = () => {
 
   const getProxyUrl = (targetUrl: string) => {
     if (!targetUrl || targetUrl.startsWith('shadow://')) return '';
+    
+    // Use Cloudflare Worker if configured, otherwise fallback to Supabase
+    const workerUrl = import.meta.env.VITE_PROXY_WORKER_URL;
+    if (workerUrl) {
+      return `${workerUrl}?url=${encodeURIComponent(targetUrl)}`;
+    }
+    
     const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
     return `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(targetUrl)}`;
   };
