@@ -80,7 +80,15 @@ const Browser = () => {
 
     // Add protocol if missing
     let fullUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')) {
+    
+    // Check if it's a search query (contains spaces or no dots and not a special protocol)
+    const isSearchQuery = (url.includes(' ') || (!url.includes('.') && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')));
+    
+    if (isSearchQuery) {
+      // Redirect to Google search
+      fullUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
+      console.log('🔍 Detected search query, redirecting to:', fullUrl);
+    } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')) {
       fullUrl = 'https://' + url;
     }
 
