@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Cloudflare Worker proxy URL - never exposed to client
-const PROXY_WORKER_URL = "https://fetchthebannafromthepantryitcantfindthishahawaitwhatyoudoing.theplasticegg.workers.dev";
+// Scramjet proxy URL - never exposed to client
+const PROXY_WORKER_URL = "https://elahelp.k22.su/scramjet";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
