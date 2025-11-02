@@ -11,9 +11,11 @@
  * 7. Add to your .env file: VITE_PROXY_WORKER_URL=https://your-worker.your-subdomain.workers.dev
  */
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request))
-})
+export default {
+  async fetch(request, env, ctx) {
+    return handleRequest(request);
+  }
+};
 
 async function handleRequest(request) {
   // CORS headers
