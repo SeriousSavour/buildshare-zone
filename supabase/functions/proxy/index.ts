@@ -58,9 +58,12 @@ serve(async (req) => {
     }
     
     // Get the body as text/binary
-    const body = contentType.includes('text/') || contentType.includes('application/json') || contentType.includes('application/javascript')
-      ? await response.text()
-      : await response.arrayBuffer();
+    const isTextContent = contentType.includes('text/') || 
+                         contentType.includes('application/json') || 
+                         contentType.includes('application/javascript') ||
+                         contentType.includes('application/xml');
+    
+    const body = isTextContent ? await response.text() : await response.arrayBuffer();
     
     // Force correct MIME type for rendering
     let finalContentType = contentType || 'application/octet-stream';
@@ -257,7 +260,14 @@ serve(async (req) => {
     // For all other content (JS, images, etc.), return with correct Content-Type
     const responseHeaders = new Headers(corsHeaders);
     responseHeaders.set('Content-Type', finalContentType);
-    responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    
+    // For binary content (images, fonts, etc.), use longer cache
+    if (!isTextContent) {
+      responseHeaders.set('Cache-Control', 'public, max-age=86400');
+    } else {
+      responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    }
+    
     responseHeaders.set('X-Content-Type-Options', 'nosniff');
     
     return new Response(body, {
