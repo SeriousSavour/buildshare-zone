@@ -137,9 +137,11 @@ const Browser = () => {
       console.log('📝 Received HTML length:', html.length);
       console.log('🔍 HTML starts with:', html.substring(0, 100));
       
-      setTabs(tabs.map(tab => {
+      // Update tabs with new content
+      setTabs(prevTabs => prevTabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+          console.log('✏️ Updating tab content for:', tab.id);
           return {
             ...tab,
             url: fullUrl,
@@ -153,6 +155,7 @@ const Browser = () => {
       }));
       
       setIsLoading(false);
+      console.log('✅ Navigation complete');
     } catch (error) {
       console.error('Failed to load:', error);
       setLoadError(error instanceof Error ? error.message : 'Failed to load website');
@@ -453,13 +456,16 @@ const Browser = () => {
                 )}
                 {tab.content && (
                   <iframe
-                    key={`iframe-${tab.id}-${tab.url}`}
+                    key={`iframe-${tab.id}-${tab.historyIndex}`}
                     ref={activeTab === tab.id ? iframeRef : null}
                     srcDoc={tab.content}
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
-                    onLoad={() => setIsLoading(false)}
+                    onLoad={() => {
+                      console.log('🎯 Iframe loaded successfully');
+                      setIsLoading(false);
+                    }}
                     onError={() => {
                       setIsLoading(false);
                       setLoadError('Failed to load website');
