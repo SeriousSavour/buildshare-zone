@@ -74,6 +74,7 @@ const Browser = () => {
   const navigateToUrl = async (url: string) => {
     if (!url) return;
 
+    console.log('🚀 Navigate called with URL:', url);
     setIsLoading(true);
     setLoadError(null);
 
@@ -82,6 +83,8 @@ const Browser = () => {
     if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')) {
       fullUrl = 'https://' + url;
     }
+
+    console.log('🌐 Full URL after protocol check:', fullUrl);
 
     // Handle special shadow:// protocol
     if (fullUrl.startsWith('shadow://')) {
@@ -94,6 +97,7 @@ const Browser = () => {
     try {
       const proxyUrl = getProxyUrl(fullUrl);
       console.log('🔗 Generated proxy URL:', proxyUrl);
+      console.log('🔑 Worker URL from env:', import.meta.env.VITE_PROXY_WORKER_URL);
       
       const response = await fetch(proxyUrl);
       console.log('📡 Fetch response status:', response.status);
