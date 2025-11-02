@@ -34,9 +34,9 @@ serve(async (req) => {
 
     console.log(`[PROXY] Proxying request to: ${targetUrl}`);
 
-    // Build Cloudflare Worker proxy URL
-    const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(targetUrl)}`;
-    console.log(`[PROXY] Fetching via: ${proxyUrl}`);
+    // Build Scramjet proxy URL - format: /scramjet/service/encoded-url
+    const proxyUrl = `${PROXY_WORKER_URL}/service/${encodeURIComponent(targetUrl)}`;
+    console.log(`[PROXY] Fetching via Scramjet: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {
       method: req.method,
