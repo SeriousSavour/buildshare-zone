@@ -93,13 +93,19 @@ const Browser = () => {
     // Fetch HTML content via proxy and inject with srcDoc
     try {
       const proxyUrl = getProxyUrl(fullUrl);
+      console.log('🔗 Generated proxy URL:', proxyUrl);
+      
       const response = await fetch(proxyUrl);
+      console.log('📡 Fetch response status:', response.status);
+      console.log('📄 Fetch response Content-Type:', response.headers.get('content-type'));
       
       if (!response.ok) {
         throw new Error(`Failed to load: ${response.status}`);
       }
       
       const html = await response.text();
+      console.log('📝 Received HTML length:', html.length);
+      console.log('🔍 HTML starts with:', html.substring(0, 100));
       
       setTabs(tabs.map(tab => {
         if (tab.id === activeTab) {
