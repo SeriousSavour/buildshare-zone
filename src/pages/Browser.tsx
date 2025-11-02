@@ -103,6 +103,40 @@ const Browser = () => {
       console.log('📡 Fetch response status:', response.status);
       console.log('📄 Fetch response Content-Type:', response.headers.get('content-type'));
       
+      // If Cloudflare Worker is rate-limited, fallback to Supabase
+      if (response.status === 429) {
+        console.log('⚠️ Cloudflare Worker rate limited, falling back to Supabase proxy...');
+        const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
+        const fallbackUrl = `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(fullUrl)}`;
+        console.log('🔄 Fallback URL:', fallbackUrl);
+        const fallbackResponse = await fetch(fallbackUrl);
+        
+        if (!fallbackResponse.ok) {
+          throw new Error(`Fallback failed: ${fallbackResponse.status}`);
+        }
+        
+        const html = await fallbackResponse.text();
+        console.log('✅ Loaded via Supabase fallback');
+        
+        setTabs(tabs.map(tab => {
+          if (tab.id === activeTab) {
+            const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+            return {
+              ...tab,
+              url: fullUrl,
+              title: new URL(fullUrl).hostname,
+              history: newHistory,
+              historyIndex: newHistory.length - 1,
+              content: html
+            };
+          }
+          return tab;
+        }));
+        
+        setIsLoading(false);
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error(`Failed to load: ${response.status}`);
       }
