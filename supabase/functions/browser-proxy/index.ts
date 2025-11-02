@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Hidden Cloudflare Worker URL - never exposed to client
-const CLOUDFLARE_WORKER_URL = "https://fetchthebannafromthepantryitcantfindthishahawaitwhatyoudoing.theplasticegg.workers.dev";
+// Railway Rammerhead proxy URL - never exposed to client
+const RAMMERHEAD_PROXY_URL = "https://313jtjeq-production.up.railway.app";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,8 +32,8 @@ serve(async (req) => {
 
     console.log(`[RELAY] Proxying request to: ${targetUrl}`);
 
-    // Forward request to hidden Cloudflare Worker
-    const proxyUrl = `${CLOUDFLARE_WORKER_URL}?url=${encodeURIComponent(targetUrl)}`;
+    // Forward request to Railway Rammerhead proxy
+    const proxyUrl = `${RAMMERHEAD_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
     
     const response = await fetch(proxyUrl, {
       method: req.method,
