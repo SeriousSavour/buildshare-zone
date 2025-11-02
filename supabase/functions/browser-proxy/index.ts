@@ -34,8 +34,8 @@ serve(async (req) => {
 
     console.log(`[PROXY] Proxying request to: ${targetUrl}`);
 
-    // Build Scramjet proxy URL - format: /scramjet/service/encoded-url
-    const proxyUrl = `${PROXY_WORKER_URL}/service/${encodeURIComponent(targetUrl)}`;
+    // Build Scramjet proxy URL - append target URL directly
+    const proxyUrl = `${PROXY_WORKER_URL}/${targetUrl}`;
     console.log(`[PROXY] Fetching via Scramjet: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {
