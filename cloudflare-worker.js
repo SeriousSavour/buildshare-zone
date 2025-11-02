@@ -72,6 +72,9 @@ async function handleRequest(request) {
       // Rewrite URLs in HTML
       html = rewriteHtml(html, parsedUrl.origin, request.url.split('?')[0])
       
+      // Strip Content-Security-Policy meta tags that might block proxied resources
+      html = html.replace(/<meta[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi, '')
+      
       // Add base tag for proper resource loading from about:srcdoc
       const baseTag = `<base href="${parsedUrl.origin}/">`;
       if (!html.includes('<base')) {
@@ -112,13 +115,16 @@ async function handleRequest(request) {
       
       html = html.replace('</head>', `${injectedScript}</head>`)
       
+      // Strip CSP headers that might block proxied resources
+      const responseHeaders = {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      };
+      
       return new Response(html, {
         status: response.status,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        },
+        headers: responseHeaders,
       })
     }
     
