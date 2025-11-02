@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Rammerhead proxy URL - never exposed to client
-const RAMMERHEAD_URL = "https://sikoutei.icjpg.cl";
+// Cloudflare Worker proxy URL - never exposed to client
+const PROXY_WORKER_URL = "https://fetchthebannafromthepantryitcantfindthishahawaitwhatyoudoing.theplasticegg.workers.dev";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +24,6 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const targetUrl = url.searchParams.get('url');
-    const sessionId = url.searchParams.get('session');
 
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
@@ -34,12 +33,9 @@ serve(async (req) => {
     }
 
     console.log(`[PROXY] Proxying request to: ${targetUrl}`);
-    console.log(`[PROXY] Using session: ${sessionId || 'none'}`);
 
-    // Build Rammerhead proxy URL with session
-    const proxyUrl = sessionId 
-      ? `${RAMMERHEAD_URL}/${sessionId}/${targetUrl}`
-      : `${RAMMERHEAD_URL}/${targetUrl}`;
+    // Build Cloudflare Worker proxy URL
+    const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(targetUrl)}`;
     console.log(`[PROXY] Fetching via: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {
