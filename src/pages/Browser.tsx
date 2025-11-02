@@ -137,22 +137,29 @@ const Browser = () => {
       console.log('📝 Received HTML length:', html.length);
       console.log('🔍 HTML starts with:', html.substring(0, 100));
       
+      // Clear any previous errors
+      setLoadError(null);
+      
       // Update tabs with new content
-      setTabs(prevTabs => prevTabs.map(tab => {
-        if (tab.id === activeTab) {
-          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-          console.log('✏️ Updating tab content for:', tab.id);
-          return {
-            ...tab,
-            url: fullUrl,
-            title: new URL(fullUrl).hostname,
-            history: newHistory,
-            historyIndex: newHistory.length - 1,
-            content: html
-          };
-        }
-        return tab;
-      }));
+      setTabs(prevTabs => {
+        const newTabs = prevTabs.map(tab => {
+          if (tab.id === activeTab) {
+            const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+            console.log('✏️ Updating tab:', tab.id, 'with', html.length, 'bytes of content');
+            return {
+              ...tab,
+              url: fullUrl,
+              title: new URL(fullUrl).hostname,
+              history: newHistory,
+              historyIndex: newHistory.length - 1,
+              content: html
+            };
+          }
+          return tab;
+        });
+        console.log('📋 New tabs state:', newTabs.find(t => t.id === activeTab));
+        return newTabs;
+      });
       
       setIsLoading(false);
       console.log('✅ Navigation complete');
@@ -454,7 +461,7 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {tab.content && (
+                {tab.content && !loadError && (
                   <iframe
                     key={`iframe-${tab.id}-${tab.historyIndex}`}
                     ref={activeTab === tab.id ? iframeRef : null}
@@ -463,14 +470,20 @@ const Browser = () => {
                     className="w-full h-full border-none"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
                     onLoad={() => {
-                      console.log('🎯 Iframe loaded successfully');
+                      console.log('🎯 Iframe loaded successfully for tab:', tab.id);
                       setIsLoading(false);
                     }}
-                    onError={() => {
+                    onError={(e) => {
+                      console.error('❌ Iframe error:', e);
                       setIsLoading(false);
                       setLoadError('Failed to load website');
                     }}
                   />
+                )}
+                {!tab.content && !loadError && !isLoading && (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No content loaded</p>
+                  </div>
                 )}
               </div>
             ) : (
