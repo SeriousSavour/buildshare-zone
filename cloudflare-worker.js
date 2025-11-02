@@ -133,13 +133,18 @@ async function handleRequest(request) {
     
     // Handle other content types (images, scripts, etc.)
     const body = await response.arrayBuffer()
+    
+    // Create response headers that preserve original content type
+    const responseHeaders = new Headers()
+    responseHeaders.set('Access-Control-Allow-Origin', '*')
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+    responseHeaders.set('Content-Type', contentType || 'application/octet-stream')
+    responseHeaders.set('Cache-Control', 'public, max-age=86400')
+    
     return new Response(body, {
       status: response.status,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600',
-      },
+      headers: responseHeaders,
     })
     
   } catch (error) {
