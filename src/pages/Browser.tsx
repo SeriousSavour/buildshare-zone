@@ -476,6 +476,7 @@ const Browser = () => {
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
+                    referrerPolicy="no-referrer"
                     onLoad={() => {
                       console.log('🎯 Iframe loaded successfully for tab:', tab.id);
                       setIsLoading(false);

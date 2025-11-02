@@ -72,6 +72,12 @@ async function handleRequest(request) {
       // Rewrite URLs in HTML
       html = rewriteHtml(html, parsedUrl.origin, request.url.split('?')[0])
       
+      // Add base tag for proper resource loading from about:srcdoc
+      const baseTag = `<base href="${parsedUrl.origin}/">`;
+      if (!html.includes('<base')) {
+        html = html.replace('<head>', `<head>${baseTag}`);
+      }
+      
       // Inject proxy script
       const injectedScript = `
         <script>
