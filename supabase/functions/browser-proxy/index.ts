@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Rammerhead proxy URL - never exposed to client
-const RAMMERHEAD_URL = "https://lightspeedv2.imdb.gq";
+const RAMMERHEAD_URL = "https://sikoutei.icjpg.cl";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

@@ -41,7 +41,7 @@ const Browser = () => {
     const createSession = async () => {
       try {
         console.log('🔐 Creating Rammerhead session from client...');
-        const response = await fetch('https://lightspeedv2.imdb.gq/newsession');
+        const response = await fetch('https://sikoutei.icjpg.cl/newsession');
         
         if (response.ok) {
           const sessionId = await response.text();
