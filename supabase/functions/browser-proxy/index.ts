@@ -23,12 +23,19 @@ async function getRammerheadSession(): Promise<string> {
 
   // Create new session
   console.log('[RAMMERHEAD] Creating new session...');
+  console.log(`[RAMMERHEAD] Fetching: ${RAMMERHEAD_PROXY_URL}/newsession`);
+  
   const response = await fetch(`${RAMMERHEAD_PROXY_URL}/newsession`, {
     method: 'GET',
   });
 
+  console.log(`[RAMMERHEAD] Session response status: ${response.status}`);
+  console.log(`[RAMMERHEAD] Session response headers:`, Object.fromEntries(response.headers.entries()));
+
   if (!response.ok) {
-    throw new Error(`Failed to create Rammerhead session: ${response.status}`);
+    const errorBody = await response.text();
+    console.error(`[RAMMERHEAD] Session creation failed: ${errorBody}`);
+    throw new Error(`Failed to create Rammerhead session: ${response.status} - ${errorBody}`);
   }
 
   const sessionId = await response.text();
