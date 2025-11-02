@@ -2,12 +2,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async (req) => {
   // Get origin from request for proper CORS with credentials
+  // Handle null origin (from about:srcdoc iframes) by allowing it
   const origin = req.headers.get('origin') || '*';
   
   const corsHeaders = {
-    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Origin': origin === 'null' ? '*' : origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Credentials': 'true',
   };
 
   // Handle CORS preflight requests
@@ -194,12 +194,21 @@ serve(async (req) => {
             // Only intercept fetch and XHR - let everything else work normally
             const originalFetch = window.fetch;
             window.fetch = function(url, options) {
-              return originalFetch.call(window, toProxyUrl(url), options);
+              // Strip credentials to avoid CORS issues with proxied requests
+              const newOptions = options ? { ...options, credentials: 'omit' } : { credentials: 'omit' };
+              return originalFetch.call(window, toProxyUrl(url), newOptions);
             };
 
             const originalOpen = XMLHttpRequest.prototype.open;
             XMLHttpRequest.prototype.open = function(method, url, ...rest) {
               return originalOpen.call(this, method, toProxyUrl(url), ...rest);
+            };
+            
+            // Override withCredentials for XHR to prevent credential issues
+            const originalSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function(...args) {
+              this.withCredentials = false;
+              return originalSend.apply(this, args);
             };
 
             console.log('Proxy interceptor active');
