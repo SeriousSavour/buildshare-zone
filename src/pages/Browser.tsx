@@ -110,6 +110,7 @@ const Browser = () => {
       let response = await fetch(proxyUrl);
       console.log('📡 Fetch response status:', response.status);
       console.log('📄 Fetch response Content-Type:', response.headers.get('content-type'));
+      console.log('🔍 Using proxy:', proxyUrl.includes('workers.dev') ? 'CLOUDFLARE' : 'SUPABASE');
       
       // If Cloudflare Worker is rate-limited or failed, fallback to Supabase
       if (response.status === 429 || !response.ok) {
@@ -147,6 +148,7 @@ const Browser = () => {
       // Check if base tag exists
       const hasBase = html.includes('<base');
       console.log('🏠 Has base tag:', hasBase);
+      console.log('🔍 First 500 chars of HTML:', html.substring(0, 500));
       
       // Clear any previous errors
       setLoadError(null);
