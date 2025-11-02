@@ -107,46 +107,30 @@ const Browser = () => {
       console.log('🔗 Generated proxy URL:', proxyUrl);
       console.log('🔑 Worker URL from env:', import.meta.env.VITE_PROXY_WORKER_URL);
       
-      const response = await fetch(proxyUrl);
+      let response = await fetch(proxyUrl);
       console.log('📡 Fetch response status:', response.status);
       console.log('📄 Fetch response Content-Type:', response.headers.get('content-type'));
       
-      // If Cloudflare Worker is rate-limited, fallback to Supabase
-      if (response.status === 429) {
-        console.log('⚠️ Cloudflare Worker rate limited, falling back to Supabase proxy...');
+      // If Cloudflare Worker is rate-limited or failed, fallback to Supabase
+      if (response.status === 429 || !response.ok) {
+        const errorText = await response.text();
+        console.log('⚠️ Primary proxy failed:', errorText);
+        console.log('🔄 Falling back to Supabase proxy...');
+        
         const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
         const fallbackUrl = `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(fullUrl)}`;
-        console.log('🔄 Fallback URL:', fallbackUrl);
-        const fallbackResponse = await fetch(fallbackUrl);
+        console.log('🔗 Fallback URL:', fallbackUrl);
         
-        if (!fallbackResponse.ok) {
-          throw new Error(`Fallback failed: ${fallbackResponse.status}`);
+        response = await fetch(fallbackUrl);
+        console.log('📡 Fallback response status:', response.status);
+        
+        if (!response.ok) {
+          const fallbackError = await response.text();
+          console.error('❌ Fallback also failed:', fallbackError);
+          throw new Error(`Both proxies failed. Primary: ${response.status}, Fallback error: ${fallbackError.substring(0, 100)}`);
         }
         
-        const html = await fallbackResponse.text();
         console.log('✅ Loaded via Supabase fallback');
-        
-        setTabs(tabs.map(tab => {
-          if (tab.id === activeTab) {
-            const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-            return {
-              ...tab,
-              url: fullUrl,
-              title: new URL(fullUrl).hostname,
-              history: newHistory,
-              historyIndex: newHistory.length - 1,
-              content: html
-            };
-          }
-          return tab;
-        }));
-        
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load: ${response.status}`);
       }
       
       const html = await response.text();
