@@ -31,9 +31,34 @@ const Browser = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [rammerheadSession, setRammerheadSession] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
+
+  // Create Rammerhead session on component mount
+  useEffect(() => {
+    const createRammerheadSession = async () => {
+      try {
+        console.log('🔐 Creating Rammerhead session from client...');
+        const response = await fetch('https://browser.rammerhead.org/newsession');
+        
+        if (response.ok) {
+          const sessionId = await response.text();
+          console.log('✅ Rammerhead session created:', sessionId);
+          setRammerheadSession(sessionId.trim());
+        } else {
+          console.error('❌ Failed to create Rammerhead session:', response.status);
+          // Continue without session - edge function will try direct access
+        }
+      } catch (error) {
+        console.error('❌ Error creating Rammerhead session:', error);
+        // Continue without session - edge function will try direct access
+      }
+    };
+    
+    createRammerheadSession();
+  }, []);
 
   useEffect(() => {
     if (currentTab) {
@@ -295,8 +320,9 @@ const Browser = () => {
     
     // Always use Supabase relay - this hides the actual proxy backend completely
     const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
-    const proxyUrl = `${supabaseUrl}/functions/v1/browser-proxy?url=${encodeURIComponent(targetUrl)}`;
-    console.log('🔒 Using secure relay proxy (backend hidden)');
+    const sessionParam = rammerheadSession ? `&session=${encodeURIComponent(rammerheadSession)}` : '';
+    const proxyUrl = `${supabaseUrl}/functions/v1/browser-proxy?url=${encodeURIComponent(targetUrl)}${sessionParam}`;
+    console.log('🔒 Using secure relay proxy (backend hidden)', rammerheadSession ? 'with session' : 'without session');
     return proxyUrl;
   };
 

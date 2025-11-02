@@ -10,57 +10,7 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// Session cache to reuse sessions (in-memory, per function instance)
-let cachedSession: { id: string; createdAt: number } | null = null;
-const SESSION_TTL = 1000 * 60 * 30; // 30 minutes
-
-async function getRammerheadSession(): Promise<string> {
-  // Check if we have a valid cached session
-  if (cachedSession && (Date.now() - cachedSession.createdAt) < SESSION_TTL) {
-    console.log(`[RAMMERHEAD] Using cached session: ${cachedSession.id}`);
-    return cachedSession.id;
-  }
-
-  // Create new session
-  console.log('[RAMMERHEAD] Creating new session...');
-  console.log(`[RAMMERHEAD] Fetching: ${RAMMERHEAD_PROXY_URL}/newsession`);
-  
-  const response = await fetch(`${RAMMERHEAD_PROXY_URL}/newsession`, {
-    method: 'GET',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.5',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'none',
-      'Cache-Control': 'max-age=0',
-    },
-  });
-
-  console.log(`[RAMMERHEAD] Session response status: ${response.status}`);
-  console.log(`[RAMMERHEAD] Session response headers:`, Object.fromEntries(response.headers.entries()));
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`[RAMMERHEAD] Session creation failed: ${errorBody}`);
-    throw new Error(`Failed to create Rammerhead session: ${response.status} - ${errorBody}`);
-  }
-
-  const sessionId = await response.text();
-  console.log(`[RAMMERHEAD] New session created: ${sessionId}`);
-  
-  // Cache the session
-  cachedSession = {
-    id: sessionId.trim(),
-    createdAt: Date.now(),
-  };
-
-  return cachedSession.id;
-}
+// No session management - client will provide session or we'll use direct URL
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -74,6 +24,7 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const targetUrl = url.searchParams.get('url');
+    const sessionId = url.searchParams.get('session');
 
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
@@ -83,12 +34,13 @@ serve(async (req) => {
     }
 
     console.log(`[RAMMERHEAD] Proxying request to: ${targetUrl}`);
+    console.log(`[RAMMERHEAD] Using session: ${sessionId || 'none - will try direct'}`);
 
-    // Get or create Rammerhead session
-    const sessionId = await getRammerheadSession();
-
-    // Build Rammerhead proxy URL with session
-    const proxyUrl = `${RAMMERHEAD_PROXY_URL}/${sessionId}/${targetUrl}`;
+    // Build Rammerhead proxy URL
+    // If session provided by client, use it; otherwise try direct access
+    const proxyUrl = sessionId 
+      ? `${RAMMERHEAD_PROXY_URL}/${sessionId}/${targetUrl}`
+      : `${RAMMERHEAD_PROXY_URL}/${targetUrl}`;
     console.log(`[RAMMERHEAD] Fetching via: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {
