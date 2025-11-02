@@ -202,19 +202,15 @@ serve(async (req) => {
 
       html = html.replace('</head>', `${injectedScript}</head>`);
 
-      // Create response headers explicitly with correct Content-Type
-      const htmlHeaders = new Headers(corsHeaders);
-      htmlHeaders.set('Content-Type', 'text/html; charset=utf-8');
-      htmlHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      htmlHeaders.set('X-Content-Type-Options', 'nosniff');
-
-      // Encode HTML as bytes to force Content-Type header to be respected
-      const encoder = new TextEncoder();
-      const htmlBytes = encoder.encode(html);
-
-      return new Response(htmlBytes, {
+      // Return HTML with explicit Content-Type header
+      return new Response(html, {
         status: response.status,
-        headers: htmlHeaders,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'X-Content-Type-Options': 'nosniff',
+        },
       });
     }
 
