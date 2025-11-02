@@ -147,8 +147,11 @@ const Browser = () => {
       
       // Check if base tag exists
       const hasBase = html.includes('<base');
+      const hasCSPMeta = html.includes('Content-Security-Policy');
       console.log('🏠 Has base tag:', hasBase);
-      console.log('🔍 First 500 chars of HTML:', html.substring(0, 500));
+      console.log('🔒 Has CSP meta tag:', hasCSPMeta);
+      console.log('🔍 First 800 chars of HTML:', html.substring(0, 800));
+      console.log('📦 Response headers:', Object.fromEntries([...response.headers.entries()]));
       
       // Clear any previous errors
       setLoadError(null);
