@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Rammerhead proxy URL - never exposed to client
-// Replace with your working Rammerhead instance
-const RAMMERHEAD_PROXY_URL = "https://313jtjeq-production.up.railway.app";
+const RAMMERHEAD_PROXY_URL = "https://browser.rammerhead.org";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
