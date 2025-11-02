@@ -137,6 +137,17 @@ const Browser = () => {
       console.log('📝 Received HTML length:', html.length);
       console.log('🔍 HTML starts with:', html.substring(0, 100));
       
+      // Check if images are in the HTML
+      const imgMatches = html.match(/<img[^>]*src=["']([^"']+)["']/gi);
+      console.log('🖼️ Found', imgMatches?.length || 0, 'image tags');
+      if (imgMatches) {
+        console.log('🖼️ First image src:', imgMatches[0]);
+      }
+      
+      // Check if base tag exists
+      const hasBase = html.includes('<base');
+      console.log('🏠 Has base tag:', hasBase);
+      
       // Clear any previous errors
       setLoadError(null);
       
