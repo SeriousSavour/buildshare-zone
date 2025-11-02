@@ -75,11 +75,8 @@ async function handleRequest(request) {
       // Strip Content-Security-Policy meta tags that might block proxied resources
       html = html.replace(/<meta[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi, '')
       
-      // Add base tag for proper resource loading from about:srcdoc
-      const baseTag = `<base href="${parsedUrl.origin}/">`;
-      if (!html.includes('<base')) {
-        html = html.replace('<head>', `<head>${baseTag}`);
-      }
+      // Remove any existing base tags that might interfere with proxied URLs
+      html = html.replace(/<base[^>]*>/gi, '')
       
       // Inject proxy script
       const injectedScript = `
