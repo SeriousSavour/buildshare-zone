@@ -272,16 +272,23 @@ const Browser = () => {
   };
 
   const getProxyUrl = (targetUrl: string) => {
-    if (!targetUrl || targetUrl.startsWith('shadow://')) return '';
+    if (!targetUrl || targetUrl.startsWith('shadow://')) {
+      console.warn('⚠️ Invalid target URL for proxy:', targetUrl);
+      return '';
+    }
     
     // Use Cloudflare Worker if configured, otherwise fallback to Supabase
     const workerUrl = import.meta.env.VITE_PROXY_WORKER_URL;
     if (workerUrl) {
-      return `${workerUrl}?url=${encodeURIComponent(targetUrl)}`;
+      const proxyUrl = `${workerUrl}?url=${encodeURIComponent(targetUrl)}`;
+      console.log('🔧 Using Cloudflare Worker:', proxyUrl);
+      return proxyUrl;
     }
     
     const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
-    return `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `${supabaseUrl}/functions/v1/proxy?url=${encodeURIComponent(targetUrl)}`;
+    console.log('🔧 Using Supabase proxy:', proxyUrl);
+    return proxyUrl;
   };
 
   return (
