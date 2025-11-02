@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Rammerhead proxy URL - never exposed to client
-const RAMMERHEAD_PROXY_URL = "https://browser.rammerhead.org";
+// Cloudflare Worker proxy URL - never exposed to client
+const PROXY_WORKER_URL = "https://fetchthebannafromthepantryitcantfindthishahawaitwhatyoudoing.theplasticegg.workers.dev";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +10,7 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// No session management - client will provide session or we'll use direct URL
+// No session management - using simple URL-rewriting proxy
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -24,7 +24,6 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const targetUrl = url.searchParams.get('url');
-    const sessionId = url.searchParams.get('session');
 
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
@@ -33,15 +32,11 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[RAMMERHEAD] Proxying request to: ${targetUrl}`);
-    console.log(`[RAMMERHEAD] Using session: ${sessionId || 'none - will try direct'}`);
+    console.log(`[PROXY] Proxying request to: ${targetUrl}`);
 
-    // Build Rammerhead proxy URL
-    // If session provided by client, use it; otherwise try direct access
-    const proxyUrl = sessionId 
-      ? `${RAMMERHEAD_PROXY_URL}/${sessionId}/${targetUrl}`
-      : `${RAMMERHEAD_PROXY_URL}/${targetUrl}`;
-    console.log(`[RAMMERHEAD] Fetching via: ${proxyUrl}`);
+    // Build Cloudflare Worker proxy URL
+    const proxyUrl = `${PROXY_WORKER_URL}?url=${encodeURIComponent(targetUrl)}`;
+    console.log(`[PROXY] Fetching via: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {
       method: req.method,
@@ -56,7 +51,7 @@ serve(async (req) => {
     const body = await response.arrayBuffer();
     const contentType = response.headers.get('content-type') || 'text/html';
 
-    console.log(`[RAMMERHEAD] Response: ${response.status} ${contentType} (${body.byteLength} bytes)`);
+    console.log(`[PROXY] Response: ${response.status} ${contentType} (${body.byteLength} bytes)`);
 
     // Forward response back to client
     return new Response(body, {
@@ -69,10 +64,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[RAMMERHEAD ERROR]', error);
+    console.error('[PROXY ERROR]', error);
     
     return new Response(JSON.stringify({ 
-      error: 'Rammerhead proxy failed',
+      error: 'Proxy failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,
