@@ -488,7 +488,7 @@ const Browser = () => {
                   <iframe
                     key={`iframe-${tab.id}-${tab.historyIndex}`}
                     ref={activeTab === tab.id ? iframeRef : null}
-                    srcDoc={tab.content}
+                    src={URL.createObjectURL(new Blob([tab.content], { type: 'text/html' }))}
                     title={tab.title}
                     className="w-full h-full border-none"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
