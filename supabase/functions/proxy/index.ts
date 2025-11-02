@@ -208,7 +208,11 @@ serve(async (req) => {
       htmlHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       htmlHeaders.set('X-Content-Type-Options', 'nosniff');
 
-      return new Response(html, {
+      // Encode HTML as bytes to force Content-Type header to be respected
+      const encoder = new TextEncoder();
+      const htmlBytes = encoder.encode(html);
+
+      return new Response(htmlBytes, {
         status: response.status,
         headers: htmlHeaders,
       });
