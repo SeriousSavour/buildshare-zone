@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Railway Rammerhead proxy URL - never exposed to client
-const RAMMERHEAD_PROXY_URL = "https://313jtjeq-production.up.railway.app";
+// Cloudflare Worker Rammerhead proxy URL - never exposed to client
+const RAMMERHEAD_PROXY_URL = "https://fetchthebannafromthepantryitcantfindthishahawaitwhatyoudoing.theplasticegg.workers.dev";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
