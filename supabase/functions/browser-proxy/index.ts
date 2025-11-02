@@ -24,6 +24,7 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const targetUrl = url.searchParams.get('url');
+    const sessionId = url.searchParams.get('session');
 
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
@@ -33,9 +34,12 @@ serve(async (req) => {
     }
 
     console.log(`[PROXY] Proxying request to: ${targetUrl}`);
+    console.log(`[PROXY] Using session: ${sessionId || 'none'}`);
 
-    // Build Rammerhead proxy URL
-    const proxyUrl = `${RAMMERHEAD_URL}/${targetUrl}`;
+    // Build Rammerhead proxy URL with session
+    const proxyUrl = sessionId 
+      ? `${RAMMERHEAD_URL}/${sessionId}/${targetUrl}`
+      : `${RAMMERHEAD_URL}/${targetUrl}`;
     console.log(`[PROXY] Fetching via: ${proxyUrl}`);
     
     const response = await fetch(proxyUrl, {
