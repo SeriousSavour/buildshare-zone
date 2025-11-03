@@ -56,32 +56,31 @@ const Browser = () => {
         console.log('✅ Epoxy loaded');
         
         console.log('🚀 Step 3: Loading Scramjet...');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.codecs.js');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.config.js');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.shared.js');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.client.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.all.js');
         console.log('✅ Scramjet loaded');
 
         // @ts-ignore - Scramjet globals
-        if (!window.$scramjet || !window.$scramjet.config) {
+        if (!window.$scramjetLoadController) {
           throw new Error('Scramjet not available');
         }
 
-        console.log('🚀 Step 4: Initializing Scramjet...');
+        console.log('🚀 Step 4: Initializing ScramjetController...');
         // @ts-ignore
-        window.$scramjet.config.files = {
-          wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.wasm.js",
-          worker: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.worker.js",
-          client: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.client.js",
-          shared: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.shared.js",
-          sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.sync.js",
-        };
+        const { ScramjetController } = window.$scramjetLoadController();
+        
+        const scramjet = new ScramjetController({
+          files: {
+            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.wasm.wasm",
+            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.all.js",
+            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.sync.js",
+          }
+        });
 
-        console.log('✅ Scramjet configured');
+        await scramjet.init();
+        console.log('✅ ScramjetController initialized');
         
         // Store reference to scramjet
-        // @ts-ignore
-        scramjetRef.current = window.$scramjet;
+        scramjetRef.current = scramjet;
 
         // Register service worker
         if ('serviceWorker' in navigator) {
@@ -233,8 +232,8 @@ const Browser = () => {
     }
 
     try {
-      // Encode URL for Scramjet
-      const encodedUrl = scramjetRef.current?.codec?.encode?.(fullUrl) || `/service/${encodeURIComponent(fullUrl)}`;
+      // Encode URL for Scramjet using the controller
+      const encodedUrl = scramjetRef.current?.encode?.(fullUrl) || fullUrl;
       console.log('🌐 Original URL:', fullUrl);
       console.log('🔗 Encoded proxy URL:', encodedUrl);
       
@@ -293,7 +292,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.codec?.encode?.(previousUrl) || `/service/${encodeURIComponent(previousUrl)}`;
+    const encodedUrl = scramjetRef.current?.encode?.(previousUrl) || previousUrl;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -312,7 +311,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.codec?.encode?.(nextUrl) || `/service/${encodeURIComponent(nextUrl)}`;
+    const encodedUrl = scramjetRef.current?.encode?.(nextUrl) || nextUrl;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
