@@ -67,8 +67,6 @@ const Browser = () => {
         const { ScramjetController } = window.$scramjetLoadController();
 
         const scramjet = new ScramjetController({
-          prefix: '/',
-          codec: '/scram/',
           files: {
             wasm: "/scram/scramjet.wasm.wasm",
             all: "/scram/scramjet.all.js",
