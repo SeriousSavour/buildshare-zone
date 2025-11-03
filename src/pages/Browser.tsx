@@ -44,47 +44,67 @@ const Browser = () => {
   useEffect(() => {
     const initializeScramjet = async () => {
       try {
-        console.log('🚀 Initializing Scramjet proxy engine...');
-        
-        // Load Scramjet scripts from CDN
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js');
+        console.log('🚀 Step 1: Loading BareMux...');
+        await loadScript('https://unpkg.com/@mercuryworkshop/bare-mux@2.0.5/dist/index.js');
+        console.log('✅ BareMux loaded');
 
-        console.log('✅ Scripts loaded');
+        console.log('🚀 Step 2: Loading Epoxy...');
+        await loadScript('https://unpkg.com/@mercuryworkshop/epoxy-transport@2.1.9/dist/index.js');
+        console.log('✅ Epoxy loaded');
+        
+        console.log('🚀 Step 3: Loading Scramjet...');
+        await loadScript('https://unpkg.com/@mercuryworkshop/scramjet@2.0.0-alpha.9/dist/scramjet.all.js');
+        console.log('✅ Scramjet loaded');
 
         // @ts-ignore - Scramjet globals
+        if (!window.$scramjetLoadController) {
+          throw new Error('Scramjet controller not available');
+        }
+
+        console.log('🚀 Step 4: Initializing Scramjet controller...');
+        // @ts-ignore
         const { ScramjetController } = window.$scramjetLoadController();
 
         const scramjet = new ScramjetController({
           files: {
-            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
-            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
-            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
+            wasm: "https://unpkg.com/@mercuryworkshop/scramjet@2.0.0-alpha.9/dist/scramjet.wasm.wasm",
+            all: "https://unpkg.com/@mercuryworkshop/scramjet@2.0.0-alpha.9/dist/scramjet.all.js",
+            sync: "https://unpkg.com/@mercuryworkshop/scramjet@2.0.0-alpha.9/dist/scramjet.sync.js",
           }
         });
 
+        console.log('🚀 Step 5: Calling scramjet.init()...');
         await scramjet.init();
         console.log('✅ Scramjet controller initialized');
 
         // Register service worker
         if ('serviceWorker' in navigator) {
+          console.log('🚀 Step 6: Registering service worker...');
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
+            updateViaCache: 'none'
           });
           console.log('✅ Service Worker registered:', registration);
 
           // Wait for service worker to be ready
           await navigator.serviceWorker.ready;
+          console.log('✅ Service Worker ready');
         }
 
         // @ts-ignore - BareMux global
-        const connection = new window.BareMux.BareMuxConnection("https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/worker.js");
+        if (!window.BareMux) {
+          throw new Error('BareMux not available');
+        }
+
+        console.log('🚀 Step 7: Creating BareMux connection...');
+        // @ts-ignore
+        const connection = new window.BareMux.BareMuxConnection("https://unpkg.com/@mercuryworkshop/bare-mux@2.0.5/dist/worker.js");
         
+        console.log('🚀 Step 8: Setting transport...');
         // Use Epoxy transport
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
+        await connection.setTransport("https://unpkg.com/@mercuryworkshop/epoxy-transport@2.1.9/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
         
-        console.log('✅ Scramjet initialized successfully');
+        console.log('✅ Scramjet fully initialized!');
         setScramjetReady(true);
         
         toast({
@@ -93,16 +113,17 @@ const Browser = () => {
         });
       } catch (error) {
         console.error('❌ Failed to initialize Scramjet:', error);
+        console.error('Error details:', error instanceof Error ? error.message : String(error));
         toast({
           title: "Initialization Failed",
-          description: "Could not start proxy engine",
+          description: error instanceof Error ? error.message : "Could not start proxy engine",
           variant: "destructive",
         });
       }
     };
 
     initializeScramjet();
-  }, []);
+  }, [toast]);
 
   const loadScript = (src: string): Promise<void> => {
     return new Promise((resolve, reject) => {
