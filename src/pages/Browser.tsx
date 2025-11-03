@@ -37,7 +37,9 @@ const Browser = () => {
 
   useEffect(() => {
     if (currentTab) {
-      setUrlInput(currentTab.url);
+      // Show the decoded original URL in the address bar, not the proxy URL
+      const displayUrl = currentTab.history[currentTab.historyIndex] || currentTab.url;
+      setUrlInput(displayUrl);
     }
   }, [activeTab, currentTab]);
 
@@ -210,33 +212,27 @@ const Browser = () => {
     }
 
     try {
-      // Encode URL for Scramjet using the service worker prefix
+      // Encode URL for Scramjet
       const encodedUrl = scramjetRef.current?.encodeUrl?.(fullUrl) || `/service/${encodeURIComponent(fullUrl)}`;
-      console.log('🌐 Encoded URL:', encodedUrl);
+      console.log('🌐 Original URL:', fullUrl);
+      console.log('🔗 Encoded proxy URL:', encodedUrl);
       
-      // Update tabs - React will re-render and create iframe if needed
+      // Update tabs - store BOTH original and encoded URLs
       setTabs(prevTabs => prevTabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
           return {
             ...tab,
-            url: encodedUrl, // Store the encoded URL
+            url: encodedUrl, // iframe uses encoded URL
             title: new URL(fullUrl).hostname,
-            history: newHistory,
+            history: newHistory, // history stores original URLs
             historyIndex: newHistory.length - 1,
           };
         }
         return tab;
       }));
 
-      // Navigate iframe
-      const iframe = iframeRefs.current[activeTab];
-      if (iframe) {
-        console.log('📍 Setting iframe src to:', encodedUrl);
-        iframe.src = encodedUrl;
-      } else {
-        console.error('❌ No iframe ref found for tab:', activeTab);
-      }
+      console.log('📍 Tab updated - iframe will load:', encodedUrl);
     } catch (error) {
       console.error('❌ Navigation error:', error);
       toast({
@@ -245,7 +241,7 @@ const Browser = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      // Keep loading state until iframe loads
     }
   };
 
