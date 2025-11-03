@@ -44,65 +44,105 @@ const Browser = () => {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    console.log('🔌 Connecting to WebSocket engine...');
-    const ws = new WebSocket("wss://4t134qeg-production.up.railway.app");
+    let reconnectTimeout: NodeJS.Timeout;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 3;
+
+    const connectWebSocket = () => {
+      console.log('🔌 Connecting to WebSocket engine... (Attempt', reconnectAttempts + 1, ')');
+      
+      // Try with trailing slash
+      const wsUrl = "wss://4t134qeg-production.up.railway.app/";
+      console.log('🔗 WebSocket URL:', wsUrl);
+      
+      const ws = new WebSocket(wsUrl);
     
-    ws.onopen = () => {
-      console.log('✅ WebSocket connected');
-      toast({
-        title: "Browser Engine Connected",
-        description: "Ready to browse",
-      });
-    };
+      ws.onopen = () => {
+        console.log('✅ WebSocket connected successfully');
+        reconnectAttempts = 0;
+        setLoadError(null);
+        toast({
+          title: "Browser Engine Connected",
+          description: "Ready to browse",
+        });
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('📦 Received frame data:', data.type);
-        
-        // Handle incoming frame data
-        if (data.type === 'frame' && data.data) {
-          setTabs(prevTabs => prevTabs.map(tab => 
-            tab.id === activeTab 
-              ? { ...tab, frameData: data.data }
-              : tab
-          ));
+      ws.onmessage = (event) => {
+        try {
+          console.log('📨 Raw WebSocket message:', event.data);
+          const data = JSON.parse(event.data);
+          console.log('📦 Parsed message type:', data.type);
           
-          // Draw frame to canvas
-          if (canvasRef.current && data.data) {
-            const ctx = canvasRef.current.getContext('2d');
-            const img = new Image();
-            img.onload = () => {
-              ctx?.drawImage(img, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
-            };
-            img.src = data.data;
+          // Handle incoming frame data
+          if (data.type === 'frame' && data.data) {
+            setTabs(prevTabs => prevTabs.map(tab => 
+              tab.id === activeTab 
+                ? { ...tab, frameData: data.data }
+                : tab
+            ));
+            
+            // Draw frame to canvas
+            if (canvasRef.current && data.data) {
+              const ctx = canvasRef.current.getContext('2d');
+              if (ctx) {
+                const img = new Image();
+                img.onload = () => {
+                  ctx.drawImage(img, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
+                  console.log('🖼️ Frame rendered to canvas');
+                };
+                img.onerror = () => {
+                  console.error('❌ Failed to load frame image');
+                };
+                img.src = data.data;
+              }
+            }
+            
+            setIsLoading(false);
           }
-          
-          setIsLoading(false);
+        } catch (error) {
+          console.error('❌ Error parsing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error('❌ Error parsing WebSocket message:', error);
-      }
+      };
+
+      ws.onerror = (error) => {
+        console.error('❌ WebSocket error details:', {
+          readyState: ws.readyState,
+          url: wsUrl,
+          error: error
+        });
+        setLoadError(`Connection failed (Attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+      };
+
+      ws.onclose = (event) => {
+        console.log('🔌 WebSocket closed:', {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean
+        });
+
+        // Attempt to reconnect
+        if (reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++;
+          console.log(`🔄 Reconnecting in 2 seconds...`);
+          reconnectTimeout = setTimeout(connectWebSocket, 2000);
+        } else {
+          setLoadError('Unable to connect to browser engine. Please check the Railway URL.');
+          toast({
+            title: "Connection Failed",
+            description: "Could not connect to browser engine after multiple attempts",
+            variant: "destructive",
+          });
+        }
+      };
+
+      wsRef.current = ws;
     };
 
-    ws.onerror = (error) => {
-      console.error('❌ WebSocket error:', error);
-      setLoadError('WebSocket connection error');
-      toast({
-        title: "Connection Error",
-        description: "Failed to connect to browser engine",
-        variant: "destructive",
-      });
-    };
-
-    ws.onclose = () => {
-      console.log('🔌 WebSocket disconnected');
-    };
-
-    wsRef.current = ws;
+    connectWebSocket();
 
     return () => {
-      ws.close();
+      clearTimeout(reconnectTimeout);
+      wsRef.current?.close();
     };
   }, []);
 
