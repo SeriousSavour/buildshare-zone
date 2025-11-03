@@ -67,6 +67,7 @@ const Browser = () => {
         const { ScramjetController } = window.$scramjetLoadController();
 
         const scramjet = new ScramjetController({
+          prefix: '/scramjet/',
           files: {
             wasm: "/scram/scramjet.wasm.wasm",
             all: "/scram/scramjet.all.js",
@@ -83,7 +84,14 @@ const Browser = () => {
 
         // Register service worker
         if ('serviceWorker' in navigator) {
-          console.log('🚀 Step 6: Registering service worker...');
+          console.log('🚀 Step 6: Unregistering old service workers...');
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+            console.log('✅ Unregistered old SW');
+          }
+          
+          console.log('🚀 Step 7: Registering new service worker...');
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
             updateViaCache: 'none'
@@ -100,11 +108,11 @@ const Browser = () => {
           throw new Error('BareMux not available');
         }
 
-        console.log('🚀 Step 7: Creating BareMux connection...');
+        console.log('🚀 Step 8: Creating BareMux connection...');
         // @ts-ignore
         const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
         
-        console.log('🚀 Step 8: Setting transport...');
+        console.log('🚀 Step 9: Setting transport...');
         // Use Epoxy transport
         await connection.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
         
