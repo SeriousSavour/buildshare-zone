@@ -46,23 +46,26 @@ const Browser = () => {
       try {
         console.log('🚀 Initializing Scramjet proxy engine...');
         
-        // Load Scramjet scripts
-        await loadScript('/baremux/bare-mux.js');
-        await loadScript('/epoxy/index.js');
-        await loadScript('/scram/scramjet.all.js');
+        // Load Scramjet scripts from CDN
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js');
+
+        console.log('✅ Scripts loaded');
 
         // @ts-ignore - Scramjet globals
         const { ScramjetController } = window.$scramjetLoadController();
 
         const scramjet = new ScramjetController({
           files: {
-            wasm: "/scram/scramjet.wasm.wasm",
-            all: "/scram/scramjet.all.js",
-            sync: "/scram/scramjet.sync.js",
+            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
+            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
+            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
           }
         });
 
         await scramjet.init();
+        console.log('✅ Scramjet controller initialized');
 
         // Register service worker
         if ('serviceWorker' in navigator) {
@@ -76,10 +79,10 @@ const Browser = () => {
         }
 
         // @ts-ignore - BareMux global
-        const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
+        const connection = new window.BareMux.BareMuxConnection("https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/worker.js");
         
         // Use Epoxy transport
-        await connection.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
+        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
         
         console.log('✅ Scramjet initialized successfully');
         setScramjetReady(true);
