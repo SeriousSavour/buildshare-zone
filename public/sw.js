@@ -1,10 +1,7 @@
 importScripts("/scram/scramjet.all.js");
 
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
-const scramjet = new ScramjetServiceWorker({
-  prefix: '/scramjet/',
-  codec: '/scram/'
-});
+const scramjet = new ScramjetServiceWorker();
 
 self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {

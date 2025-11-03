@@ -67,7 +67,8 @@ const Browser = () => {
         const { ScramjetController } = window.$scramjetLoadController();
 
         const scramjet = new ScramjetController({
-          prefix: '/scramjet/',
+          prefix: '/',
+          codec: '/scram/',
           files: {
             wasm: "/scram/scramjet.wasm.wasm",
             all: "/scram/scramjet.all.js",
@@ -113,8 +114,8 @@ const Browser = () => {
         const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
         
         console.log('🚀 Step 9: Setting transport...');
-        // Use Epoxy transport
-        await connection.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
+        // Use Epoxy transport with Scramjet's official Wisp server
+        await connection.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/wisp/" }]);
         
         console.log('✅ Scramjet fully initialized!');
         setScramjetReady(true);
@@ -215,13 +216,13 @@ const Browser = () => {
       const encodedUrl = scramjetRef.current?.encodeUrl?.(fullUrl) || `/service/${encodeURIComponent(fullUrl)}`;
       console.log('🌐 Encoded URL:', encodedUrl);
       
-      // Update tabs
+      // Update tabs - React will re-render and create iframe if needed
       setTabs(prevTabs => prevTabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
           return {
             ...tab,
-            url: fullUrl,
+            url: encodedUrl, // Store the encoded URL
             title: new URL(fullUrl).hostname,
             history: newHistory,
             historyIndex: newHistory.length - 1,
@@ -277,7 +278,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || `/scramjet/${encodeURIComponent(previousUrl)}`;
+    const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || `/service/${encodeURIComponent(previousUrl)}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -296,7 +297,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || `/scramjet/${encodeURIComponent(nextUrl)}`;
+    const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || `/service/${encodeURIComponent(nextUrl)}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
