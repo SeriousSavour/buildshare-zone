@@ -51,8 +51,8 @@ const Browser = () => {
     const connectWebSocket = () => {
       console.log('🔌 Connecting to WebSocket engine... (Attempt', reconnectAttempts + 1, ')');
       
-      // Try with trailing slash
-      const wsUrl = "wss://4t134qeg-production.up.railway.app/";
+      // Connect to WebSocket endpoint
+      const wsUrl = "wss://4t134qeg-production.up.railway.app/ws";
       console.log('🔗 WebSocket URL:', wsUrl);
       
       const ws = new WebSocket(wsUrl);
