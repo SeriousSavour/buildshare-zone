@@ -1,4 +1,4 @@
-importScripts("https://unpkg.com/@mercuryworkshop/scramjet@2.0.0-alpha.9/dist/scramjet.all.js");
+importScripts("/scram/scramjet.all.js");
 
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker();
