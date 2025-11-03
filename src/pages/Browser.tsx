@@ -56,7 +56,7 @@ const Browser = () => {
         console.log('✅ Epoxy loaded');
         
         console.log('🚀 Step 3: Loading Scramjet...');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.all.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js');
         console.log('✅ Scramjet loaded');
 
         // @ts-ignore - Scramjet globals
@@ -70,9 +70,9 @@ const Browser = () => {
         
         const scramjet = new ScramjetController({
           files: {
-            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.wasm.wasm",
-            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.all.js",
-            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.sync.js",
+            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
+            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
+            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
           }
         });
 
