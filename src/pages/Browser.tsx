@@ -92,6 +92,9 @@ const Browser = () => {
             console.log('✅ Unregistered old SW');
           }
           
+          // Wait a bit for unregistration to complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           console.log('🚀 Step 7: Registering new service worker...');
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
@@ -99,9 +102,27 @@ const Browser = () => {
           });
           console.log('✅ Service Worker registered:', registration);
 
-          // Wait for service worker to be ready
+          // Wait for service worker to activate
+          if (registration.installing) {
+            console.log('⏳ Waiting for SW to install...');
+            await new Promise((resolve) => {
+              registration.installing!.addEventListener('statechange', (e: any) => {
+                if (e.target.state === 'activated') {
+                  resolve(undefined);
+                }
+              });
+            });
+          }
+
           await navigator.serviceWorker.ready;
-          console.log('✅ Service Worker ready');
+          console.log('✅ Service Worker ready and controlling');
+          
+          // Force reload to ensure SW is controlling the page
+          if (!navigator.serviceWorker.controller) {
+            console.log('🔄 Reloading to activate service worker...');
+            window.location.reload();
+            return;
+          }
         }
 
         // @ts-ignore - BareMux global
