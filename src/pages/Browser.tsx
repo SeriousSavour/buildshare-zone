@@ -17,22 +17,20 @@ interface Tab {
   title: string;
   history: string[];
   historyIndex: number;
-  frameData?: string;
 }
 
 const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, frameData: "" }
+    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0 }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [scramjetReady, setScramjetReady] = useState(false);
+  const iframeRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
@@ -42,109 +40,76 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
-  // Initialize WebSocket connection
+  // Initialize Scramjet
   useEffect(() => {
-    let reconnectTimeout: NodeJS.Timeout;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 3;
+    const initializeScramjet = async () => {
+      try {
+        console.log('🚀 Initializing Scramjet proxy engine...');
+        
+        // Load Scramjet scripts
+        await loadScript('/baremux/bare-mux.js');
+        await loadScript('/epoxy/index.js');
+        await loadScript('/scram/scramjet.all.js');
 
-    const connectWebSocket = () => {
-      console.log('🔌 Connecting to WebSocket engine... (Attempt', reconnectAttempts + 1, ')');
-      
-      // Connect to WebSocket endpoint
-      const wsUrl = "wss://4t134qeg-production.up.railway.app/ws";
-      console.log('🔗 WebSocket URL:', wsUrl);
-      
-      const ws = new WebSocket(wsUrl);
-    
-      ws.onopen = () => {
-        console.log('✅ WebSocket connected successfully');
-        reconnectAttempts = 0;
-        setLoadError(null);
-        toast({
-          title: "Browser Engine Connected",
-          description: "Ready to browse",
-        });
-      };
+        // @ts-ignore - Scramjet globals
+        const { ScramjetController } = window.$scramjetLoadController();
 
-      ws.onmessage = (event) => {
-        try {
-          console.log('📨 Raw WebSocket message:', event.data);
-          const data = JSON.parse(event.data);
-          console.log('📦 Parsed message type:', data.type);
-          
-          // Handle incoming frame data
-          if (data.type === 'frame' && data.data) {
-            setTabs(prevTabs => prevTabs.map(tab => 
-              tab.id === activeTab 
-                ? { ...tab, frameData: data.data }
-                : tab
-            ));
-            
-            // Draw frame to canvas
-            if (canvasRef.current && data.data) {
-              const ctx = canvasRef.current.getContext('2d');
-              if (ctx) {
-                const img = new Image();
-                img.onload = () => {
-                  ctx.drawImage(img, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
-                  console.log('🖼️ Frame rendered to canvas');
-                };
-                img.onerror = () => {
-                  console.error('❌ Failed to load frame image');
-                };
-                img.src = data.data;
-              }
-            }
-            
-            setIsLoading(false);
+        const scramjet = new ScramjetController({
+          files: {
+            wasm: "/scram/scramjet.wasm.wasm",
+            all: "/scram/scramjet.all.js",
+            sync: "/scram/scramjet.sync.js",
           }
-        } catch (error) {
-          console.error('❌ Error parsing WebSocket message:', error);
-        }
-      };
-
-      ws.onerror = (error) => {
-        console.error('❌ WebSocket error details:', {
-          readyState: ws.readyState,
-          url: wsUrl,
-          error: error
-        });
-        setLoadError(`Connection failed (Attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
-      };
-
-      ws.onclose = (event) => {
-        console.log('🔌 WebSocket closed:', {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean
         });
 
-        // Attempt to reconnect
-        if (reconnectAttempts < maxReconnectAttempts) {
-          reconnectAttempts++;
-          console.log(`🔄 Reconnecting in 2 seconds...`);
-          reconnectTimeout = setTimeout(connectWebSocket, 2000);
-        } else {
-          setLoadError('Unable to connect to browser engine. Please check the Railway URL.');
-          toast({
-            title: "Connection Failed",
-            description: "Could not connect to browser engine after multiple attempts",
-            variant: "destructive",
+        await scramjet.init();
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
           });
+          console.log('✅ Service Worker registered:', registration);
+
+          // Wait for service worker to be ready
+          await navigator.serviceWorker.ready;
         }
-      };
 
-      wsRef.current = ws;
+        // @ts-ignore - BareMux global
+        const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
+        
+        // Use Epoxy transport
+        await connection.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/" }]);
+        
+        console.log('✅ Scramjet initialized successfully');
+        setScramjetReady(true);
+        
+        toast({
+          title: "Browser Engine Ready",
+          description: "Scramjet proxy is active",
+        });
+      } catch (error) {
+        console.error('❌ Failed to initialize Scramjet:', error);
+        toast({
+          title: "Initialization Failed",
+          description: "Could not start proxy engine",
+          variant: "destructive",
+        });
+      }
     };
 
-    connectWebSocket();
-
-    return () => {
-      clearTimeout(reconnectTimeout);
-      wsRef.current?.close();
-    };
+    initializeScramjet();
   }, []);
+
+  const loadScript = (src: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+  };
 
   const addNewTab = () => {
     const newTab: Tab = {
@@ -153,7 +118,6 @@ const Browser = () => {
       title: "New Tab",
       history: [""],
       historyIndex: 0,
-      frameData: ""
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
@@ -177,27 +141,31 @@ const Browser = () => {
   };
 
   const navigateToUrl = async (url: string) => {
-    if (!url) return;
+    if (!url || !scramjetReady) {
+      if (!scramjetReady) {
+        toast({
+          title: "Please wait",
+          description: "Proxy engine is still initializing",
+        });
+      }
+      return;
+    }
 
-    console.log('🚀 Navigate called with URL:', url);
+    console.log('🌐 Navigating to:', url);
     setIsLoading(true);
-    setLoadError(null);
 
     // Add protocol if missing
     let fullUrl = url;
     
-    // Check if it's a search query (contains spaces or no dots and not a special protocol)
+    // Check if it's a search query
     const isSearchQuery = (url.includes(' ') || (!url.includes('.') && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')));
     
     if (isSearchQuery) {
-      // Redirect to Google search
       fullUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
-      console.log('🔍 Detected search query, redirecting to:', fullUrl);
+      console.log('🔍 Search query detected, redirecting to:', fullUrl);
     } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')) {
       fullUrl = 'https://' + url;
     }
-
-    console.log('🌐 Full URL after protocol check:', fullUrl);
 
     // Handle special shadow:// protocol
     if (fullUrl.startsWith('shadow://')) {
@@ -206,15 +174,11 @@ const Browser = () => {
       return;
     }
 
-    // Send navigation message to WebSocket engine
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      console.log('📤 Sending navigate message:', fullUrl);
-      wsRef.current.send(JSON.stringify({
-        type: "navigate",
-        data: { url: fullUrl }
-      }));
-
-      // Update tabs with new URL
+    try {
+      // Encode URL for Scramjet
+      const encodedUrl = __scramjet$encodeUrl(fullUrl);
+      
+      // Update tabs
       setTabs(prevTabs => prevTabs.map(tab => {
         if (tab.id === activeTab) {
           const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
@@ -228,14 +192,21 @@ const Browser = () => {
         }
         return tab;
       }));
-    } else {
-      setLoadError('WebSocket not connected');
-      setIsLoading(false);
+
+      // Navigate iframe
+      const iframe = iframeRefs.current[activeTab];
+      if (iframe) {
+        iframe.src = encodedUrl;
+      }
+    } catch (error) {
+      console.error('❌ Navigation error:', error);
       toast({
-        title: "Connection Error",
-        description: "Browser engine is not connected",
+        title: "Navigation Failed",
+        description: "Could not load the page",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -264,38 +235,55 @@ const Browser = () => {
   const goBack = () => {
     if (!currentTab || currentTab.historyIndex === 0) return;
     
+    const newIndex = currentTab.historyIndex - 1;
+    const previousUrl = currentTab.history[newIndex];
+    
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
-        const newIndex = tab.historyIndex - 1;
         return {
           ...tab,
-          url: tab.history[newIndex],
+          url: previousUrl,
           historyIndex: newIndex
         };
       }
       return tab;
     }));
+
+    const iframe = iframeRefs.current[activeTab];
+    if (iframe && previousUrl) {
+      iframe.src = __scramjet$encodeUrl(previousUrl);
+    }
   };
 
   const goForward = () => {
     if (!currentTab || currentTab.historyIndex >= currentTab.history.length - 1) return;
     
+    const newIndex = currentTab.historyIndex + 1;
+    const nextUrl = currentTab.history[newIndex];
+    
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
-        const newIndex = tab.historyIndex + 1;
         return {
           ...tab,
-          url: tab.history[newIndex],
+          url: nextUrl,
           historyIndex: newIndex
         };
       }
       return tab;
     }));
+
+    const iframe = iframeRefs.current[activeTab];
+    if (iframe && nextUrl) {
+      iframe.src = __scramjet$encodeUrl(nextUrl);
+    }
   };
 
   const refresh = () => {
     if (currentTab?.url) {
-      navigateToUrl(currentTab.url);
+      const iframe = iframeRefs.current[activeTab];
+      if (iframe) {
+        iframe.src = __scramjet$encodeUrl(currentTab.url);
+      }
     }
   };
 
@@ -498,34 +486,27 @@ const Browser = () => {
               className="h-full m-0 data-[state=active]:flex flex-col"
             >
             {tab.url ? (
-              <div className="relative w-full h-full bg-black">
-                {isLoading && activeTab === tab.id && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                      <p className="text-muted-foreground">Loading {tab.title}...</p>
+                <div className="relative w-full h-full">
+                  {isLoading && activeTab === tab.id && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        <p className="text-muted-foreground">Loading {tab.title}...</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {loadError && activeTab === tab.id && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-                    <div className="max-w-md p-6 rounded-lg border border-destructive bg-destructive/10">
-                      <h3 className="text-lg font-semibold text-destructive mb-2">Failed to Load</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{loadError}</p>
-                      <Button onClick={() => navigateToUrl(tab.url)} variant="outline">
-                        Try Again
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                <canvas
-                  ref={activeTab === tab.id ? canvasRef : null}
-                  className="w-full h-full object-contain"
-                  width={1920}
-                  height={1080}
-                />
-              </div>
-            ) : (
+                  )}
+                  <iframe
+                    ref={(el) => {
+                      if (el && activeTab === tab.id) {
+                        iframeRefs.current[tab.id] = el;
+                      }
+                    }}
+                    className="w-full h-full border-0"
+                    title={tab.title}
+                    onLoad={() => setIsLoading(false)}
+                  />
+                </div>
+              ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
                   <div className="relative">
                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
@@ -537,12 +518,21 @@ const Browser = () => {
                   <p className="text-muted-foreground text-lg">
                     Secure, Private, Anonymous
                   </p>
+                  <p className="text-sm text-muted-foreground">
+                    {scramjetReady ? "Powered by Scramjet" : "Initializing proxy engine..."}
+                  </p>
                   <div className="flex gap-4 mt-4">
                     <Button onClick={() => navigate('/games')} size="lg" className="gap-2">
                       <Gamepad2 className="w-5 h-5" />
                       Browse Games
                     </Button>
-                    <Button onClick={() => navigateToUrl('google.com')} variant="outline" size="lg" className="gap-2">
+                    <Button 
+                      onClick={() => navigateToUrl('google.com')} 
+                      variant="outline" 
+                      size="lg" 
+                      className="gap-2"
+                      disabled={!scramjetReady}
+                    >
                       <Globe className="w-5 h-5" />
                       Start Browsing
                     </Button>
@@ -556,5 +546,16 @@ const Browser = () => {
     </div>
   );
 };
+
+// Helper function for encoding URLs (will be available from Scramjet)
+function __scramjet$encodeUrl(url: string): string {
+  // @ts-ignore
+  if (typeof window.__scramjet$encodeUrl === 'function') {
+    // @ts-ignore
+    return window.__scramjet$encodeUrl(url);
+  }
+  // Fallback: use service worker scope
+  return '/service/' + url;
+}
 
 export default Browser;
