@@ -277,23 +277,18 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
+    const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || `/scramjet/${encodeURIComponent(previousUrl)}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: previousUrl,
+          url: encodedUrl,
           historyIndex: newIndex
         };
       }
       return tab;
     }));
-
-    const iframe = iframeRefs.current[activeTab];
-    if (iframe && previousUrl) {
-      const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || `/service/${encodeURIComponent(previousUrl)}`;
-      iframe.src = encodedUrl;
-    }
   };
 
   const goForward = () => {
@@ -301,31 +296,26 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
+    const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || `/scramjet/${encodeURIComponent(nextUrl)}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: nextUrl,
+          url: encodedUrl,
           historyIndex: newIndex
         };
       }
       return tab;
     }));
-
-    const iframe = iframeRefs.current[activeTab];
-    if (iframe && nextUrl) {
-      const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || `/service/${encodeURIComponent(nextUrl)}`;
-      iframe.src = encodedUrl;
-    }
   };
 
   const refresh = () => {
     if (currentTab?.url) {
+      setIsLoading(true);
       const iframe = iframeRefs.current[activeTab];
       if (iframe) {
-        const encodedUrl = scramjetRef.current?.encodeUrl?.(currentTab.url) || `/service/${encodeURIComponent(currentTab.url)}`;
-        iframe.src = encodedUrl;
+        iframe.src = iframe.src; // Force reload
       }
     }
   };
@@ -540,13 +530,18 @@ const Browser = () => {
                   )}
                   <iframe
                     ref={(el) => {
-                      if (el && activeTab === tab.id) {
+                      if (el) {
+                        console.log('📌 Setting iframe ref for tab:', tab.id);
                         iframeRefs.current[tab.id] = el;
                       }
                     }}
+                    src={tab.url}
                     className="w-full h-full border-0"
                     title={tab.title}
-                    onLoad={() => setIsLoading(false)}
+                    onLoad={() => {
+                      console.log('✅ Iframe loaded for tab:', tab.id);
+                      setIsLoading(false);
+                    }}
                   />
                 </div>
               ) : (
