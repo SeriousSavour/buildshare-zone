@@ -31,6 +31,7 @@ const Browser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [scramjetReady, setScramjetReady] = useState(false);
   const iframeRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
+  const scramjetRef = useRef<any>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
@@ -76,6 +77,9 @@ const Browser = () => {
         console.log('🚀 Step 5: Calling scramjet.init()...');
         await scramjet.init();
         console.log('✅ Scramjet controller initialized');
+        
+        // Store reference to scramjet
+        scramjetRef.current = scramjet;
 
         // Register service worker
         if ('serviceWorker' in navigator) {
@@ -199,8 +203,9 @@ const Browser = () => {
     }
 
     try {
-      // Encode URL for Scramjet
-      const encodedUrl = __scramjet$encodeUrl(fullUrl);
+      // Encode URL for Scramjet using the service worker prefix
+      const encodedUrl = scramjetRef.current?.encodeUrl?.(fullUrl) || `/service/${encodeURIComponent(fullUrl)}`;
+      console.log('🌐 Encoded URL:', encodedUrl);
       
       // Update tabs
       setTabs(prevTabs => prevTabs.map(tab => {
@@ -220,7 +225,10 @@ const Browser = () => {
       // Navigate iframe
       const iframe = iframeRefs.current[activeTab];
       if (iframe) {
+        console.log('📍 Setting iframe src to:', encodedUrl);
         iframe.src = encodedUrl;
+      } else {
+        console.error('❌ No iframe ref found for tab:', activeTab);
       }
     } catch (error) {
       console.error('❌ Navigation error:', error);
@@ -275,7 +283,8 @@ const Browser = () => {
 
     const iframe = iframeRefs.current[activeTab];
     if (iframe && previousUrl) {
-      iframe.src = __scramjet$encodeUrl(previousUrl);
+      const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || `/service/${encodeURIComponent(previousUrl)}`;
+      iframe.src = encodedUrl;
     }
   };
 
@@ -298,7 +307,8 @@ const Browser = () => {
 
     const iframe = iframeRefs.current[activeTab];
     if (iframe && nextUrl) {
-      iframe.src = __scramjet$encodeUrl(nextUrl);
+      const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || `/service/${encodeURIComponent(nextUrl)}`;
+      iframe.src = encodedUrl;
     }
   };
 
@@ -306,7 +316,8 @@ const Browser = () => {
     if (currentTab?.url) {
       const iframe = iframeRefs.current[activeTab];
       if (iframe) {
-        iframe.src = __scramjet$encodeUrl(currentTab.url);
+        const encodedUrl = scramjetRef.current?.encodeUrl?.(currentTab.url) || `/service/${encodeURIComponent(currentTab.url)}`;
+        iframe.src = encodedUrl;
       }
     }
   };
@@ -570,16 +581,5 @@ const Browser = () => {
     </div>
   );
 };
-
-// Helper function for encoding URLs (will be available from Scramjet)
-function __scramjet$encodeUrl(url: string): string {
-  // @ts-ignore
-  if (typeof window.__scramjet$encodeUrl === 'function') {
-    // @ts-ignore
-    return window.__scramjet$encodeUrl(url);
-  }
-  // Fallback: use service worker scope
-  return '/service/' + url;
-}
 
 export default Browser;
