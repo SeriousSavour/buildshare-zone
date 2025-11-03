@@ -17,21 +17,22 @@ interface Tab {
   title: string;
   history: string[];
   historyIndex: number;
-  content?: string;
+  frameData?: string;
 }
 
 const Browser = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, content: "" }
+    { id: "1", url: "", title: "New Tab", history: [""], historyIndex: 0, frameData: "" }
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [urlInput, setUrlInput] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
@@ -41,6 +42,70 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
+  // Initialize WebSocket connection
+  useEffect(() => {
+    console.log('🔌 Connecting to WebSocket engine...');
+    const ws = new WebSocket("wss://4t134qeg-production.up.railway.app");
+    
+    ws.onopen = () => {
+      console.log('✅ WebSocket connected');
+      toast({
+        title: "Browser Engine Connected",
+        description: "Ready to browse",
+      });
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('📦 Received frame data:', data.type);
+        
+        // Handle incoming frame data
+        if (data.type === 'frame' && data.data) {
+          setTabs(prevTabs => prevTabs.map(tab => 
+            tab.id === activeTab 
+              ? { ...tab, frameData: data.data }
+              : tab
+          ));
+          
+          // Draw frame to canvas
+          if (canvasRef.current && data.data) {
+            const ctx = canvasRef.current.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+              ctx?.drawImage(img, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
+            };
+            img.src = data.data;
+          }
+          
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('❌ WebSocket error:', error);
+      setLoadError('WebSocket connection error');
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to browser engine",
+        variant: "destructive",
+      });
+    };
+
+    ws.onclose = () => {
+      console.log('🔌 WebSocket disconnected');
+    };
+
+    wsRef.current = ws;
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
   const addNewTab = () => {
     const newTab: Tab = {
       id: Date.now().toString(),
@@ -48,7 +113,7 @@ const Browser = () => {
       title: "New Tab",
       history: [""],
       historyIndex: 0,
-      content: ""
+      frameData: ""
     };
     setTabs([...tabs, newTab]);
     setActiveTab(newTab.id);
@@ -101,69 +166,36 @@ const Browser = () => {
       return;
     }
 
-    // Fetch HTML content via proxy and inject with srcDoc
-    try {
-      const proxyUrl = getProxyUrl(fullUrl);
-      console.log('🔗 Generated proxy URL:', proxyUrl);
-      console.log('🔑 Worker URL from env:', import.meta.env.VITE_PROXY_WORKER_URL);
-      
-      const response = await fetch(proxyUrl);
-      console.log('📡 Fetch response status:', response.status);
-      console.log('📄 Fetch response Content-Type:', response.headers.get('content-type'));
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
-      }
-      
-      const html = await response.text();
-      console.log('📝 Received HTML length:', html.length);
-      console.log('🔍 HTML starts with:', html.substring(0, 100));
-      
-      // Check if images are in the HTML
-      const imgMatches = html.match(/<img[^>]*src=["']([^"']+)["']/gi);
-      console.log('🖼️ Found', imgMatches?.length || 0, 'image tags');
-      if (imgMatches) {
-        console.log('🖼️ First image src:', imgMatches[0]);
-      }
-      
-      // Check if base tag exists
-      const hasBase = html.includes('<base');
-      const hasCSPMeta = html.includes('Content-Security-Policy');
-      console.log('🏠 Has base tag:', hasBase);
-      console.log('🔒 Has CSP meta tag:', hasCSPMeta);
-      console.log('🔍 First 800 chars of HTML:', html.substring(0, 800));
-      console.log('📦 Response headers:', Object.fromEntries([...response.headers.entries()]));
-      
-      // Clear any previous errors
-      setLoadError(null);
-      
-      // Update tabs with new content
-      setTabs(prevTabs => {
-        const newTabs = prevTabs.map(tab => {
-          if (tab.id === activeTab) {
-            const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-            console.log('✏️ Updating tab:', tab.id, 'with', html.length, 'bytes of content');
-            return {
-              ...tab,
-              url: fullUrl,
-              title: new URL(fullUrl).hostname,
-              history: newHistory,
-              historyIndex: newHistory.length - 1,
-              content: html
-            };
-          }
-          return tab;
-        });
-        console.log('📋 New tabs state:', newTabs.find(t => t.id === activeTab));
-        return newTabs;
+    // Send navigation message to WebSocket engine
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      console.log('📤 Sending navigate message:', fullUrl);
+      wsRef.current.send(JSON.stringify({
+        type: "navigate",
+        data: { url: fullUrl }
+      }));
+
+      // Update tabs with new URL
+      setTabs(prevTabs => prevTabs.map(tab => {
+        if (tab.id === activeTab) {
+          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+          return {
+            ...tab,
+            url: fullUrl,
+            title: new URL(fullUrl).hostname,
+            history: newHistory,
+            historyIndex: newHistory.length - 1,
+          };
+        }
+        return tab;
+      }));
+    } else {
+      setLoadError('WebSocket not connected');
+      setIsLoading(false);
+      toast({
+        title: "Connection Error",
+        description: "Browser engine is not connected",
+        variant: "destructive",
       });
-      
-      setIsLoading(false);
-      console.log('✅ Navigation complete');
-    } catch (error) {
-      console.error('Failed to load:', error);
-      setLoadError(error instanceof Error ? error.message : 'Failed to load website');
-      setIsLoading(false);
     }
   };
 
@@ -268,18 +300,6 @@ const Browser = () => {
     }
   };
 
-  const getProxyUrl = (targetUrl: string) => {
-    if (!targetUrl || targetUrl.startsWith('shadow://')) {
-      console.warn('⚠️ Invalid target URL for proxy:', targetUrl);
-      return '';
-    }
-    
-    // Always use Supabase relay - this hides the actual proxy backend completely
-    const supabaseUrl = 'https://ptmeykacgbrsmvcvwrpp.supabase.co';
-    const proxyUrl = `${supabaseUrl}/functions/v1/browser-proxy?url=${encodeURIComponent(targetUrl)}`;
-    console.log('🔒 Using secure relay proxy (backend hidden)');
-    return proxyUrl;
-  };
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -438,7 +458,7 @@ const Browser = () => {
               className="h-full m-0 data-[state=active]:flex flex-col"
             >
             {tab.url ? (
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-full bg-black">
                 {isLoading && activeTab === tab.id && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
                     <div className="flex flex-col items-center gap-4">
@@ -458,31 +478,12 @@ const Browser = () => {
                     </div>
                   </div>
                 )}
-                {tab.content && !loadError && (
-                  <iframe
-                    key={`iframe-${tab.id}-${tab.historyIndex}`}
-                    ref={activeTab === tab.id ? iframeRef : null}
-                    src={URL.createObjectURL(new Blob([tab.content], { type: 'text/html' }))}
-                    title={tab.title}
-                    className="w-full h-full border-none"
-                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
-                    referrerPolicy="no-referrer"
-                    onLoad={() => {
-                      console.log('🎯 Iframe loaded successfully for tab:', tab.id);
-                      setIsLoading(false);
-                    }}
-                    onError={(e) => {
-                      console.error('❌ Iframe error:', e);
-                      setIsLoading(false);
-                      setLoadError('Failed to load website');
-                    }}
-                  />
-                )}
-                {!tab.content && !loadError && !isLoading && (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">No content loaded</p>
-                  </div>
-                )}
+                <canvas
+                  ref={activeTab === tab.id ? canvasRef : null}
+                  className="w-full h-full object-contain"
+                  width={1920}
+                  height={1080}
+                />
               </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full gap-6">
