@@ -48,44 +48,44 @@ const Browser = () => {
     const initializeScramjet = async () => {
       try {
         console.log('🚀 Step 1: Loading BareMux...');
-        await loadScript('/baremux/index.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
         console.log('✅ BareMux loaded');
 
         console.log('🚀 Step 2: Loading Epoxy...');
-        await loadScript('/epoxy/index.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
         console.log('✅ Epoxy loaded');
         
         console.log('🚀 Step 3: Loading Scramjet...');
-        await loadScript('/scram/scramjet.all.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.codecs.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.config.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.shared.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.client.js');
         console.log('✅ Scramjet loaded');
 
         // @ts-ignore - Scramjet globals
-        if (!window.$scramjetLoadController) {
-          throw new Error('Scramjet controller not available');
+        if (!window.$scramjet || !window.$scramjet.config) {
+          throw new Error('Scramjet not available');
         }
 
-        console.log('🚀 Step 4: Initializing Scramjet controller...');
+        console.log('🚀 Step 4: Initializing Scramjet...');
         // @ts-ignore
-        const { ScramjetController } = window.$scramjetLoadController();
+        window.$scramjet.config.files = {
+          wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.wasm.js",
+          worker: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.worker.js",
+          client: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.client.js",
+          shared: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.shared.js",
+          sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.sync.js",
+        };
 
-        const scramjet = new ScramjetController({
-          files: {
-            wasm: "/scram/scramjet.wasm.wasm",
-            all: "/scram/scramjet.all.js",
-            sync: "/scram/scramjet.sync.js",
-          }
-        });
-
-        console.log('🚀 Step 5: Calling scramjet.init()...');
-        await scramjet.init();
-        console.log('✅ Scramjet controller initialized');
+        console.log('✅ Scramjet configured');
         
         // Store reference to scramjet
-        scramjetRef.current = scramjet;
+        // @ts-ignore
+        scramjetRef.current = window.$scramjet;
 
         // Register service worker
         if ('serviceWorker' in navigator) {
-          console.log('🚀 Step 6: Unregistering old service workers...');
+          console.log('🚀 Step 5: Unregistering old service workers...');
           const registrations = await navigator.serviceWorker.getRegistrations();
           for (const registration of registrations) {
             await registration.unregister();
@@ -95,7 +95,7 @@ const Browser = () => {
           // Wait a bit for unregistration to complete
           await new Promise(resolve => setTimeout(resolve, 500));
           
-          console.log('🚀 Step 7: Registering new service worker...');
+          console.log('🚀 Step 6: Registering new service worker...');
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
             updateViaCache: 'none'
@@ -130,13 +130,13 @@ const Browser = () => {
           throw new Error('BareMux not available');
         }
 
-        console.log('🚀 Step 8: Creating BareMux connection...');
+        console.log('🚀 Step 7: Creating BareMux connection...');
         // @ts-ignore
-        const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
+        const connection = new window.BareMux.BareMuxConnection("https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/worker.js");
         
-        console.log('🚀 Step 9: Setting transport...');
+        console.log('🚀 Step 8: Setting transport...');
         // Use Epoxy transport with Scramjet's official Wisp server
-        await connection.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/wisp/" }]);
+        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/wisp/" }]);
         
         console.log('✅ Scramjet fully initialized!');
         setScramjetReady(true);
@@ -234,7 +234,7 @@ const Browser = () => {
 
     try {
       // Encode URL for Scramjet
-      const encodedUrl = scramjetRef.current?.encodeUrl?.(fullUrl) || `/service/${encodeURIComponent(fullUrl)}`;
+      const encodedUrl = scramjetRef.current?.codec?.encode?.(fullUrl) || `/service/${encodeURIComponent(fullUrl)}`;
       console.log('🌐 Original URL:', fullUrl);
       console.log('🔗 Encoded proxy URL:', encodedUrl);
       
@@ -293,7 +293,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || `/service/${encodeURIComponent(previousUrl)}`;
+    const encodedUrl = scramjetRef.current?.codec?.encode?.(previousUrl) || `/service/${encodeURIComponent(previousUrl)}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -312,7 +312,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || `/service/${encodeURIComponent(nextUrl)}`;
+    const encodedUrl = scramjetRef.current?.codec?.encode?.(nextUrl) || `/service/${encodeURIComponent(nextUrl)}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {

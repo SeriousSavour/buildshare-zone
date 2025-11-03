@@ -1,7 +1,7 @@
-importScripts("/scram/scramjet.all.js");
-
-const { ScramjetServiceWorker } = $scramjetLoadWorker();
-const scramjet = new ScramjetServiceWorker();
+importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.codecs.js");
+importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.config.js");
+importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.shared.js");
+importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2/dist/scramjet.worker.js");
 
 // Install immediately
 self.addEventListener('install', (event) => {
@@ -18,12 +18,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener("fetch", (event) => {
   console.log('📡 SW intercepted:', event.request.url);
   
-  event.respondWith((async () => {
-    if (scramjet.route(event)) {
-      console.log('✅ Scramjet routing:', event.request.url);
-      return scramjet.fetch(event);
-    }
+  // @ts-ignore - Scramjet handles routing
+  if ($scramjet.route(event)) {
+    console.log('✅ Scramjet routing:', event.request.url);
+    // @ts-ignore
+    event.respondWith($scramjet.fetch(event));
+  } else {
     console.log('⏩ Passthrough:', event.request.url);
-    return fetch(event.request);
-  })());
+  }
 });
