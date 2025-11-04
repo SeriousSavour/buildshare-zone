@@ -38,10 +38,19 @@ self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {
     try {
       const isProxy = url.pathname.startsWith(self.$scramjet.config.prefix);
-      const shouldRoute = isProxy || sw.route(req);
+      let shouldRoute = false;
+      try {
+        shouldRoute = isProxy || (sw && typeof sw.route === "function" && sw.route(req));
+      } catch (e) {
+        console.warn("[SW] route() failed", e);
+      }
       if (shouldRoute) {
-        const resp = await sw.fetch(req);
-        if (resp) return resp;
+        try {
+          const resp = await sw.fetch(req);
+          if (resp) return resp;
+        } catch (e) {
+          console.error("[SW] fetch() failed", e);
+        }
       }
     } catch (err) {
       console.error("[SW] route/fetch error:", err);
