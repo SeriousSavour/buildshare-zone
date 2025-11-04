@@ -224,93 +224,55 @@ const Browser = () => {
   };
 
   const navigateToUrl = async (url: string) => {
-    if (!url || !scramjetReady) {
-      if (!scramjetReady) {
-        toast({
-          title: "Please wait",
-          description: "Proxy engine is still initializing",
-        });
-      }
-      return;
-    }
+    if (!url) return;
 
-    console.log('🌐 Navigating to:', url);
-    setIsLoading(true);
+    // Normalize input (add protocol or turn spaces into a search)
+    const looksLikeQuery = url.includes(" ") ||
+      (!url.includes(".") && !/^https?:\/\//i.test(url) && !/^shadow:\/\//i.test(url));
 
-    // Add protocol if missing
-    let fullUrl = url;
-    
-    // Check if it's a search query
-    const isSearchQuery = (url.includes(' ') || (!url.includes('.') && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')));
-    
-    if (isSearchQuery) {
+    let fullUrl = url.trim();
+    if (looksLikeQuery) {
       fullUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
-      console.log('🔍 Search query detected, redirecting to:', fullUrl);
-    } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('shadow://')) {
-      fullUrl = 'https://' + url;
+    } else if (!/^https?:\/\//i.test(fullUrl) && !/^shadow:\/\//i.test(fullUrl)) {
+      fullUrl = "https://" + fullUrl;
     }
 
     // Handle special shadow:// protocol
     if (fullUrl.startsWith('shadow://')) {
       handleSpecialProtocol(fullUrl);
-      setIsLoading(false);
       return;
     }
 
-    try {
-      // Use absolute URL to ensure service worker intercepts it
-      const absoluteProxyUrl = `${window.location.origin}/service/${fullUrl}`;
-      
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🔵 NAVIGATION START');
-      console.log('📝 Input URL:', fullUrl);
-      console.log('📝 Absolute proxy URL:', absoluteProxyUrl);
-      console.log('📝 SW controller active?', navigator.serviceWorker.controller ? 'YES ✓' : 'NO ✗');
-      console.log('📝 SW controller URL:', navigator.serviceWorker.controller?.scriptURL);
-      console.log('📝 Scramjet ready?', scramjetReady);
-      
-      // Test fetch to see if SW intercepts
-      console.log('🧪 Testing fetch to proxy URL...');
-      const testResponse = await fetch(absoluteProxyUrl, { method: 'HEAD' }).catch(e => {
-        console.error('❌ Test fetch failed:', e);
-        return null;
-      });
-      if (testResponse) {
-        console.log('✅ Test fetch response:', testResponse.status, testResponse.url);
-      }
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      // Update tabs - store BOTH original and encoded URLs
-      setTabs(prevTabs => {
-        const newTabs = prevTabs.map(tab => {
-          if (tab.id === activeTab) {
-            const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-            const updatedTab = {
-              ...tab,
-              url: absoluteProxyUrl, // iframe uses absolute proxy URL
-              title: new URL(fullUrl).hostname,
-              history: newHistory, // history stores original URLs
-              historyIndex: newHistory.length - 1,
-            };
-            console.log('📍 Tab state updated:', updatedTab);
-            return updatedTab;
-          }
-          return tab;
-        });
-        return newTabs;
-      });
+    // Don't include window.location.origin. Use a relative URL under /service/
+    const proxied = `/service/${fullUrl}`;
 
-      console.log('🎯 Iframe will now attempt to load:', absoluteProxyUrl);
-    } catch (error) {
-      console.error('❌ Navigation error:', error);
+    // IMPORTANT: ensure SW is controlling *before* you set src
+    if (!navigator.serviceWorker.controller) {
       toast({
-        title: "Navigation Failed",
-        description: "Could not load the page",
-        variant: "destructive",
+        title: "Please wait",
+        description: "Proxy engine is still initializing",
       });
-    } finally {
-      // Keep loading state until iframe loads
+      const { ensureServiceWorkerControl } = await import('@/lib/sw-register');
+      await ensureServiceWorkerControl();
     }
+
+    // Update state for the tab
+    setTabs(prev =>
+      prev.map(tab => {
+        if (tab.id !== activeTab) return tab;
+        const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+        return {
+          ...tab,
+          url: proxied,           // iframe sees the proxied URL
+          title: new URL(fullUrl).hostname,
+          history: newHistory,    // history keeps original URL
+          historyIndex: newHistory.length - 1,
+        };
+      })
+    );
+
+    // (Loading state will flip in onLoad)
+    setIsLoading(true);
   };
 
   const handleSpecialProtocol = (url: string) => {
@@ -340,13 +302,13 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const absoluteProxyUrl = `${window.location.origin}/service/${previousUrl}`;
+    const proxied = `/service/${previousUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: absoluteProxyUrl,
+          url: proxied,
           historyIndex: newIndex
         };
       }
@@ -359,13 +321,13 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const absoluteProxyUrl = `${window.location.origin}/service/${nextUrl}`;
+    const proxied = `/service/${nextUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: absoluteProxyUrl,
+          url: proxied,
           historyIndex: newIndex
         };
       }
@@ -594,46 +556,18 @@ const Browser = () => {
                   <iframe
                     ref={(el) => {
                       if (el) {
-                        console.log('📌 Setting iframe ref for tab:', tab.id);
-                        console.log('📌 Iframe src attribute:', el.getAttribute('src'));
-                        console.log('📌 SW controller status:', navigator.serviceWorker.controller ? 'ACTIVE ✓' : 'NONE ✗');
                         iframeRefs.current[tab.id] = el;
-                        
-                        // Add navigation listener
-                        el.addEventListener('load', () => {
-                          console.log('🔵 IFRAME LOAD EVENT');
-                          console.log('Expected src:', tab.url);
-                          console.log('Actual src attribute:', el.getAttribute('src'));
-                          try {
-                            console.log('Iframe contentWindow.location.href:', el.contentWindow?.location.href);
-                          } catch (e) {
-                            console.log('Cannot read iframe location (cross-origin)');
-                          }
+                        el.addEventListener("load", () => {
+                          setIsLoading(false);
                         });
                       }
                     }}
                     src={tab.url}
                     className="w-full h-full border-0"
                     title={tab.title}
-                    onLoad={() => {
-                      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                      console.log('🟢 IFRAME LOADED');
-                      console.log('📝 Tab ID:', tab.id);
-                      console.log('📝 Expected URL (src):', tab.url);
-                      const iframe = iframeRefs.current[tab.id];
-                      if (iframe) {
-                        try {
-                          console.log('📝 Actual iframe.contentWindow.location.href:', iframe.contentWindow?.location.href);
-                          console.log('📝 Iframe.src:', iframe.src);
-                        } catch (e) {
-                          console.log('📝 Cannot access iframe location (likely cross-origin or proxy working)');
-                        }
-                      }
-                      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                      setIsLoading(false);
-                    }}
                     onError={(e) => {
-                      console.error('❌ IFRAME ERROR:', e);
+                      console.error("❌ IFRAME ERROR:", e);
+                      setIsLoading(false);
                     }}
                   />
                 </div>

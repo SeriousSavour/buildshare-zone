@@ -1,6 +1,8 @@
-importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
+// public/sw.js
 
-// CRITICAL: Configure BEFORE loading worker
+// ─────────────────────────────────────────────────────────────────────────────
+// 1) CONFIGURE FIRST (before importing the worker library!)
+// ─────────────────────────────────────────────────────────────────────────────
 self.$scramjet = {
   config: {
     prefix: "/service/",
@@ -14,85 +16,56 @@ self.$scramjet = {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2) LOAD THE SCRAMJET WORKER BUNDLE
+// ─────────────────────────────────────────────────────────────────────────────
+importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
+
+// Create worker instance
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const sw = new ScramjetServiceWorker();
 
-console.log('🔧 Service Worker loaded');
-console.log('🔧 Config prefix:', self.$scramjet.config.prefix);
-
-// Install immediately
-self.addEventListener('install', (event) => {
-  console.log('🔧 SW installing');
+// ─────────────────────────────────────────────────────────────────────────────
+// 3) LIFECYCLE
+// ─────────────────────────────────────────────────────────────────────────────
+self.addEventListener("install", (event) => {
+  // Take control ASAP
   self.skipWaiting();
 });
 
-// Activate and take control immediately
-self.addEventListener('activate', (event) => {
-  console.log('🔧 SW activated');
+self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 4) FETCH HANDLER
+// ─────────────────────────────────────────────────────────────────────────────
+// Keep it simple: ask Scramjet if it wants the request. If yes → let it handle.
+// Do NOT pass the event object to sw.route/fetch — pass the Request.
+// Avoid custom manual proxying here; let Scramjet own the /service/* space.
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    (async () => {
-      const url = new URL(event.request.url);
-      
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🔴 SW FETCH:', url.pathname);
-      
-      // Check if this is a proxy request
-      if (url.pathname.startsWith(self.$scramjet.config.prefix)) {
-        console.log('✅ Proxy URL detected!');
-        console.log('📝 Config prefix:', self.$scramjet.config.prefix);
-        console.log('📝 URL pathname:', url.pathname);
-        
-        try {
-          // DON'T call loadConfig - it overrides our prefix!
-          // Just check if Scramjet will route it
-          const shouldRoute = sw.route(event);
-          console.log('📝 sw.route() =', shouldRoute);
-          
-          if (shouldRoute) {
-            console.log('🎯 Proxying...');
-            const response = await sw.fetch(event);
-            console.log('✅ Response:', response.status);
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            return response;
-          } else {
-            console.log('❌ sw.route() = false');
-            // If route returns false, manually handle it
-            console.log('🔧 Attempting manual proxy...');
-            
-            // Extract the target URL from /service/https://example.com
-            const targetUrl = url.pathname.replace(self.$scramjet.config.prefix, '');
-            console.log('📝 Target URL:', targetUrl);
-            
-            if (targetUrl) {
-              try {
-                // Try direct fetch first
-                const proxyResponse = await fetch(targetUrl, {
-                  headers: event.request.headers,
-                  method: event.request.method,
-                  body: event.request.body
-                });
-                console.log('✅ Direct fetch response:', proxyResponse.status);
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                return proxyResponse;
-              } catch (e) {
-                console.error('❌ Direct fetch failed:', e);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('❌ Proxy error:', error);
-          console.error('❌ Stack:', error.stack);
-        }
-      } else {
-        console.log('⏩ Not proxy URL - passthrough');
+  const req = event.request;
+  const url = new URL(req.url);
+
+  const handle = async () => {
+    // Only try to route requests that fall under our prefix OR that the worker
+    // says it can handle (some libs can decide on their own).
+    const isProxyPath = url.pathname.startsWith(self.$scramjet.config.prefix);
+
+    try {
+      const shouldRoute = isProxyPath || sw.route(req);
+      if (shouldRoute) {
+        const resp = await sw.fetch(req);
+        if (resp) return resp;
       }
-      
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      return fetch(event.request);
-    })()
-  );
+    } catch (err) {
+      // Fall through to network on errors; do not crash SW
+      console.error('SW fetch error:', err);
+    }
+
+    // Default: network passthrough
+    return fetch(req);
+  };
+
+  event.respondWith(handle());
 });
