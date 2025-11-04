@@ -294,45 +294,6 @@ export type Database = {
           },
         ]
       }
-      embedding_tracker: {
-        Row: {
-          created_at: string
-          current_url: string | null
-          detection_count: number
-          first_detected: string
-          id: string
-          last_detected: string
-          parent_url: string
-          referrer: string | null
-          updated_at: string
-          user_agent: string | null
-        }
-        Insert: {
-          created_at?: string
-          current_url?: string | null
-          detection_count?: number
-          first_detected?: string
-          id?: string
-          last_detected?: string
-          parent_url: string
-          referrer?: string | null
-          updated_at?: string
-          user_agent?: string | null
-        }
-        Update: {
-          created_at?: string
-          current_url?: string | null
-          detection_count?: number
-          first_detected?: string
-          id?: string
-          last_detected?: string
-          parent_url?: string
-          referrer?: string | null
-          updated_at?: string
-          user_agent?: string | null
-        }
-        Relationships: []
-      }
       featured_game: {
         Row: {
           created_at: string
@@ -884,8 +845,6 @@ export type Database = {
           guideline_id: string
           guideline_version: number
           id: string
-          ip_address: string | null
-          user_agent: string | null
           user_id: string
         }
         Insert: {
@@ -893,8 +852,6 @@ export type Database = {
           guideline_id: string
           guideline_version: number
           id?: string
-          ip_address?: string | null
-          user_agent?: string | null
           user_id: string
         }
         Update: {
@@ -902,8 +859,6 @@ export type Database = {
           guideline_id?: string
           guideline_version?: number
           id?: string
-          ip_address?: string | null
-          user_agent?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1110,6 +1065,14 @@ export type Database = {
       accept_friend_request_with_context: {
         Args: { _request_id: string; _session_token: string }
         Returns: Json
+      }
+      accept_guideline: {
+        Args: {
+          _guideline_id: string
+          _guideline_version: number
+          _user_id: string
+        }
+        Returns: undefined
       }
       accept_guidelines: {
         Args: {
