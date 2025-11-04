@@ -66,18 +66,10 @@ const Browser = () => {
 
         console.log('🚀 Step 4: Initializing ScramjetController...');
         
-        // Configure Scramjet globally before initialization
-        // @ts-ignore
-        if (!window.$scramjet) window.$scramjet = {};
-        // @ts-ignore
-        if (!window.$scramjet.config) window.$scramjet.config = {};
-        // @ts-ignore
-        window.$scramjet.config.prefix = '/service/';
-        
         // @ts-ignore
         const { ScramjetController } = window.$scramjetLoadController();
         
-        const scramjet = new ScramjetController({
+        const controller = new ScramjetController({
           files: {
             wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
             all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
@@ -85,13 +77,11 @@ const Browser = () => {
           }
         });
 
-        await scramjet.init();
+        await controller.init();
         console.log('✅ ScramjetController initialized');
-        // @ts-ignore
-        console.log('📝 Scramjet prefix configured:', window.$scramjet?.config?.prefix);
         
-        // Store reference to scramjet
-        scramjetRef.current = scramjet;
+        // Store reference to controller
+        scramjetRef.current = controller;
 
         // Register service worker
         if ('serviceWorker' in navigator) {
@@ -243,14 +233,12 @@ const Browser = () => {
     }
 
     try {
-      // Encode URL for Scramjet using prefix - Scramjet expects /prefix/url format
-      const prefix = scramjetRef.current?.config?.prefix || '/service/';
-      const encodedUrl = prefix + fullUrl;
+      // Use Scramjet's encodeUrl method
+      const encodedUrl = scramjetRef.current?.encodeUrl?.(fullUrl) || fullUrl;
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🔵 NAVIGATION START');
       console.log('📝 Input URL:', fullUrl);
-      console.log('📝 Scramjet prefix:', prefix);
       console.log('📝 Encoded URL for iframe:', encodedUrl);
       console.log('📝 SW controller active?', navigator.serviceWorker.controller ? 'YES ✓' : 'NO ✗');
       console.log('📝 Scramjet ready?', scramjetReady);
@@ -316,8 +304,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const prefix = scramjetRef.current?.config?.prefix || '/service/';
-    const encodedUrl = prefix + previousUrl;
+    const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || previousUrl;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -336,8 +323,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const prefix = scramjetRef.current?.config?.prefix || '/service/';
-    const encodedUrl = prefix + nextUrl;
+    const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || nextUrl;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {

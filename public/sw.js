@@ -1,12 +1,7 @@
 importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
 
-// Configure Scramjet prefix BEFORE creating instance
-self.$scramjet = self.$scramjet || {};
-self.$scramjet.config = self.$scramjet.config || {};
-self.$scramjet.config.prefix = '/service/';
-
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
-const scramjet = new ScramjetServiceWorker();
+const sw = new ScramjetServiceWorker();
 
 // Install immediately
 self.addEventListener('install', (event) => {
@@ -22,26 +17,18 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = event.request.url;
-  const method = event.request.method;
   
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🔴 SW FETCH EVENT');
-  console.log('📝 Method:', method);
   console.log('📝 URL:', url);
-  console.log('📝 Request mode:', event.request.mode);
-  console.log('📝 Request destination:', event.request.destination);
   
   event.respondWith((async () => {
-    try {
-      await scramjet.loadConfig();
-      
-      if (scramjet.route(event)) {
-        console.log('✅ Scramjet routing this request');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        return await scramjet.fetch(event);
-      }
-    } catch (err) {
-      console.error('❌ Scramjet error:', err);
+    await sw.loadConfig();
+    
+    if (sw.route(event)) {
+      console.log('✅ Scramjet WILL proxy this request');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      return await sw.fetch(event);
     }
     
     console.log('⏩ Passthrough (not proxied)');
