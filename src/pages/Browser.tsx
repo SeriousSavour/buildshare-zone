@@ -65,6 +65,15 @@ const Browser = () => {
         }
 
         console.log('🚀 Step 4: Initializing ScramjetController...');
+        
+        // Configure Scramjet globally before initialization
+        // @ts-ignore
+        if (!window.$scramjet) window.$scramjet = {};
+        // @ts-ignore
+        if (!window.$scramjet.config) window.$scramjet.config = {};
+        // @ts-ignore
+        window.$scramjet.config.prefix = '/service/';
+        
         // @ts-ignore
         const { ScramjetController } = window.$scramjetLoadController();
         
@@ -76,10 +85,10 @@ const Browser = () => {
           }
         });
 
-        await scramjet.init('/service/');
+        await scramjet.init();
         console.log('✅ ScramjetController initialized');
-        console.log('📝 Scramjet config:', scramjet.config);
-        console.log('📝 Scramjet prefix:', scramjet.config?.prefix);
+        // @ts-ignore
+        console.log('📝 Scramjet prefix configured:', window.$scramjet?.config?.prefix);
         
         // Store reference to scramjet
         scramjetRef.current = scramjet;

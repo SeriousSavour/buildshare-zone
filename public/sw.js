@@ -1,12 +1,12 @@
 importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
 
-const { ScramjetServiceWorker } = $scramjetLoadWorker();
-const scramjet = new ScramjetServiceWorker();
-
-// Configure prefix
+// Configure Scramjet prefix BEFORE creating instance
 self.$scramjet = self.$scramjet || {};
 self.$scramjet.config = self.$scramjet.config || {};
 self.$scramjet.config.prefix = '/service/';
+
+const { ScramjetServiceWorker } = $scramjetLoadWorker();
+const scramjet = new ScramjetServiceWorker();
 
 // Install immediately
 self.addEventListener('install', (event) => {
