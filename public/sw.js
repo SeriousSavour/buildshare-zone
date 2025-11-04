@@ -1,4 +1,6 @@
 // public/sw.js
+// v4 — prefix-only SW, no sw.route()
+
 self.$scramjet = {
   config: {
     prefix: "/s/",
@@ -12,13 +14,16 @@ self.$scramjet = {
   }
 };
 
-importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
+importScripts(
+  "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js"
+);
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const sw = new ScramjetServiceWorker();
 
 self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
-self.addEventListener("message", e => {
+self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+
+self.addEventListener("message", (e) => {
   const d = e.data || {};
   if (d.type === "claim") self.clients.claim();
   if (d.type === "skipWaiting") self.skipWaiting();
@@ -28,18 +33,22 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 🔒 Keep it SIMPLE: we only handle /s/* here
   if (!url.pathname.startsWith(self.$scramjet.config.prefix)) {
-    return; // fall through to network
+    // Let the browser handle it
+    return;
   }
 
-  event.respondWith((async () => {
-    try {
-      const resp = await sw.fetch(req);   // let Scramjet handle /s/*
-      if (resp) return resp;
-    } catch (e) {
-      console.error("[SW]/s/* fetch() error:", e);
-    }
-    return fetch(req); // network fallback
-  })());
+  event.respondWith(
+    (async () => {
+      try {
+        // Let Scramjet fetch proxied content
+        const resp = await sw.fetch(req);
+        if (resp) return resp;
+      } catch (e) {
+        console.error("[SW]/s/* fetch error:", e);
+      }
+      // Fallback (should be rare)
+      return fetch(req);
+    })()
+  );
 });

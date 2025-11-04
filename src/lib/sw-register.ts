@@ -1,4 +1,6 @@
 // src/lib/sw-register.ts
+const SW_URL = `/sw.js?v=${Date.now()}` as const;
+
 export async function ensureServiceWorkerControl(): Promise<void> {
   if (!("serviceWorker" in navigator)) {
     console.warn("Service workers not supported in this browser.");
@@ -9,7 +11,7 @@ export async function ensureServiceWorkerControl(): Promise<void> {
 
   let reg: ServiceWorkerRegistration;
   try {
-    reg = await navigator.serviceWorker.register("/sw.js", {
+    reg = await navigator.serviceWorker.register(SW_URL, {
       scope: "/",                // allow /s/* under root
       updateViaCache: "all",
     });
@@ -29,7 +31,6 @@ export async function ensureServiceWorkerControl(): Promise<void> {
 
   if (!navigator.serviceWorker.controller) {
     await new Promise<void>((resolve) => {
-      const key = "__sw_reload_once__";
       const onCtrl = () => {
         if (navigator.serviceWorker.controller) {
           navigator.serviceWorker.removeEventListener("controllerchange", onCtrl);
@@ -37,19 +38,7 @@ export async function ensureServiceWorkerControl(): Promise<void> {
         }
       };
       navigator.serviceWorker.addEventListener("controllerchange", onCtrl);
-
-      // One-time reload if still not controlled
-      setTimeout(() => {
-        if (!navigator.serviceWorker.controller) {
-          if (!sessionStorage.getItem(key)) {
-            sessionStorage.setItem(key, "1");
-            location.reload();
-          } else {
-            console.error("❌ SW still not controlling after reload — check /sw.js route & content-type.");
-            resolve();
-          }
-        }
-      }, 1000);
+      setTimeout(() => resolve(), 1500);
     });
   }
 }
