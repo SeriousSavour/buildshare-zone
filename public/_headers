@@ -1,0 +1,4 @@
+/sw.js
+  Service-Worker-Allowed: /
+  Cache-Control: no-store
+  Content-Type: application/javascript; charset=utf-8
