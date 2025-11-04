@@ -11,8 +11,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
-const ENGINE_ORIGIN = 'https://scramjet.mercurywork.shop';
-const ENGINE_PREFIX = '/scramjet/';
+const ENGINE_ORIGIN = window.location.origin;
+const ENGINE_PREFIX = '/sengine/scramjet/';
 
 function normalizeUserInput(input: string): string {
   let s = input.trim();

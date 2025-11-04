@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self';"
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Engine</title>
+    <style>
+      html, body { height: 100%; margin: 0; background: #0b0b0f; color:#9aa4af; display:flex; align-items:center; justify-content:center; font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial; }
+      .dot{width:10px;height:10px;border-radius:50%;background:#5865f2;animation:b 1s infinite alternate}
+      @keyframes b{to{transform:scale(0.5);opacity:0.5}}
+    </style>
+  </head>
+  <body>
+    <div>Starting engine… <span class="dot"></span></div>
+    <script>
+      (async () => {
+        if (!('serviceWorker' in navigator)) { location.replace('/'); return; }
+
+        // Always (re-)register the SW under /sengine/
+        const swUrl = '/sengine/sw.js?v=' + Date.now();
+        try {
+          const reg = await navigator.serviceWorker.register(swUrl, { scope: '/sengine/' });
+          await navigator.serviceWorker.ready;
+
+          // Give the worker a moment to take control on first load
+          const controlled = !!navigator.serviceWorker.controller;
+          if (!controlled) {
+            // Once the SW takes control, reload so the next request is intercepted
+            navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+            // As a fallback, reload shortly
+            setTimeout(() => location.reload(), 300);
+          } else {
+            // If this bootstrap page is at /sengine/… but not /scramjet/…, do nothing.
+            // Your app will point directly at /sengine/scramjet/<encoded>, and the SW will handle it.
+          }
+        } catch (e) {
+          console.error('SW register failed', e);
+          location.replace('/');
+        }
+      })();
+    </script>
+  </body>
+</html>
