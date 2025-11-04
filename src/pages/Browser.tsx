@@ -237,25 +237,37 @@ const Browser = () => {
       // Encode URL for Scramjet using prefix - Scramjet expects /prefix/url format
       const prefix = scramjetRef.current?.config?.prefix || '/service/';
       const encodedUrl = prefix + fullUrl;
-      console.log('🌐 Original URL:', fullUrl);
-      console.log('🔗 Encoded proxy URL:', encodedUrl);
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔵 NAVIGATION START');
+      console.log('📝 Input URL:', fullUrl);
+      console.log('📝 Scramjet prefix:', prefix);
+      console.log('📝 Encoded URL for iframe:', encodedUrl);
+      console.log('📝 SW controller active?', navigator.serviceWorker.controller ? 'YES ✓' : 'NO ✗');
+      console.log('📝 Scramjet ready?', scramjetReady);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       // Update tabs - store BOTH original and encoded URLs
-      setTabs(prevTabs => prevTabs.map(tab => {
-        if (tab.id === activeTab) {
-          const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
-          return {
-            ...tab,
-            url: encodedUrl, // iframe uses encoded URL
-            title: new URL(fullUrl).hostname,
-            history: newHistory, // history stores original URLs
-            historyIndex: newHistory.length - 1,
-          };
-        }
-        return tab;
-      }));
+      setTabs(prevTabs => {
+        const newTabs = prevTabs.map(tab => {
+          if (tab.id === activeTab) {
+            const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
+            const updatedTab = {
+              ...tab,
+              url: encodedUrl, // iframe uses encoded URL
+              title: new URL(fullUrl).hostname,
+              history: newHistory, // history stores original URLs
+              historyIndex: newHistory.length - 1,
+            };
+            console.log('📍 Tab state updated:', updatedTab);
+            return updatedTab;
+          }
+          return tab;
+        });
+        return newTabs;
+      });
 
-      console.log('📍 Tab updated - iframe will load:', encodedUrl);
+      console.log('🎯 Iframe will now attempt to load:', encodedUrl);
     } catch (error) {
       console.error('❌ Navigation error:', error);
       toast({
@@ -559,7 +571,19 @@ const Browser = () => {
                     className="w-full h-full border-0"
                     title={tab.title}
                     onLoad={() => {
-                      console.log('✅ Iframe loaded for tab:', tab.id);
+                      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                      console.log('🟢 IFRAME LOADED');
+                      console.log('📝 Tab ID:', tab.id);
+                      console.log('📝 Expected URL (src):', tab.url);
+                      const iframe = iframeRefs.current[tab.id];
+                      if (iframe) {
+                        try {
+                          console.log('📝 Actual iframe.contentWindow.location.href:', iframe.contentWindow?.location.href);
+                        } catch (e) {
+                          console.log('📝 Cannot access iframe location (likely cross-origin):', e.message);
+                        }
+                      }
+                      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                       setIsLoading(false);
                     }}
                   />
