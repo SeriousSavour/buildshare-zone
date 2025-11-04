@@ -33,6 +33,17 @@ function toEngineUrl(targetUrl: string): string {
   return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(targetUrl)}`;
 }
 
+function wrapIfNotEngine(currentSrc: string) {
+  try {
+    // If the iframe navigated to a non-engine origin, re-wrap it
+    if (!currentSrc.startsWith(`${ENGINE_ORIGIN}${ENGINE_PREFIX}`)) {
+      // currentSrc is absolute here (e.g. https://github.com/... or whatever redirect target)
+      return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(currentSrc)}`;
+    }
+  } catch {}
+  return currentSrc;
+}
+
 interface Tab {
   id: string;
   url: string;
@@ -402,16 +413,37 @@ const Browser = () => {
                   )}
                   <iframe
                     ref={(el) => {
-                      if (el) {
-                        iframeRefs.current[tab.id] = el;
-                        el.addEventListener("load", () => {
-                          setIsLoading(false);
-                        });
-                      }
+                      if (!el) return;
+                      iframeRefs.current[tab.id] = el;
+
+                      // 1) On load, if it escaped, re-wrap back onto the engine
+                      el.addEventListener("load", () => {
+                        try {
+                          const rawSrc = el.src; // attribute reflects the navigated URL
+                          const guarded = wrapIfNotEngine(rawSrc);
+                          if (guarded !== rawSrc) {
+                            el.src = guarded;   // re-wrap the escaped URL through the engine
+                            return;             // let it load again
+                          }
+                        } catch {}
+                        setIsLoading(false);
+                      });
+
+                      // 2) Mutation guard — some sites change src without full load first
+                      const mo = new MutationObserver(() => {
+                        try {
+                          const rawSrc = el.getAttribute("src") ?? "";
+                          const guarded = wrapIfNotEngine(rawSrc);
+                          if (guarded !== rawSrc) el.setAttribute("src", guarded);
+                        } catch {}
+                      });
+                      mo.observe(el, { attributes: true, attributeFilter: ["src"] });
                     }}
                     src={tab.url}
                     className="w-full h-full border-0"
                     title={tab.title}
+                    referrerPolicy="no-referrer"
+                    sandbox="allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals"
                     onError={(e) => {
                       console.error("❌ IFRAME ERROR:", e);
                       setIsLoading(false);
