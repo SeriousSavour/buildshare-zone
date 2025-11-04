@@ -47,120 +47,34 @@ const Browser = () => {
   useEffect(() => {
     const initializeScramjet = async () => {
       try {
-        console.log('🚀 Step 1: Loading BareMux...');
+        console.log('🚀 Initializing Scramjet...');
+        
+        // Step 1: Register service worker FIRST
+        const { ensureServiceWorkerControl } = await import('@/lib/sw-register');
+        await ensureServiceWorkerControl();
+        console.log('✅ Service Worker controlling page');
+
+        // Step 2: Load BareMux
+        console.log('🚀 Loading BareMux...');
         await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
         console.log('✅ BareMux loaded');
 
-        console.log('🚀 Step 2: Loading Epoxy...');
+        // Step 3: Load Epoxy transport
+        console.log('🚀 Loading Epoxy...');
         await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
         console.log('✅ Epoxy loaded');
         
-        console.log('🚀 Step 3: Loading Scramjet...');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js');
-        console.log('✅ Scramjet loaded');
-
-        // @ts-ignore - Scramjet globals
-        if (!window.$scramjetLoadController) {
-          throw new Error('Scramjet not available');
-        }
-
-        console.log('🚀 Step 4: Initializing ScramjetController...');
-        
+        // Step 4: Setup BareMux connection
         // @ts-ignore
-        const { ScramjetController } = window.$scramjetLoadController();
-        
-        // Configure global Scramjet config
-        // @ts-ignore
-        if (!window.$scramjet) window.$scramjet = {};
-        // @ts-ignore
-        window.$scramjet.config = {
-          prefix: "/service/",
-          files: {
-            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
-            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
-            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
-          }
-        };
-        
-        const controller = new ScramjetController({
-          files: {
-            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
-            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
-            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
-          }
-        });
-
-        await controller.init();
-        console.log('✅ ScramjetController initialized');
-        
-        // Store reference to controller
-        scramjetRef.current = controller;
-
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-          console.log('🚀 Step 5: Unregistering old service workers...');
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (const registration of registrations) {
-            await registration.unregister();
-            console.log('✅ Unregistered old SW');
-          }
-          
-          // Wait a bit for unregistration to complete
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          console.log('🚀 Step 6: Registering new service worker...');
-          const registration = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/',
-            updateViaCache: 'none',
-            type: 'classic'
-          });
-          console.log('✅ Service Worker registered:', registration);
-          console.log('✅ SW scope:', registration.scope);
-          console.log('✅ SW state:', registration.installing?.state || registration.waiting?.state || registration.active?.state);
-
-          // Wait for service worker to activate
-          if (registration.installing) {
-            console.log('⏳ Waiting for SW to install...');
-            await new Promise((resolve) => {
-              registration.installing!.addEventListener('statechange', (e: any) => {
-                if (e.target.state === 'activated') {
-                  resolve(undefined);
-                }
-              });
-            });
-          }
-
-          await navigator.serviceWorker.ready;
-          console.log('✅ Service Worker ready');
-          
-          // Wait for SW to become controller
-          let retries = 0;
-          while (!navigator.serviceWorker.controller && retries < 20) {
-            console.log(`⏳ Waiting for SW to control page (attempt ${retries + 1}/20)...`);
-            await new Promise(resolve => setTimeout(resolve, 100));
-            retries++;
-          }
-          
-          if (!navigator.serviceWorker.controller) {
-            console.log('🔄 SW not controlling - reloading page...');
-            window.location.reload();
-            return;
-          }
-          
-          console.log('✅ Service Worker is now controlling the page');
-        }
-
-        // @ts-ignore - BareMux global
         if (!window.BareMux) {
           throw new Error('BareMux not available');
         }
 
-        console.log('🚀 Step 7: Creating BareMux connection...');
-        // @ts-ignore - Must use local path for SharedWorker
+        console.log('🚀 Creating BareMux connection...');
+        // @ts-ignore
         const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
         
-        console.log('🚀 Step 8: Setting transport...');
-        // Use Epoxy transport with Scramjet's official Wisp server
+        console.log('🚀 Setting transport...');
         await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/wisp/" }]);
         
         console.log('✅ Scramjet fully initialized!');
