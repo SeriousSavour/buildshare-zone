@@ -1074,16 +1074,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      accept_guidelines: {
-        Args: {
-          _guideline_id: string
-          _guideline_version: number
-          _ip_address?: string
-          _user_agent?: string
-          _user_id: string
-        }
-        Returns: boolean
-      }
       add_game_to_group:
         | {
             Args: {
