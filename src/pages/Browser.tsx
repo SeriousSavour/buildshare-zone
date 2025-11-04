@@ -124,10 +124,9 @@ const Browser = () => {
 
   const navigateToUrl = async (url: string) => {
     if (!url) return;
-
     setIsLoading(true);
 
-    // Normalize input
+    // normalize
     const looksLikeQuery =
       url.includes(" ") ||
       (!url.includes(".") && !/^https?:\/\//i.test(url) && !/^shadow:\/\//i.test(url));
@@ -145,14 +144,13 @@ const Browser = () => {
       return;
     }
 
-    // Ensure SW controls the page before setting iframe src
+    // ensure SW is in control (cheap if already done in main.tsx)
     try {
-      // If you put ensureServiceWorkerControl in main.tsx, this will be instant
-      const { ensureServiceWorkerControl } = await import("@/lib/sw-register");
+      const { ensureServiceWorkerControl } = await import("../lib/sw-register");
       await ensureServiceWorkerControl();
     } catch {}
 
-    // IMPORTANT: RELATIVE path so SW intercepts, NOT absolute `${origin}/...`
+    // *** IMPORTANT: RELATIVE path. Do NOT prepend origin. ***
     const proxiedSrc = `/service/${fullUrl}`;
 
     setTabs(prev =>
@@ -161,7 +159,7 @@ const Browser = () => {
         const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
         return {
           ...tab,
-          url: proxiedSrc,                     // iframe loads through SW proxy
+          url: proxiedSrc, // iframe goes through SW
           title: new URL(fullUrl).hostname,
           history: newHistory,
           historyIndex: newHistory.length - 1,
