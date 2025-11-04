@@ -1,3 +1,4 @@
-/sw.js         /sw.js          200
-/s/*           /s/:splat       200
-/*             /index.html     200
+/sw.js           /sw.js            200
+/s/*             /s/:splat         200
+/baremux/*       /baremux/:splat   200
+/*               /index.html       200
