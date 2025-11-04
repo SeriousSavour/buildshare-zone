@@ -33,17 +33,10 @@ function toEngineUrl(targetUrl: string): string {
   return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(targetUrl)}`;
 }
 
-function wrapIfNotEngine(rawSrc: string) {
-  if (!rawSrc) return rawSrc;
-  try {
-    // if iframe navigated to a non-engine URL, re-wrap it through the engine
-    const startsWithEngine = rawSrc.startsWith(`${ENGINE_ORIGIN}${ENGINE_PREFIX}`);
-    if (!startsWithEngine) {
-      // rawSrc is an absolute URL (e.g., https://github.com/... or https://scramjet.mercurywork.shop/...)
-      return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(rawSrc)}`;
-    }
-  } catch {}
-  return rawSrc;
+function wrapIfNotEngine(raw: string) {
+  if (!raw) return raw;
+  const want = `${ENGINE_ORIGIN}${ENGINE_PREFIX}`;
+  return raw.startsWith(want) ? raw : `${want}${encodeURIComponent(raw)}`;
 }
 
 interface Tab {
@@ -117,7 +110,12 @@ const Browser = () => {
       return;
     }
 
-    fullUrl = normalizeUserInput(fullUrl);
+    // normalize/search handling
+    const isSearch = fullUrl.includes(" ") || (!/^https?:\/\//i.test(fullUrl) && !fullUrl.includes("."));
+    fullUrl = isSearch 
+      ? `https://www.google.com/search?q=${encodeURIComponent(fullUrl)}`
+      : /^https?:\/\//i.test(fullUrl) ? fullUrl : `https://${fullUrl}`;
+
     const engineUrl = toEngineUrl(fullUrl);
 
     setTabs(prev =>
@@ -126,7 +124,7 @@ const Browser = () => {
         const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
         return {
           ...tab,
-          url: engineUrl,
+          url: engineUrl,             // iframe sees ENGINE url
           title: new URL(fullUrl).hostname,
           history: newHistory,
           historyIndex: newHistory.length - 1,
