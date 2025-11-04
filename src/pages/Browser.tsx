@@ -78,6 +78,8 @@ const Browser = () => {
 
         await scramjet.init();
         console.log('✅ ScramjetController initialized');
+        console.log('📝 Scramjet config:', scramjet.config);
+        console.log('📝 Scramjet prefix:', scramjet.config?.prefix);
         
         // Store reference to scramjet
         scramjetRef.current = scramjet;
@@ -232,8 +234,9 @@ const Browser = () => {
     }
 
     try {
-      // Encode URL for Scramjet using the controller
-      const encodedUrl = scramjetRef.current?.encode?.(fullUrl) || fullUrl;
+      // Encode URL for Scramjet using prefix
+      const prefix = scramjetRef.current?.config?.prefix || '/service/';
+      const encodedUrl = prefix + encodeURIComponent(fullUrl);
       console.log('🌐 Original URL:', fullUrl);
       console.log('🔗 Encoded proxy URL:', encodedUrl);
       
@@ -292,7 +295,8 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encode?.(previousUrl) || previousUrl;
+    const prefix = scramjetRef.current?.config?.prefix || '/service/';
+    const encodedUrl = prefix + encodeURIComponent(previousUrl);
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -311,7 +315,8 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encode?.(nextUrl) || nextUrl;
+    const prefix = scramjetRef.current?.config?.prefix || '/service/';
+    const encodedUrl = prefix + encodeURIComponent(nextUrl);
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
