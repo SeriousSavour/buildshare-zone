@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { PROXY_PREFIX } from "../lib/proxyPrefix";
 
 interface Tab {
   id: string;
@@ -151,7 +152,7 @@ const Browser = () => {
     } catch {}
 
     // RELATIVE — don't prepend origin
-    const proxiedSrc = `/service/${fullUrl}`;
+    const proxiedSrc = `${PROXY_PREFIX}${fullUrl}`;
 
     setTabs(prev =>
       prev.map(tab => {
@@ -195,7 +196,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const proxied = `/service/${previousUrl}`;
+    const proxied = `${PROXY_PREFIX}${previousUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -214,7 +215,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const proxied = `/service/${nextUrl}`;
+    const proxied = `${PROXY_PREFIX}${nextUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
