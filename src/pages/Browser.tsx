@@ -418,45 +418,46 @@ const Browser = () => {
                       if (!el) return;
                       iframeRefs.current[tab.id] = el;
 
-                      // 1) On each load, re-wrap if it escaped
-                      const onLoad = () => {
+                      // 1) Keep engine prefix on every nav the iframe tries to make
+                      const keepWrapped = () => {
                         try {
-                          const raw = el.src;                        // current navigated URL
-                          const guarded = wrapIfNotEngine(raw);
-                          if (guarded !== raw) {
-                            el.src = guarded;                       // snap back into /scramjet/<encoded>
-                            return;                                 // let it load again
+                          const cur = el.src || "";
+                          const fixed = wrapIfNotEngine(cur);
+                          if (fixed !== cur) {
+                            el.src = fixed;
                           }
-                        } catch {}
-                        setIsLoading(false);
+                        } catch {
+                          // cross-origin read may throw; just ignore
+                        }
                       };
-                      el.addEventListener('load', onLoad);
 
-                      // 2) Also guard attribute changes (some sites change src then load)
-                      const mo = new MutationObserver(() => {
-                        try {
-                          const raw = el.getAttribute('src') ?? '';
-                          const guarded = wrapIfNotEngine(raw);
-                          if (guarded !== raw) el.setAttribute('src', guarded);
-                        } catch {}
-                      });
-                      mo.observe(el, { attributes: true, attributeFilter: ['src'] });
+                      // Guard on initial set
+                      keepWrapped();
 
-                      // cleanup when this ref rebinds
+                      // 2) Watch for src mutations (redirects, JS navs, link clicks, etc.)
+                      const mo = new MutationObserver(() => keepWrapped());
+                      mo.observe(el, { attributes: true, attributeFilter: ["src"] });
+
+                      // 3) After each load, run the guard again (some sites rewrite location)
+                      const onLoad = () => {
+                        setIsLoading(false);
+                        keepWrapped();
+                      };
+                      el.addEventListener("load", onLoad);
+
+                      // Clean up when tab unmounts
+                      el.addEventListener("error", () => setIsLoading(false));
+
                       return () => {
-                        el.removeEventListener('load', onLoad);
+                        el.removeEventListener("load", onLoad);
                         mo.disconnect();
                       };
                     }}
-                    src={tab.url}
+                    src={wrapIfNotEngine(tab.url)}
                     className="w-full h-full border-0"
                     title={tab.title}
                     referrerPolicy="no-referrer"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals"
-                    onError={(e) => {
-                      console.error('❌ IFRAME ERROR:', e);
-                      setIsLoading(false);
-                    }}
                   />
                 </div>
               ) : (
