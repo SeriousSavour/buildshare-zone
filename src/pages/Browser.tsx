@@ -233,8 +233,8 @@ const Browser = () => {
     }
 
     try {
-      // Use Scramjet's encodeUrl method
-      const encodedUrl = scramjetRef.current?.encodeUrl?.(fullUrl) || fullUrl;
+      // Simple proxy URL format: /service/ + full URL
+      const encodedUrl = `/service/${fullUrl}`;
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🔵 NAVIGATION START');
@@ -304,7 +304,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encodeUrl?.(previousUrl) || previousUrl;
+    const encodedUrl = `/service/${previousUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -323,7 +323,7 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const encodedUrl = scramjetRef.current?.encodeUrl?.(nextUrl) || nextUrl;
+    const encodedUrl = `/service/${nextUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
