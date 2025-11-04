@@ -10,7 +10,28 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { PROXY_PREFIX } from "../lib/proxyPrefix";
+
+const ENGINE_ORIGIN = 'https://scramjet.mercurywork.shop';
+const ENGINE_PREFIX = '/scramjet/';
+
+function normalizeUserInput(input: string): string {
+  let s = input.trim();
+  const isSearch = s.includes(' ') ||
+    (!/^https?:\/\//i.test(s) && !s.includes('.'));
+
+  if (isSearch) {
+    return `https://www.google.com/search?q=${encodeURIComponent(s)}`;
+  }
+  if (!/^https?:\/\//i.test(s)) {
+    s = 'https://' + s;
+  }
+  return s;
+}
+
+function toEngineUrl(targetUrl: string): string {
+  // IMPORTANT: full target URL must be percent-encoded
+  return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(targetUrl)}`;
+}
 
 interface Tab {
   id: string;
@@ -30,69 +51,17 @@ const Browser = () => {
   const [urlInput, setUrlInput] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [scramjetReady, setScramjetReady] = useState(false);
   const iframeRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
-  const scramjetRef = useRef<any>(null);
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
   useEffect(() => {
     if (currentTab) {
-      // Show the decoded original URL in the address bar, not the proxy URL
-      const displayUrl = currentTab.history[currentTab.historyIndex] || currentTab.url;
+      // Show the decoded original URL in the address bar, not the engine URL
+      const displayUrl = currentTab.history[currentTab.historyIndex] || "";
       setUrlInput(displayUrl);
     }
   }, [activeTab, currentTab]);
-
-  // Initialize BareMux and Epoxy
-  useEffect(() => {
-    const initializeTransports = async () => {
-      try {
-        // Load BareMux
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
-        
-        // Load Epoxy transport
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
-        
-        // Setup BareMux connection
-        // @ts-ignore
-        if (!window.BareMux) {
-          throw new Error('BareMux not available');
-        }
-
-        // @ts-ignore
-        const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
-        
-        await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/wisp/" }]);
-        
-        setScramjetReady(true);
-        
-        toast({
-          title: "Browser Engine Ready",
-          description: "Scramjet proxy is active",
-        });
-      } catch (error) {
-        console.error('❌ Failed to initialize transports:', error);
-        toast({
-          title: "Initialization Failed",
-          description: error instanceof Error ? error.message : "Could not start proxy engine",
-          variant: "destructive",
-        });
-      }
-    };
-
-    initializeTransports();
-  }, [toast]);
-
-  const loadScript = (src: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
-      document.head.appendChild(script);
-    });
-  };
 
   const addNewTab = () => {
     const newTab: Tab = {
@@ -127,32 +96,16 @@ const Browser = () => {
     if (!url) return;
     setIsLoading(true);
 
-    // normalize
-    const looksLikeQuery =
-      url.includes(" ") ||
-      (!url.includes(".") && !/^https?:\/\//i.test(url) && !/^shadow:\/\//i.test(url));
-
     let fullUrl = url.trim();
-    if (looksLikeQuery) {
-      fullUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
-    } else if (!/^https?:\/\//i.test(fullUrl) && !/^shadow:\/\//i.test(fullUrl)) {
-      fullUrl = "https://" + fullUrl;
-    }
-
+    
     if (fullUrl.startsWith("shadow://")) {
       handleSpecialProtocol(fullUrl);
       setIsLoading(false);
       return;
     }
 
-    // Ensure SW is controlling (cheap if main.tsx already did it)
-    try {
-      const { ensureServiceWorkerControl } = await import("../lib/sw-register");
-      await ensureServiceWorkerControl();
-    } catch {}
-
-    // RELATIVE — don't prepend origin
-    const proxiedSrc = `${PROXY_PREFIX}${fullUrl}`;
+    fullUrl = normalizeUserInput(fullUrl);
+    const engineUrl = toEngineUrl(fullUrl);
 
     setTabs(prev =>
       prev.map(tab => {
@@ -160,7 +113,7 @@ const Browser = () => {
         const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
         return {
           ...tab,
-          url: proxiedSrc,
+          url: engineUrl,
           title: new URL(fullUrl).hostname,
           history: newHistory,
           historyIndex: newHistory.length - 1,
@@ -195,14 +148,14 @@ const Browser = () => {
     if (!currentTab || currentTab.historyIndex === 0) return;
     
     const newIndex = currentTab.historyIndex - 1;
-    const previousUrl = currentTab.history[newIndex];
-    const proxied = `${PROXY_PREFIX}${previousUrl}`;
+    const fullUrl = currentTab.history[newIndex];
+    const engineUrl = toEngineUrl(fullUrl);
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: proxied,
+          url: engineUrl,
           historyIndex: newIndex
         };
       }
@@ -214,14 +167,14 @@ const Browser = () => {
     if (!currentTab || currentTab.historyIndex >= currentTab.history.length - 1) return;
     
     const newIndex = currentTab.historyIndex + 1;
-    const nextUrl = currentTab.history[newIndex];
-    const proxied = `${PROXY_PREFIX}${nextUrl}`;
+    const fullUrl = currentTab.history[newIndex];
+    const engineUrl = toEngineUrl(fullUrl);
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: proxied,
+          url: engineUrl,
           historyIndex: newIndex
         };
       }
@@ -478,7 +431,7 @@ const Browser = () => {
                     Secure, Private, Anonymous
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {scramjetReady ? "Powered by Scramjet" : "Initializing proxy engine..."}
+                    Powered by Scramjet
                   </p>
                   <div className="flex gap-4 mt-4">
                     <Button onClick={() => navigate('/games')} size="lg" className="gap-2">
@@ -490,7 +443,6 @@ const Browser = () => {
                       variant="outline" 
                       size="lg" 
                       className="gap-2"
-                      disabled={!scramjetReady}
                     >
                       <Globe className="w-5 h-5" />
                       Start Browsing
