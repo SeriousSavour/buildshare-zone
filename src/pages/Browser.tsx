@@ -144,13 +144,13 @@ const Browser = () => {
       return;
     }
 
-    // ensure SW is in control (cheap if already done in main.tsx)
+    // Ensure SW is controlling (cheap if main.tsx already did it)
     try {
       const { ensureServiceWorkerControl } = await import("../lib/sw-register");
       await ensureServiceWorkerControl();
     } catch {}
 
-    // *** IMPORTANT: RELATIVE path. Do NOT prepend origin. ***
+    // RELATIVE — don't prepend origin
     const proxiedSrc = `/service/${fullUrl}`;
 
     setTabs(prev =>
@@ -159,7 +159,7 @@ const Browser = () => {
         const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
         return {
           ...tab,
-          url: proxiedSrc, // iframe goes through SW
+          url: proxiedSrc,
           title: new URL(fullUrl).hostname,
           history: newHistory,
           historyIndex: newHistory.length - 1,

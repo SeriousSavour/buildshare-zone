@@ -4,6 +4,6 @@ import "./index.css";
 import { ensureServiceWorkerControl } from "./lib/sw-register";
 
 (async () => {
-  try { await ensureServiceWorkerControl(); } catch (e) { console.warn("SW init:", e); }
+  try { await ensureServiceWorkerControl(); } catch (e) { console.warn("SW init", e); }
   createRoot(document.getElementById("root")!).render(<App />);
 })();
