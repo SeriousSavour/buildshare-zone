@@ -16,6 +16,9 @@ self.$scramjet.config = {
   defaultFlags: [],
 };
 
+console.log('🔧 Service Worker script loaded');
+console.log('🔧 Scramjet prefix configured as:', self.$scramjet.config.prefix);
+
 // Install immediately
 self.addEventListener('install', (event) => {
   console.log('🔧 SW installing');
@@ -28,20 +31,44 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", async (event) => {
+self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+  const pathname = url.pathname;
+  const fullUrl = event.request.url;
+  
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🔴 SW FETCH EVENT');
+  console.log('📝 Full URL:', fullUrl);
+  console.log('📝 Pathname:', pathname);
+  console.log('📝 Starts with /service/?', pathname.startsWith('/service/'));
+  console.log('📝 Request mode:', event.request.mode);
+  console.log('📝 Request destination:', event.request.destination);
   
   event.respondWith((async () => {
-    // Load config
-    await sw.loadConfig();
-    
-    // Check if this URL should be proxied
-    if (sw.route(event)) {
-      console.log('✅ Proxying:', url.pathname);
-      return await sw.fetch(event);
+    try {
+      // Load config
+      await sw.loadConfig();
+      console.log('📝 SW config loaded, prefix:', sw.config?.prefix);
+      
+      // Check if this URL should be proxied
+      const shouldRoute = sw.route(event);
+      console.log('📝 sw.route() returned:', shouldRoute);
+      
+      if (shouldRoute) {
+        console.log('✅ Scramjet WILL proxy this request');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        const response = await sw.fetch(event);
+        console.log('✅ Scramjet proxy response:', response.status, response.statusText);
+        return response;
+      }
+      
+      console.log('⏩ Passthrough (not proxied)');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      return fetch(event.request);
+    } catch (error) {
+      console.error('❌ SW Error:', error);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      return fetch(event.request);
     }
-    
-    // Passthrough for non-proxy requests
-    return fetch(event.request);
   })());
 });

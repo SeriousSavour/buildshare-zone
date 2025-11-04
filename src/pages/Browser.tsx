@@ -558,7 +558,7 @@ const Browser = () => {
               value={tab.id} 
               className="h-full m-0 data-[state=active]:flex flex-col"
             >
-            {tab.url ? (
+              {tab.url ? (
                 <div className="relative w-full h-full">
                   {isLoading && activeTab === tab.id && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
@@ -572,12 +572,26 @@ const Browser = () => {
                     ref={(el) => {
                       if (el) {
                         console.log('📌 Setting iframe ref for tab:', tab.id);
+                        console.log('📌 Iframe src attribute:', el.getAttribute('src'));
                         iframeRefs.current[tab.id] = el;
+                        
+                        // Add navigation listener
+                        el.addEventListener('load', () => {
+                          console.log('🔵 IFRAME LOAD EVENT');
+                          console.log('Expected src:', tab.url);
+                          console.log('Actual src attribute:', el.getAttribute('src'));
+                          try {
+                            console.log('Iframe contentWindow.location.href:', el.contentWindow?.location.href);
+                          } catch (e) {
+                            console.log('Cannot read iframe location (cross-origin)');
+                          }
+                        });
                       }
                     }}
                     src={tab.url}
                     className="w-full h-full border-0"
                     title={tab.title}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                     onLoad={() => {
                       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                       console.log('🟢 IFRAME LOADED');
@@ -587,12 +601,16 @@ const Browser = () => {
                       if (iframe) {
                         try {
                           console.log('📝 Actual iframe.contentWindow.location.href:', iframe.contentWindow?.location.href);
+                          console.log('📝 Iframe.src:', iframe.src);
                         } catch (e) {
-                          console.log('📝 Cannot access iframe location (likely cross-origin):', e.message);
+                          console.log('📝 Cannot access iframe location (likely cross-origin or proxy working)');
                         }
                       }
                       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                       setIsLoading(false);
+                    }}
+                    onError={(e) => {
+                      console.error('❌ IFRAME ERROR:', e);
                     }}
                   />
                 </div>
