@@ -43,41 +43,27 @@ const Browser = () => {
     }
   }, [activeTab, currentTab]);
 
-  // Initialize Scramjet
+  // Initialize BareMux and Epoxy
   useEffect(() => {
-    const initializeScramjet = async () => {
+    const initializeTransports = async () => {
       try {
-        console.log('🚀 Initializing Scramjet...');
-        
-        // Step 1: Register service worker FIRST
-        const { ensureServiceWorkerControl } = await import('@/lib/sw-register');
-        await ensureServiceWorkerControl();
-        console.log('✅ Service Worker controlling page');
-
-        // Step 2: Load BareMux
-        console.log('🚀 Loading BareMux...');
+        // Load BareMux
         await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
-        console.log('✅ BareMux loaded');
-
-        // Step 3: Load Epoxy transport
-        console.log('🚀 Loading Epoxy...');
-        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
-        console.log('✅ Epoxy loaded');
         
-        // Step 4: Setup BareMux connection
+        // Load Epoxy transport
+        await loadScript('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
+        
+        // Setup BareMux connection
         // @ts-ignore
         if (!window.BareMux) {
           throw new Error('BareMux not available');
         }
 
-        console.log('🚀 Creating BareMux connection...');
         // @ts-ignore
         const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
         
-        console.log('🚀 Setting transport...');
         await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs", [{ wisp: "wss://wisp.mercurywork.shop/wisp/" }]);
         
-        console.log('✅ Scramjet fully initialized!');
         setScramjetReady(true);
         
         toast({
@@ -85,8 +71,7 @@ const Browser = () => {
           description: "Scramjet proxy is active",
         });
       } catch (error) {
-        console.error('❌ Failed to initialize Scramjet:', error);
-        console.error('Error details:', error instanceof Error ? error.message : String(error));
+        console.error('❌ Failed to initialize transports:', error);
         toast({
           title: "Initialization Failed",
           description: error instanceof Error ? error.message : "Could not start proxy engine",
@@ -95,7 +80,7 @@ const Browser = () => {
       }
     };
 
-    initializeScramjet();
+    initializeTransports();
   }, [toast]);
 
   const loadScript = (src: string): Promise<void> => {
@@ -140,8 +125,11 @@ const Browser = () => {
   const navigateToUrl = async (url: string) => {
     if (!url) return;
 
-    // Normalize input (add protocol or turn spaces into a search)
-    const looksLikeQuery = url.includes(" ") ||
+    setIsLoading(true);
+
+    // Normalize input
+    const looksLikeQuery =
+      url.includes(" ") ||
       (!url.includes(".") && !/^https?:\/\//i.test(url) && !/^shadow:\/\//i.test(url));
 
     let fullUrl = url.trim();
@@ -151,42 +139,35 @@ const Browser = () => {
       fullUrl = "https://" + fullUrl;
     }
 
-    // Handle special shadow:// protocol
-    if (fullUrl.startsWith('shadow://')) {
+    if (fullUrl.startsWith("shadow://")) {
       handleSpecialProtocol(fullUrl);
+      setIsLoading(false);
       return;
     }
 
-    // Don't include window.location.origin. Use a relative URL under /service/
-    const proxied = `/service/${fullUrl}`;
-
-    // IMPORTANT: ensure SW is controlling *before* you set src
-    if (!navigator.serviceWorker.controller) {
-      toast({
-        title: "Please wait",
-        description: "Proxy engine is still initializing",
-      });
-      const { ensureServiceWorkerControl } = await import('@/lib/sw-register');
+    // Ensure SW controls the page before setting iframe src
+    try {
+      // If you put ensureServiceWorkerControl in main.tsx, this will be instant
+      const { ensureServiceWorkerControl } = await import("@/lib/sw-register");
       await ensureServiceWorkerControl();
-    }
+    } catch {}
 
-    // Update state for the tab
+    // IMPORTANT: RELATIVE path so SW intercepts, NOT absolute `${origin}/...`
+    const proxiedSrc = `/service/${fullUrl}`;
+
     setTabs(prev =>
       prev.map(tab => {
         if (tab.id !== activeTab) return tab;
         const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
         return {
           ...tab,
-          url: proxied,           // iframe sees the proxied URL
+          url: proxiedSrc,                     // iframe loads through SW proxy
           title: new URL(fullUrl).hostname,
-          history: newHistory,    // history keeps original URL
+          history: newHistory,
           historyIndex: newHistory.length - 1,
         };
       })
     );
-
-    // (Loading state will flip in onLoad)
-    setIsLoading(true);
   };
 
   const handleSpecialProtocol = (url: string) => {

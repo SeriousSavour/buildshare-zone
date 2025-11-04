@@ -1,8 +1,6 @@
 // public/sw.js
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 1) CONFIGURE FIRST (before importing the worker library!)
-// ─────────────────────────────────────────────────────────────────────────────
+// 1) Configure BEFORE importing the library
 self.$scramjet = {
   config: {
     prefix: "/service/",
@@ -11,47 +9,43 @@ self.$scramjet = {
       wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
       worker: "/sw.js",
       client: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
-      sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js"
-    }
-  }
+      sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
+    },
+  },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2) LOAD THE SCRAMJET WORKER BUNDLE
-// ─────────────────────────────────────────────────────────────────────────────
+// 2) Load the bundle AFTER config
 importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
 
-// Create worker instance
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const sw = new ScramjetServiceWorker();
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3) LIFECYCLE
-// ─────────────────────────────────────────────────────────────────────────────
-self.addEventListener("install", (event) => {
-  // Take control ASAP
-  self.skipWaiting();
+// 3) Lifecycle: take over asap
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
+// Allow page to postMessage({type:'claim'}) to force control immediately
+self.addEventListener("message", (event) => {
+  const data = event.data || {};
+  if (data.type === "claim") {
+    self.clients.claim();
+    if (event.source) {
+      try { event.source.postMessage({ type: "claimed" }); } catch {}
+    }
+  }
+  if (data.type === "skipWaiting") {
+    self.skipWaiting();
+  }
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 4) FETCH HANDLER
-// ─────────────────────────────────────────────────────────────────────────────
-// Keep it simple: ask Scramjet if it wants the request. If yes → let it handle.
-// Do NOT pass the event object to sw.route/fetch — pass the Request.
-// Avoid custom manual proxying here; let Scramjet own the /service/* space.
+// 4) Fetch: let Scramjet handle /service/* or whatever it opts into
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  const handle = async () => {
-    // Only try to route requests that fall under our prefix OR that the worker
-    // says it can handle (some libs can decide on their own).
+  event.respondWith((async () => {
+    // Only bother routing things that are under our prefix OR that the worker accepts
     const isProxyPath = url.pathname.startsWith(self.$scramjet.config.prefix);
-
     try {
       const shouldRoute = isProxyPath || sw.route(req);
       if (shouldRoute) {
@@ -59,13 +53,10 @@ self.addEventListener("fetch", (event) => {
         if (resp) return resp;
       }
     } catch (err) {
-      // Fall through to network on errors; do not crash SW
-      console.error('SW fetch error:', err);
+      // Don't kill the SW on errors
+      console.error("[SW] route/fetch error:", err);
     }
-
-    // Default: network passthrough
+    // Fallback: regular network
     return fetch(req);
-  };
-
-  event.respondWith(handle());
+  })());
 });
