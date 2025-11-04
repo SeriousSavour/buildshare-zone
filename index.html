@@ -27,6 +27,22 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- Force custom domain (redirect from preview/embedded contexts) -->
+    <script>
+      (function () {
+        var desired = "https://scramjet.mercurywork.shop";
+        var isPreview = location.hostname.endsWith("lovableproject.com");
+        var isFramed = window.top !== window.self;
+
+        // If we're on a preview host or embedded, bounce to the custom domain.
+        if (isPreview || isFramed) {
+          var path = location.pathname + location.search + location.hash;
+          window.top.location.href = desired + path;
+        }
+      })();
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
     
     <!-- Anti-embedding protection -->
