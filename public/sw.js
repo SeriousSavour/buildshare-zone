@@ -32,9 +32,6 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Track if we've initialized
-let configLoaded = false;
-
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     (async () => {
@@ -45,27 +42,28 @@ self.addEventListener("fetch", (event) => {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🔴 SW FETCH:', pathname);
       console.log('📝 Full URL:', url.href);
-      console.log('📝 Origin:', url.origin);
-      console.log('📝 Request mode:', event.request.mode);
-      console.log('📝 Request dest:', event.request.destination);
       
       // Check if URL should be proxied by Scramjet
       if (pathname.startsWith('/service/')) {
         console.log('✅ MATCHES /service/ PREFIX!');
         
         try {
-          // Load config once
-          if (!configLoaded) {
-            console.log('⏳ Loading Scramjet config...');
-            await sw.loadConfig();
-            configLoaded = true;
-            console.log('✅ Config loaded, prefix:', sw.config?.prefix);
-          }
+          // CRITICAL: Set config BEFORE loadConfig to prevent override
+          sw.config = {
+            prefix: "/service/",
+            codec: "$scramjet$encode",
+            files: self.$scramjet.config.files
+          };
+          
+          console.log('📝 Forcing config prefix to:', sw.config.prefix);
+          
+          await sw.loadConfig();
+          
+          console.log('📝 After loadConfig, prefix is:', sw.config?.prefix);
           
           // Check if Scramjet will route it
           const shouldRoute = sw.route(event);
           console.log('📝 sw.route() returned:', shouldRoute);
-          console.log('📝 sw.config.prefix:', sw.config?.prefix);
           
           if (shouldRoute) {
             console.log('🎯 Proxying through Scramjet...');
@@ -74,8 +72,9 @@ self.addEventListener("fetch", (event) => {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             return response;
           } else {
-            console.log('❌ sw.route() returned false despite /service/ match!');
-            console.log('❌ This is unexpected - Scramjet should handle this');
+            console.log('❌ sw.route() returned false!');
+            console.log('❌ Config prefix:', sw.config?.prefix);
+            console.log('❌ URL pathname:', pathname);
           }
         } catch (error) {
           console.error('❌ Scramjet error:', error);
