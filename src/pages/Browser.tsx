@@ -452,7 +452,7 @@ const Browser = () => {
                     className="w-full h-full border-0"
                     title={tab.title}
                     referrerPolicy="no-referrer"
-                    sandbox="allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals"
                     onError={(e) => {
                       console.error('❌ IFRAME ERROR:', e);
                       setIsLoading(false);
