@@ -69,8 +69,6 @@ const Browser = () => {
         const { ScramjetController } = window.$scramjetLoadController();
         
         const scramjet = new ScramjetController({
-          prefix: '/service/',
-          codec: 'xor',
           files: {
             wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
             all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
@@ -78,7 +76,7 @@ const Browser = () => {
           }
         });
 
-        await scramjet.init();
+        await scramjet.init('/service/');
         console.log('✅ ScramjetController initialized');
         console.log('📝 Scramjet config:', scramjet.config);
         console.log('📝 Scramjet prefix:', scramjet.config?.prefix);
