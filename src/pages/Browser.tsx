@@ -111,9 +111,12 @@ const Browser = () => {
           console.log('🚀 Step 6: Registering new service worker...');
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
-            updateViaCache: 'none'
+            updateViaCache: 'none',
+            type: 'classic'
           });
           console.log('✅ Service Worker registered:', registration);
+          console.log('✅ SW scope:', registration.scope);
+          console.log('✅ SW state:', registration.installing?.state || registration.waiting?.state || registration.active?.state);
 
           // Wait for service worker to activate
           if (registration.installing) {
@@ -128,14 +131,23 @@ const Browser = () => {
           }
 
           await navigator.serviceWorker.ready;
-          console.log('✅ Service Worker ready and controlling');
+          console.log('✅ Service Worker ready');
           
-          // Force reload to ensure SW is controlling the page
+          // Wait for SW to become controller
+          let retries = 0;
+          while (!navigator.serviceWorker.controller && retries < 20) {
+            console.log(`⏳ Waiting for SW to control page (attempt ${retries + 1}/20)...`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries++;
+          }
+          
           if (!navigator.serviceWorker.controller) {
-            console.log('🔄 Reloading to activate service worker...');
+            console.log('🔄 SW not controlling - reloading page...');
             window.location.reload();
             return;
           }
+          
+          console.log('✅ Service Worker is now controlling the page');
         }
 
         // @ts-ignore - BareMux global
@@ -573,6 +585,7 @@ const Browser = () => {
                       if (el) {
                         console.log('📌 Setting iframe ref for tab:', tab.id);
                         console.log('📌 Iframe src attribute:', el.getAttribute('src'));
+                        console.log('📌 SW controller status:', navigator.serviceWorker.controller ? 'ACTIVE ✓' : 'NONE ✗');
                         iframeRefs.current[tab.id] = el;
                         
                         // Add navigation listener
@@ -591,7 +604,6 @@ const Browser = () => {
                     src={tab.url}
                     className="w-full h-full border-0"
                     title={tab.title}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                     onLoad={() => {
                       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                       console.log('🟢 IFRAME LOADED');
