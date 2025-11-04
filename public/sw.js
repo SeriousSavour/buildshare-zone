@@ -1,24 +1,24 @@
 importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js");
 
-const { ScramjetServiceWorker } = $scramjetLoadWorker();
-
-// Configure BEFORE creating instance
-self.$scramjet = self.$scramjet || {};
-self.$scramjet.config = {
-  prefix: "/service/",
-  codec: "$scramjet$encode",
-  files: {
-    wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
-    worker: "/sw.js",
-    client: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
-    sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js"
+// CRITICAL: Configure BEFORE loading worker
+self.$scramjet = {
+  config: {
+    prefix: "/service/",
+    codec: "$scramjet$encode",
+    files: {
+      wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
+      worker: "/sw.js",
+      client: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
+      sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js"
+    }
   }
 };
 
+const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const sw = new ScramjetServiceWorker();
 
-console.log('🔧 Service Worker script loaded');
-console.log('🔧 Scramjet prefix configured as:', self.$scramjet.config.prefix);
+console.log('🔧 Service Worker loaded');
+console.log('🔧 Config prefix:', self.$scramjet.config.prefix);
 
 // Install immediately
 self.addEventListener('install', (event) => {
@@ -36,52 +36,59 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     (async () => {
       const url = new URL(event.request.url);
-      const pathname = url.pathname;
       
-      // Log EVERY fetch to debug
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🔴 SW FETCH:', pathname);
-      console.log('📝 Full URL:', url.href);
+      console.log('🔴 SW FETCH:', url.pathname);
       
-      // Check if URL should be proxied by Scramjet
-      if (pathname.startsWith('/service/')) {
-        console.log('✅ MATCHES /service/ PREFIX!');
+      // Check if this is a proxy request
+      if (url.pathname.startsWith(self.$scramjet.config.prefix)) {
+        console.log('✅ Proxy URL detected!');
+        console.log('📝 Config prefix:', self.$scramjet.config.prefix);
+        console.log('📝 URL pathname:', url.pathname);
         
         try {
-          // CRITICAL: Set config BEFORE loadConfig to prevent override
-          sw.config = {
-            prefix: "/service/",
-            codec: "$scramjet$encode",
-            files: self.$scramjet.config.files
-          };
-          
-          console.log('📝 Forcing config prefix to:', sw.config.prefix);
-          
-          await sw.loadConfig();
-          
-          console.log('📝 After loadConfig, prefix is:', sw.config?.prefix);
-          
-          // Check if Scramjet will route it
+          // DON'T call loadConfig - it overrides our prefix!
+          // Just check if Scramjet will route it
           const shouldRoute = sw.route(event);
-          console.log('📝 sw.route() returned:', shouldRoute);
+          console.log('📝 sw.route() =', shouldRoute);
           
           if (shouldRoute) {
-            console.log('🎯 Proxying through Scramjet...');
+            console.log('🎯 Proxying...');
             const response = await sw.fetch(event);
-            console.log('✅ Proxy response:', response.status, response.statusText);
+            console.log('✅ Response:', response.status);
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             return response;
           } else {
-            console.log('❌ sw.route() returned false!');
-            console.log('❌ Config prefix:', sw.config?.prefix);
-            console.log('❌ URL pathname:', pathname);
+            console.log('❌ sw.route() = false');
+            // If route returns false, manually handle it
+            console.log('🔧 Attempting manual proxy...');
+            
+            // Extract the target URL from /service/https://example.com
+            const targetUrl = url.pathname.replace(self.$scramjet.config.prefix, '');
+            console.log('📝 Target URL:', targetUrl);
+            
+            if (targetUrl) {
+              try {
+                // Try direct fetch first
+                const proxyResponse = await fetch(targetUrl, {
+                  headers: event.request.headers,
+                  method: event.request.method,
+                  body: event.request.body
+                });
+                console.log('✅ Direct fetch response:', proxyResponse.status);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                return proxyResponse;
+              } catch (e) {
+                console.error('❌ Direct fetch failed:', e);
+              }
+            }
           }
         } catch (error) {
-          console.error('❌ Scramjet error:', error);
-          console.error('❌ Error stack:', error.stack);
+          console.error('❌ Proxy error:', error);
+          console.error('❌ Stack:', error.stack);
         }
       } else {
-        console.log('⏩ Not /service/ - passthrough');
+        console.log('⏩ Not proxy URL - passthrough');
       }
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
