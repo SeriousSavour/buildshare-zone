@@ -69,6 +69,19 @@ const Browser = () => {
         // @ts-ignore
         const { ScramjetController } = window.$scramjetLoadController();
         
+        // Configure global Scramjet config
+        // @ts-ignore
+        if (!window.$scramjet) window.$scramjet = {};
+        // @ts-ignore
+        window.$scramjet.config = {
+          prefix: "/service/",
+          files: {
+            wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
+            all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.all.js",
+            sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.sync.js",
+          }
+        };
+        
         const controller = new ScramjetController({
           files: {
             wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@2.0.0-alpha/dist/scramjet.wasm.wasm",
