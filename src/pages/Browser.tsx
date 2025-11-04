@@ -234,9 +234,9 @@ const Browser = () => {
     }
 
     try {
-      // Encode URL for Scramjet using prefix
+      // Encode URL for Scramjet using prefix - Scramjet expects /prefix/url format
       const prefix = scramjetRef.current?.config?.prefix || '/service/';
-      const encodedUrl = prefix + encodeURIComponent(fullUrl);
+      const encodedUrl = prefix + fullUrl;
       console.log('🌐 Original URL:', fullUrl);
       console.log('🔗 Encoded proxy URL:', encodedUrl);
       
@@ -296,7 +296,7 @@ const Browser = () => {
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
     const prefix = scramjetRef.current?.config?.prefix || '/service/';
-    const encodedUrl = prefix + encodeURIComponent(previousUrl);
+    const encodedUrl = prefix + previousUrl;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
@@ -316,7 +316,7 @@ const Browser = () => {
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
     const prefix = scramjetRef.current?.config?.prefix || '/service/';
-    const encodedUrl = prefix + encodeURIComponent(nextUrl);
+    const encodedUrl = prefix + nextUrl;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
