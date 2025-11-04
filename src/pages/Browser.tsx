@@ -258,15 +258,26 @@ const Browser = () => {
     }
 
     try {
-      // Simple proxy URL format: /service/ + full URL
-      const encodedUrl = `/service/${fullUrl}`;
+      // Use absolute URL to ensure service worker intercepts it
+      const absoluteProxyUrl = `${window.location.origin}/service/${fullUrl}`;
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🔵 NAVIGATION START');
       console.log('📝 Input URL:', fullUrl);
-      console.log('📝 Encoded URL for iframe:', encodedUrl);
+      console.log('📝 Absolute proxy URL:', absoluteProxyUrl);
       console.log('📝 SW controller active?', navigator.serviceWorker.controller ? 'YES ✓' : 'NO ✗');
+      console.log('📝 SW controller URL:', navigator.serviceWorker.controller?.scriptURL);
       console.log('📝 Scramjet ready?', scramjetReady);
+      
+      // Test fetch to see if SW intercepts
+      console.log('🧪 Testing fetch to proxy URL...');
+      const testResponse = await fetch(absoluteProxyUrl, { method: 'HEAD' }).catch(e => {
+        console.error('❌ Test fetch failed:', e);
+        return null;
+      });
+      if (testResponse) {
+        console.log('✅ Test fetch response:', testResponse.status, testResponse.url);
+      }
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       // Update tabs - store BOTH original and encoded URLs
@@ -276,7 +287,7 @@ const Browser = () => {
             const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
             const updatedTab = {
               ...tab,
-              url: encodedUrl, // iframe uses encoded URL
+              url: absoluteProxyUrl, // iframe uses absolute proxy URL
               title: new URL(fullUrl).hostname,
               history: newHistory, // history stores original URLs
               historyIndex: newHistory.length - 1,
@@ -289,7 +300,7 @@ const Browser = () => {
         return newTabs;
       });
 
-      console.log('🎯 Iframe will now attempt to load:', encodedUrl);
+      console.log('🎯 Iframe will now attempt to load:', absoluteProxyUrl);
     } catch (error) {
       console.error('❌ Navigation error:', error);
       toast({
@@ -329,13 +340,13 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex - 1;
     const previousUrl = currentTab.history[newIndex];
-    const encodedUrl = `/service/${previousUrl}`;
+    const absoluteProxyUrl = `${window.location.origin}/service/${previousUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: encodedUrl,
+          url: absoluteProxyUrl,
           historyIndex: newIndex
         };
       }
@@ -348,13 +359,13 @@ const Browser = () => {
     
     const newIndex = currentTab.historyIndex + 1;
     const nextUrl = currentTab.history[newIndex];
-    const encodedUrl = `/service/${nextUrl}`;
+    const absoluteProxyUrl = `${window.location.origin}/service/${nextUrl}`;
     
     setTabs(tabs.map(tab => {
       if (tab.id === activeTab) {
         return {
           ...tab,
-          url: encodedUrl,
+          url: absoluteProxyUrl,
           historyIndex: newIndex
         };
       }
