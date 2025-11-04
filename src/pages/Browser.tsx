@@ -33,15 +33,17 @@ function toEngineUrl(targetUrl: string): string {
   return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(targetUrl)}`;
 }
 
-function wrapIfNotEngine(currentSrc: string) {
+function wrapIfNotEngine(rawSrc: string) {
+  if (!rawSrc) return rawSrc;
   try {
-    // If the iframe navigated to a non-engine origin, re-wrap it
-    if (!currentSrc.startsWith(`${ENGINE_ORIGIN}${ENGINE_PREFIX}`)) {
-      // currentSrc is absolute here (e.g. https://github.com/... or whatever redirect target)
-      return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(currentSrc)}`;
+    // if iframe navigated to a non-engine URL, re-wrap it through the engine
+    const startsWithEngine = rawSrc.startsWith(`${ENGINE_ORIGIN}${ENGINE_PREFIX}`);
+    if (!startsWithEngine) {
+      // rawSrc is an absolute URL (e.g., https://github.com/... or https://scramjet.mercurywork.shop/...)
+      return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(rawSrc)}`;
     }
   } catch {}
-  return currentSrc;
+  return rawSrc;
 }
 
 interface Tab {
@@ -416,28 +418,35 @@ const Browser = () => {
                       if (!el) return;
                       iframeRefs.current[tab.id] = el;
 
-                      // 1) On load, if it escaped, re-wrap back onto the engine
-                      el.addEventListener("load", () => {
+                      // 1) On each load, re-wrap if it escaped
+                      const onLoad = () => {
                         try {
-                          const rawSrc = el.src; // attribute reflects the navigated URL
-                          const guarded = wrapIfNotEngine(rawSrc);
-                          if (guarded !== rawSrc) {
-                            el.src = guarded;   // re-wrap the escaped URL through the engine
-                            return;             // let it load again
+                          const raw = el.src;                        // current navigated URL
+                          const guarded = wrapIfNotEngine(raw);
+                          if (guarded !== raw) {
+                            el.src = guarded;                       // snap back into /scramjet/<encoded>
+                            return;                                 // let it load again
                           }
                         } catch {}
                         setIsLoading(false);
-                      });
+                      };
+                      el.addEventListener('load', onLoad);
 
-                      // 2) Mutation guard — some sites change src without full load first
+                      // 2) Also guard attribute changes (some sites change src then load)
                       const mo = new MutationObserver(() => {
                         try {
-                          const rawSrc = el.getAttribute("src") ?? "";
-                          const guarded = wrapIfNotEngine(rawSrc);
-                          if (guarded !== rawSrc) el.setAttribute("src", guarded);
+                          const raw = el.getAttribute('src') ?? '';
+                          const guarded = wrapIfNotEngine(raw);
+                          if (guarded !== raw) el.setAttribute('src', guarded);
                         } catch {}
                       });
-                      mo.observe(el, { attributes: true, attributeFilter: ["src"] });
+                      mo.observe(el, { attributes: true, attributeFilter: ['src'] });
+
+                      // cleanup when this ref rebinds
+                      return () => {
+                        el.removeEventListener('load', onLoad);
+                        mo.disconnect();
+                      };
                     }}
                     src={tab.url}
                     className="w-full h-full border-0"
@@ -445,7 +454,7 @@ const Browser = () => {
                     referrerPolicy="no-referrer"
                     sandbox="allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals"
                     onError={(e) => {
-                      console.error("❌ IFRAME ERROR:", e);
+                      console.error('❌ IFRAME ERROR:', e);
                       setIsLoading(false);
                     }}
                   />
