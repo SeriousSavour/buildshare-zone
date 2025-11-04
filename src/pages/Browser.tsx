@@ -130,8 +130,8 @@ const Browser = () => {
         }
 
         console.log('🚀 Step 7: Creating BareMux connection...');
-        // @ts-ignore
-        const connection = new window.BareMux.BareMuxConnection("https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/worker.js");
+        // @ts-ignore - Must use local path for SharedWorker
+        const connection = new window.BareMux.BareMuxConnection("/baremux/worker.js");
         
         console.log('🚀 Step 8: Setting transport...');
         // Use Epoxy transport with Scramjet's official Wisp server
