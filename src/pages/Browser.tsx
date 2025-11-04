@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { ensureEngineReady } from "@/lib/ensureEngine";
 
 const ENGINE_ORIGIN = window.location.origin;
 const ENGINE_PREFIX = '/sengine/scramjet/';
@@ -61,6 +62,11 @@ const Browser = () => {
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
+  // Ensure engine SW is ready before any navigation
+  useEffect(() => {
+    ensureEngineReady().catch(console.error);
+  }, []);
+
   useEffect(() => {
     if (currentTab) {
       // Show the decoded original URL in the address bar, not the engine URL
@@ -98,6 +104,27 @@ const Browser = () => {
     }
   };
 
+  // Two-step navigation: ensure SW is ready, bootstrap frame if needed, then navigate
+  const navIframeSafely = async (iframe: HTMLIFrameElement, fullUrl: string) => {
+    // 1) Ensure SW is registered/ready
+    await ensureEngineReady();
+
+    // 2) If the frame is not yet controlled, land it on /sengine/ first
+    try {
+      const controlled = (iframe.contentWindow && 'serviceWorker' in iframe.contentWindow.navigator)
+        ? !!(iframe.contentWindow.navigator.serviceWorker.controller)
+        : false;
+
+      if (!controlled) {
+        iframe.src = '/sengine/';             // fast bootstrap page
+        await new Promise(r => setTimeout(r, 200)); // tiny settle time
+      }
+    } catch { /* ignore cross-origin */ }
+
+    // 3) Now send it to the proxied target
+    iframe.src = toEngineUrl(fullUrl);
+  };
+
   const navigateToUrl = async (url: string) => {
     if (!url) return;
     setIsLoading(true);
@@ -131,6 +158,10 @@ const Browser = () => {
         };
       })
     );
+
+    // ALSO push the iframe right now, using the safe helper:
+    const iframe = iframeRefs.current[activeTab];
+    if (iframe) navIframeSafely(iframe, fullUrl);
   };
 
   const handleSpecialProtocol = (url: string) => {
