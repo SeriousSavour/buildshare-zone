@@ -45,43 +45,53 @@ const themes: Record<ChristmasTheme, ThemeColors> = {
 export const useChristmasTheme = () => {
   const [theme, setTheme] = useState<ChristmasTheme>(() => {
     const saved = localStorage.getItem('christmas-theme');
-    return (saved as ChristmasTheme) || 'traditional';
+    const initialTheme = (saved as ChristmasTheme) || 'traditional';
+    
+    // Apply theme immediately on load to prevent flash
+    if (typeof window !== 'undefined') {
+      applyTheme(initialTheme);
+    }
+    
+    return initialTheme;
   });
 
   useEffect(() => {
-    const colors = themes[theme];
-    const root = document.documentElement;
-
-    // Update CSS variables
-    root.style.setProperty('--primary', colors.primary);
-    root.style.setProperty('--primary-glow', colors.primaryGlow);
-    root.style.setProperty('--secondary', colors.secondary);
-    root.style.setProperty('--accent', colors.accent);
-    root.style.setProperty('--glow-red', colors.glowPrimary);
-    root.style.setProperty('--glow-green', colors.glowSecondary);
-    root.style.setProperty('--glow-gold', colors.glowAccent);
-    root.style.setProperty('--glow-blue', colors.glowAccent);
-    root.style.setProperty('--ring', colors.primary);
-    root.style.setProperty('--sidebar-primary', colors.primary);
-    root.style.setProperty('--sidebar-ring', colors.primary);
-    
-    // Update gradients
-    root.style.setProperty(
-      '--gradient-primary',
-      `linear-gradient(135deg, hsl(${colors.primary}), hsl(${colors.primaryGlow}))`
-    );
-    root.style.setProperty(
-      '--gradient-secondary',
-      `linear-gradient(135deg, hsl(${colors.secondary}), hsl(${colors.glowSecondary}))`
-    );
-    root.style.setProperty(
-      '--gradient-festive',
-      `linear-gradient(135deg, hsl(${colors.primary}), hsl(${colors.accent}))`
-    );
-
-    // Save to localStorage
+    applyTheme(theme);
     localStorage.setItem('christmas-theme', theme);
   }, [theme]);
 
   return { theme, setTheme, themes };
 };
+
+// Helper function to apply theme
+function applyTheme(theme: ChristmasTheme) {
+  const colors = themes[theme];
+  const root = document.documentElement;
+
+  // Update CSS variables
+  root.style.setProperty('--primary', colors.primary);
+  root.style.setProperty('--primary-glow', colors.primaryGlow);
+  root.style.setProperty('--secondary', colors.secondary);
+  root.style.setProperty('--accent', colors.accent);
+  root.style.setProperty('--glow-red', colors.glowPrimary);
+  root.style.setProperty('--glow-green', colors.glowSecondary);
+  root.style.setProperty('--glow-gold', colors.glowAccent);
+  root.style.setProperty('--glow-blue', colors.glowAccent);
+  root.style.setProperty('--ring', colors.primary);
+  root.style.setProperty('--sidebar-primary', colors.primary);
+  root.style.setProperty('--sidebar-ring', colors.primary);
+  
+  // Update gradients
+  root.style.setProperty(
+    '--gradient-primary',
+    `linear-gradient(135deg, hsl(${colors.primary}), hsl(${colors.primaryGlow}))`
+  );
+  root.style.setProperty(
+    '--gradient-secondary',
+    `linear-gradient(135deg, hsl(${colors.secondary}), hsl(${colors.glowSecondary}))`
+  );
+  root.style.setProperty(
+    '--gradient-festive',
+    `linear-gradient(135deg, hsl(${colors.primary}), hsl(${colors.accent}))`
+  );
+}
