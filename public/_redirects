@@ -1,10 +1,6 @@
-/sw.js                              /sw.js                             200
-
-/sengine/scramjet.all.js            /sengine/scramjet.all.js           200
-/sengine/scramjet.sync.js           /sengine/scramjet.sync.js          200
-/sengine/scramjet.wasm.wasm         /sengine/scramjet.wasm.wasm        200
-/sengine/index.html                 /sengine/index.html                200
-/sengine/sw.js                      /sengine/sw.js                     200
-/sengine/*                          /sengine/index.html                200
-
-/*                                  /index.html                        200
+/sengine/sw.js               /sengine/sw.js               200
+/sengine/scramjet.all.js     /sengine/scramjet.all.js     200
+/sengine/scramjet.sync.js    /sengine/scramjet.sync.js    200
+/sengine/scramjet.wasm.wasm  /sengine/scramjet.wasm.wasm  200
+/sengine/*                   /sengine/index.html          200
+/*                           /index.html                  200

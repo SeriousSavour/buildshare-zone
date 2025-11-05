@@ -10,30 +10,14 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ensureEngineReady } from "@/lib/ensureEngine";
-
-// Force absolute URLs to production domain (not relative to Lovable editor)
-const PROD_ORIGIN = 'https://buildshare-zone.lovable.app';
-const ENGINE_ORIGIN = (location.origin === PROD_ORIGIN) ? PROD_ORIGIN : PROD_ORIGIN;
-const ENGINE_PREFIX = '/sengine/scramjet/';  // matches SW prefix exactly
+import { ensureEngineReady, toEngineUrl } from '@/lib/engine';
 
 function normalizeUserInput(input: string): string {
   let s = input.trim();
-  const isSearch = s.includes(' ') ||
-    (!/^https?:\/\//i.test(s) && !s.includes('.'));
-
-  if (isSearch) {
-    return `https://www.google.com/search?q=${encodeURIComponent(s)}`;
-  }
-  if (!/^https?:\/\//i.test(s)) {
-    s = 'https://' + s;
-  }
+  const isSearch = s.includes(' ') || (!/^https?:\/\//i.test(s) && !s.includes('.'));
+  if (isSearch) return `https://www.google.com/search?q=${encodeURIComponent(s)}`;
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
   return s;
-}
-
-function toEngineUrl(targetUrl: string): string {
-  // IMPORTANT: Always returns absolute URL to production domain
-  return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(targetUrl)}`;
 }
 
 interface Tab {
@@ -58,10 +42,6 @@ const Browser = () => {
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
-  // Ensure engine SW is ready before any navigation
-  useEffect(() => {
-    ensureEngineReady().catch(console.error);
-  }, []);
 
   useEffect(() => {
     if (currentTab) {
@@ -100,44 +80,20 @@ const Browser = () => {
     }
   };
 
-  // Two-step navigation: ensure SW is ready, bootstrap frame if needed, then navigate
-  const navIframeSafely = async (iframe: HTMLIFrameElement, fullUrl: string) => {
-    // 1) Ensure SW is registered/ready
-    await ensureEngineReady();
-
-    // 2) If the frame is not yet controlled, land it on /sengine/ first
-    try {
-      const controlled = (iframe.contentWindow && 'serviceWorker' in iframe.contentWindow.navigator)
-        ? !!(iframe.contentWindow.navigator.serviceWorker.controller)
-        : false;
-
-      if (!controlled) {
-        iframe.src = `${ENGINE_ORIGIN}/sengine/`;  // absolute bootstrap URL
-        await new Promise(r => setTimeout(r, 200)); // tiny settle time
-      }
-    } catch { /* ignore cross-origin */ }
-
-    // 3) Now send it to the proxied target
-    iframe.src = toEngineUrl(fullUrl);
-  };
-
   const navigateToUrl = async (url: string) => {
     if (!url) return;
     setIsLoading(true);
 
-    let fullUrl = url.trim();
-    
-    if (fullUrl.startsWith("shadow://")) {
-      handleSpecialProtocol(fullUrl);
+    if (url.startsWith('shadow://')) {
+      handleSpecialProtocol(url);
       setIsLoading(false);
       return;
     }
 
-    // normalize/search handling
-    const isSearch = fullUrl.includes(" ") || (!/^https?:\/\//i.test(fullUrl) && !fullUrl.includes("."));
-    fullUrl = isSearch 
-      ? `https://www.google.com/search?q=${encodeURIComponent(fullUrl)}`
-      : /^https?:\/\//i.test(fullUrl) ? fullUrl : `https://${fullUrl}`;
+    const fullUrl = normalizeUserInput(url);
+
+    // ✅ make sure the SW is active *before* first proxied load
+    await ensureEngineReady();
 
     const engineUrl = toEngineUrl(fullUrl);
 
@@ -147,17 +103,13 @@ const Browser = () => {
         const newHistory = [...tab.history.slice(0, tab.historyIndex + 1), fullUrl];
         return {
           ...tab,
-          url: engineUrl,             // iframe sees ENGINE url
+          url: engineUrl,
           title: new URL(fullUrl).hostname,
           history: newHistory,
           historyIndex: newHistory.length - 1,
         };
       })
     );
-
-    // ALSO push the iframe right now, using the safe helper:
-    const iframe = iframeRefs.current[activeTab];
-    if (iframe) navIframeSafely(iframe, fullUrl);
   };
 
   const handleSpecialProtocol = (url: string) => {
@@ -182,9 +134,10 @@ const Browser = () => {
     }
   };
 
-  const goBack = () => {
+  const goBack = async () => {
     if (!currentTab || currentTab.historyIndex === 0) return;
     
+    await ensureEngineReady();
     const newIndex = currentTab.historyIndex - 1;
     const fullUrl = currentTab.history[newIndex];
     const engineUrl = toEngineUrl(fullUrl);
@@ -201,9 +154,10 @@ const Browser = () => {
     }));
   };
 
-  const goForward = () => {
+  const goForward = async () => {
     if (!currentTab || currentTab.historyIndex >= currentTab.history.length - 1) return;
     
+    await ensureEngineReady();
     const newIndex = currentTab.historyIndex + 1;
     const fullUrl = currentTab.history[newIndex];
     const engineUrl = toEngineUrl(fullUrl);
@@ -220,14 +174,12 @@ const Browser = () => {
     }));
   };
 
-  const refresh = () => {
-    if (currentTab?.url) {
-      setIsLoading(true);
-      const iframe = iframeRefs.current[activeTab];
-      if (iframe) {
-        iframe.src = iframe.src; // Force reload
-      }
-    }
+  const refresh = async () => {
+    if (!currentTab?.url) return;
+    setIsLoading(true);
+    await ensureEngineReady();
+    const el = iframeRefs.current[activeTab];
+    if (el) el.src = el.src;
   };
 
   const toggleFullscreen = () => {
