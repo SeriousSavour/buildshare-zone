@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,14 +8,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import BrowserFrame from "@/components/browser/BrowserFrame";
 import QuickLinks from "@/components/browser/QuickLinks";
-
-interface Particle {
-  id: number;
-  emoji: string;
-  left: number;
-  animationDuration: number;
-  size: number;
-}
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -24,34 +17,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [particles, setParticles] = useState<Particle[]>([]);
-
-  useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
-    let particleId = 0;
-
-    const generateParticle = () => {
-      const particle: Particle = {
-        id: particleId++,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 100,
-        animationDuration: 8 + Math.random() * 8,
-        size: 0.8 + Math.random() * 3,
-      };
-      
-      setParticles(prev => [...prev, particle]);
-
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => p.id !== particle.id));
-      }, particle.animationDuration * 1000);
-    };
-
-    const interval = setInterval(() => {
-      generateParticle();
-    }, 600);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { data: settings } = useSiteSettings();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +101,11 @@ const Register = () => {
   };
 
   return (
-    <BrowserFrame currentUrl="shadow://register" showTabs={true}>
+    <BrowserFrame 
+      currentUrl="shadow://register" 
+      showTabs={true}
+      customBackground={settings?.login_background}
+    >
       <div className="w-full max-w-6xl">
         <div className="grid md:grid-cols-2 gap-8 items-start">
           {/* Register Card */}
@@ -214,6 +184,12 @@ const Register = () => {
 
           {/* Quick Links Section */}
           <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                {settings?.site_name || "shadow"}
+              </h2>
+              <p className="text-muted-foreground">{settings?.discord_invite || "discord.gg/goshadow"}</p>
+            </div>
             <QuickLinks />
           </div>
         </div>

@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface SiteSetting {
+  setting_key: string;
+  setting_value: string;
+  setting_type: string;
+}
+
 export const useSiteSettings = () => {
   return useQuery({
     queryKey: ["site-settings"],
@@ -11,13 +17,13 @@ export const useSiteSettings = () => {
       
       if (error) throw error;
       
-      // Convert array to object for easier access
-      const settings: Record<string, string> = {};
-      data?.forEach(setting => {
-        settings[setting.setting_key] = setting.setting_value;
+      // Convert to object for easy access
+      const settingsObj: Record<string, string> = {};
+      data?.forEach((setting: SiteSetting) => {
+        settingsObj[setting.setting_key] = setting.setting_value;
       });
       
-      return settings;
+      return settingsObj;
     },
   });
 };

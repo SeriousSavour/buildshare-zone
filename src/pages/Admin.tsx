@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2 } from "lucide-react";
+import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2, Settings } from "lucide-react";
+import SiteSettingsPanel from "@/components/admin/SiteSettingsPanel";
 
 interface Particle {
   id: number;
@@ -899,7 +900,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="w-full animate-fade-in-delay-2">
-          <TabsList className="grid w-full grid-cols-9 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
+          <TabsList className="grid w-full grid-cols-10 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
             <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Users className="w-4 h-4" />
               Users
@@ -935,6 +936,10 @@ const Admin = () => {
             <TabsTrigger value="diagnostics" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Shield className="w-4 h-4" />
               Network
+            </TabsTrigger>
+            <TabsTrigger value="site-settings" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
+              <Settings className="w-4 h-4" />
+              Site
             </TabsTrigger>
           </TabsList>
 
