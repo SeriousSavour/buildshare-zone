@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import { SnowEffect } from "@/components/winter/SnowEffect";
 import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
+import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -28,6 +29,9 @@ import AdminAuth from "./components/admin/AdminAuth";
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Initialize Christmas theme
+  useChristmasTheme();
+  
   // Add beforeunload event listener to warn users before closing tab
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {

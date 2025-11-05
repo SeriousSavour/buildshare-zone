@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { ChristmasThemeToggle } from "@/components/theme/ChristmasThemeToggle";
 
 const SiteSettingsPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -133,7 +134,11 @@ const SiteSettingsPanel = () => {
           </p>
         </div>
 
-        <Button 
+        <div className="pt-4">
+          <ChristmasThemeToggle />
+        </div>
+
+        <Button
           onClick={handleSave} 
           disabled={isSaving}
           className="w-full"

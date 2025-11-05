@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
+import { ChristmasThemeToggle } from "@/components/theme/ChristmasThemeToggle";
 
 interface Particle {
   id: number;
@@ -14,7 +15,7 @@ const Settings = () => {
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
+    const emojis = ['❄️', '🎄', '🎁', '⛄', '🔔', '✨', '🌟', '🎅'];
     let particleId = 0;
 
     const generateParticle = () => {
@@ -92,7 +93,7 @@ const Settings = () => {
           {/* Appearance Settings */}
           <div className="glass-card p-6 rounded-lg border border-white/10">
             <h2 className="text-2xl font-semibold mb-4 text-foreground">Appearance</h2>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Theme</label>
                 <select className="w-full px-4 py-2 bg-background/50 border border-white/10 rounded-lg text-foreground">
@@ -101,6 +102,8 @@ const Settings = () => {
                   <option>System</option>
                 </select>
               </div>
+              
+              <ChristmasThemeToggle />
             </div>
           </div>
 

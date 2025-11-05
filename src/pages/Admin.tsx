@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2, Settings } from "lucide-react";
 import SiteSettingsPanel from "@/components/admin/SiteSettingsPanel";
+import { ChristmasThemeToggle } from "@/components/theme/ChristmasThemeToggle";
 
 interface Particle {
   id: number;
