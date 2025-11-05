@@ -8,6 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import GameCard from "@/components/games/GameCard";
 import BrowserQuickLinks from "@/components/browser/BrowserQuickLinks";
+import FriendsContent from "@/components/browser/FriendsContent";
+import ChatContent from "@/components/browser/ChatContent";
+import ToolsContent from "@/components/browser/ToolsContent";
+import HelpContent from "@/components/browser/HelpContent";
 
 interface Tab {
   id: string;
@@ -883,28 +887,16 @@ const BrowserView = () => {
 
               {tab.type === "friends" && (
                 <div className="min-h-full bg-background p-8">
-                  <div className="container mx-auto">
-                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Friends</h2>
-                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
-                      <p className="text-muted-foreground mb-4">Friends functionality will be displayed here</p>
-                      <Button onClick={() => navigate("/friends")} variant="outline">
-                        Open in Main App
-                      </Button>
-                    </div>
+                  <div className="container mx-auto max-w-4xl">
+                    <FriendsContent />
                   </div>
                 </div>
               )}
 
               {tab.type === "chat" && (
                 <div className="min-h-full bg-background p-8">
-                  <div className="container mx-auto">
-                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Chat</h2>
-                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
-                      <p className="text-muted-foreground mb-4">Chat functionality will be displayed here</p>
-                      <Button onClick={() => navigate("/chat")} variant="outline">
-                        Open in Main App
-                      </Button>
-                    </div>
+                  <div className="container mx-auto max-w-6xl">
+                    <ChatContent />
                   </div>
                 </div>
               )}
@@ -912,27 +904,15 @@ const BrowserView = () => {
               {tab.type === "tools" && (
                 <div className="min-h-full bg-background p-8">
                   <div className="container mx-auto">
-                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Tools</h2>
-                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
-                      <p className="text-muted-foreground mb-4">Tools functionality will be displayed here</p>
-                      <Button onClick={() => navigate("/tools")} variant="outline">
-                        Open in Main App
-                      </Button>
-                    </div>
+                    <ToolsContent />
                   </div>
                 </div>
               )}
 
               {tab.type === "help" && (
                 <div className="min-h-full bg-background p-8">
-                  <div className="container mx-auto">
-                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Help</h2>
-                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
-                      <p className="text-muted-foreground mb-4">Help functionality will be displayed here</p>
-                      <Button onClick={() => navigate("/help")} variant="outline">
-                        Open in Main App
-                      </Button>
-                    </div>
+                  <div className="container mx-auto max-w-2xl">
+                    <HelpContent />
                   </div>
                 </div>
               )}
