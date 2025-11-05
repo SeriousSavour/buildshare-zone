@@ -12,7 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { ensureEngineReady } from "@/lib/ensureEngine";
 
-const ENGINE_ORIGIN = window.location.origin;
+// Force absolute URLs to production domain (not relative to Lovable editor)
+const PROD_ORIGIN = 'https://buildshare-zone.lovable.app';
+const ENGINE_ORIGIN = (location.origin === PROD_ORIGIN) ? PROD_ORIGIN : PROD_ORIGIN;
 const ENGINE_PREFIX = '/sengine/scramjet/';
 
 function normalizeUserInput(input: string): string {
@@ -30,14 +32,8 @@ function normalizeUserInput(input: string): string {
 }
 
 function toEngineUrl(targetUrl: string): string {
-  // IMPORTANT: full target URL must be percent-encoded
+  // IMPORTANT: Always returns absolute URL to production domain
   return `${ENGINE_ORIGIN}${ENGINE_PREFIX}${encodeURIComponent(targetUrl)}`;
-}
-
-function wrapIfNotEngine(raw: string) {
-  if (!raw) return raw;
-  const want = `${ENGINE_ORIGIN}${ENGINE_PREFIX}`;
-  return raw.startsWith(want) ? raw : `${want}${encodeURIComponent(raw)}`;
 }
 
 interface Tab {
@@ -116,7 +112,7 @@ const Browser = () => {
         : false;
 
       if (!controlled) {
-        iframe.src = '/sengine/';             // fast bootstrap page
+        iframe.src = `${ENGINE_ORIGIN}/sengine/`;  // absolute bootstrap URL
         await new Promise(r => setTimeout(r, 200)); // tiny settle time
       }
     } catch { /* ignore cross-origin */ }
@@ -446,43 +442,10 @@ const Browser = () => {
                     ref={(el) => {
                       if (!el) return;
                       iframeRefs.current[tab.id] = el;
-
-                      // 1) Keep engine prefix on every nav the iframe tries to make
-                      const keepWrapped = () => {
-                        try {
-                          const cur = el.src || "";
-                          const fixed = wrapIfNotEngine(cur);
-                          if (fixed !== cur) {
-                            el.src = fixed;
-                          }
-                        } catch {
-                          // cross-origin read may throw; just ignore
-                        }
-                      };
-
-                      // Guard on initial set
-                      keepWrapped();
-
-                      // 2) Watch for src mutations (redirects, JS navs, link clicks, etc.)
-                      const mo = new MutationObserver(() => keepWrapped());
-                      mo.observe(el, { attributes: true, attributeFilter: ["src"] });
-
-                      // 3) After each load, run the guard again (some sites rewrite location)
-                      const onLoad = () => {
-                        setIsLoading(false);
-                        keepWrapped();
-                      };
-                      el.addEventListener("load", onLoad);
-
-                      // Clean up when tab unmounts
-                      el.addEventListener("error", () => setIsLoading(false));
-
-                      return () => {
-                        el.removeEventListener("load", onLoad);
-                        mo.disconnect();
-                      };
+                      el.addEventListener('load', () => setIsLoading(false));
+                      el.addEventListener('error', () => setIsLoading(false));
                     }}
-                    src={wrapIfNotEngine(tab.url)}
+                    src={tab.url}
                     className="w-full h-full border-0"
                     title={tab.title}
                     referrerPolicy="no-referrer"
