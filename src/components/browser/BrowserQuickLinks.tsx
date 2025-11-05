@@ -35,9 +35,8 @@ const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
             key={link.path}
             onClick={() => {
               if (link.path === "/games") {
-                onNavigate("games", link.title);
+                onNavigate("/games", link.title);
               } else {
-                // For now, other links will open in new browser tabs in future updates
                 onNavigate(link.path, link.title);
               }
             }}

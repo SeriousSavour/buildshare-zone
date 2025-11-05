@@ -13,7 +13,7 @@ interface Tab {
   id: string;
   title: string;
   url: string;
-  type: "home" | "games" | "game";
+  type: "home" | "games" | "game" | "friends" | "chat" | "tools" | "help";
   gameId?: string;
 }
 
@@ -134,11 +134,59 @@ const BrowserView = () => {
   };
 
   const handleQuickLinkNavigate = (path: string, title: string) => {
-    if (path === "/games") {
-      navigateToGames();
-    } else {
-      // For future expansion - other pages can be added as browser tabs
-      toast.info(`${title} will open in browser soon!`);
+    let tabType: Tab["type"] = "home";
+    let url = "shadow://home";
+    
+    switch(path) {
+      case "/games":
+        tabType = "games";
+        url = "shadow://games";
+        break;
+      case "/friends":
+        tabType = "friends";
+        url = "shadow://friends";
+        break;
+      case "/chat":
+        tabType = "chat";
+        url = "shadow://chat";
+        break;
+      case "/tools":
+        tabType = "tools";
+        url = "shadow://tools";
+        break;
+      case "/help":
+        tabType = "help";
+        url = "shadow://help";
+        break;
+      default:
+        tabType = "home";
+        url = "shadow://home";
+    }
+    
+    // Check if tab already exists
+    const existingTab = tabs.find(t => t.type === tabType);
+    if (existingTab) {
+      setActiveTab(existingTab.id);
+      setAddressBar(existingTab.url);
+      return;
+    }
+    
+    // Create new tab
+    const newTab: Tab = {
+      id: Date.now().toString(),
+      title: title,
+      url: url,
+      type: tabType
+    };
+    setTabs([...tabs, newTab]);
+    setActiveTab(newTab.id);
+    setAddressBar(newTab.url);
+    
+    // Fetch games if navigating to games
+    if (tabType === "games") {
+      fetchGames();
+      fetchLikedGames();
+      fetchCurrentUser();
     }
   };
 
@@ -829,6 +877,62 @@ const BrowserView = () => {
                         ))}
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {tab.type === "friends" && (
+                <div className="min-h-full bg-background p-8">
+                  <div className="container mx-auto">
+                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Friends</h2>
+                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
+                      <p className="text-muted-foreground mb-4">Friends functionality will be displayed here</p>
+                      <Button onClick={() => navigate("/friends")} variant="outline">
+                        Open in Main App
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tab.type === "chat" && (
+                <div className="min-h-full bg-background p-8">
+                  <div className="container mx-auto">
+                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Chat</h2>
+                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
+                      <p className="text-muted-foreground mb-4">Chat functionality will be displayed here</p>
+                      <Button onClick={() => navigate("/chat")} variant="outline">
+                        Open in Main App
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tab.type === "tools" && (
+                <div className="min-h-full bg-background p-8">
+                  <div className="container mx-auto">
+                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Tools</h2>
+                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
+                      <p className="text-muted-foreground mb-4">Tools functionality will be displayed here</p>
+                      <Button onClick={() => navigate("/tools")} variant="outline">
+                        Open in Main App
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tab.type === "help" && (
+                <div className="min-h-full bg-background p-8">
+                  <div className="container mx-auto">
+                    <h2 className="text-3xl font-bold mb-6 gradient-text-animated">Help</h2>
+                    <div className="bg-card/50 rounded-2xl p-8 border-2 border-border text-center">
+                      <p className="text-muted-foreground mb-4">Help functionality will be displayed here</p>
+                      <Button onClick={() => navigate("/help")} variant="outline">
+                        Open in Main App
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
