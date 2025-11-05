@@ -19,7 +19,7 @@ export const StyledText: React.FC<StyledTextProps> = ({
       {text.split('').map((char, index) => (
         <span
           key={index}
-          className={index === indexToStyle ? "font-creepster inline-block transform scale-110" : ""}
+          className={index === indexToStyle ? "font-lobster inline-block transform scale-125 text-accent" : ""}
         >
           {char}
         </span>

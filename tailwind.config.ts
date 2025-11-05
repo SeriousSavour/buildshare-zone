@@ -30,16 +30,17 @@ export default {
 			}
 		},
 		extend: {
-			fontFamily: {
-				sans: ['Inter', 'system-ui', 'sans-serif'],
-				inter: ['Inter', 'system-ui', 'sans-serif'],
-				roboto: ['Roboto', 'system-ui', 'sans-serif'],
-				poppins: ['Poppins', 'system-ui', 'sans-serif'],
-				playfair: ['Playfair Display', 'serif'],
-				merriweather: ['Merriweather', 'serif'],
-				creepster: ['Creepster', 'cursive'],
-				special: ['Special Elite', 'cursive'],
-			},
+		fontFamily: {
+			sans: ['Inter', 'system-ui', 'sans-serif'],
+			inter: ['Inter', 'system-ui', 'sans-serif'],
+			roboto: ['Roboto', 'system-ui', 'sans-serif'],
+			poppins: ['Poppins', 'system-ui', 'sans-serif'],
+			playfair: ['Playfair Display', 'serif'],
+			merriweather: ['Merriweather', 'serif'],
+			lobster: ['Lobster', 'cursive'],
+			christmas: ['Mountains of Christmas', 'cursive'],
+			special: ['Special Elite', 'cursive'],
+		},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

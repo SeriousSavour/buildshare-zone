@@ -4,62 +4,62 @@
 
 @layer base {
   :root {
-    /* Cool winter base with icy depth */
-    --background: 210 25% 12%;
-    --foreground: 200 20% 98%;
+    /* Festive Christmas base with deep navy */
+    --background: 220 30% 10%;
+    --foreground: 0 0% 98%;
     
-    /* Frosted cards with cool glow */
-    --card: 210 30% 16%;
-    --card-foreground: 200 20% 98%;
+    /* Rich cards with golden highlights */
+    --card: 220 25% 14%;
+    --card-foreground: 0 0% 98%;
     
-    --popover: 210 30% 16%;
-    --popover-foreground: 200 20% 98%;
+    --popover: 220 25% 14%;
+    --popover-foreground: 0 0% 98%;
     
-    /* Icy blue primary */
-    --primary: 200 95% 62%;
-    --primary-foreground: 210 30% 10%;
-    --primary-glow: 195 100% 75%;
+    /* Festive red primary */
+    --primary: 355 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 355 90% 65%;
     
-    /* Cool cyan secondary */
-    --secondary: 185 75% 55%;
-    --secondary-foreground: 210 30% 10%;
+    /* Rich evergreen secondary */
+    --secondary: 145 55% 35%;
+    --secondary-foreground: 0 0% 100%;
     
-    /* Cool muted tones */
-    --muted: 210 22% 20%;
-    --muted-foreground: 200 15% 75%;
+    /* Warm muted tones */
+    --muted: 220 20% 18%;
+    --muted-foreground: 30 15% 75%;
     
-    /* Bright winter accent */
-    --accent: 190 85% 65%;
-    --accent-foreground: 210 30% 10%;
+    /* Golden accent */
+    --accent: 45 95% 60%;
+    --accent-foreground: 220 30% 10%;
     
     --destructive: 0 80% 58%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Icy glowing borders */
-    --border: 210 30% 24%;
-    --input: 210 25% 18%;
-    --ring: 200 95% 62%;
+    /* Subtle festive borders */
+    --border: 220 25% 22%;
+    --input: 220 22% 16%;
+    --ring: 355 85% 55%;
     
     --radius: 0.875rem;
     
-    /* Frosted sidebar */
-    --sidebar-background: 210 28% 14%;
-    --sidebar-foreground: 200 20% 98%;
-    --sidebar-primary: 200 95% 62%;
-    --sidebar-primary-foreground: 210 30% 10%;
-    --sidebar-accent: 185 75% 55%;
-    --sidebar-accent-foreground: 210 30% 10%;
-    --sidebar-border: 210 30% 22%;
-    --sidebar-ring: 200 95% 62%;
+    /* Festive sidebar */
+    --sidebar-background: 220 28% 12%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 355 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 145 55% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 25% 20%;
+    --sidebar-ring: 355 85% 55%;
     
-    /* Winter glow effects */
-    --glow-ice: 195 100% 75%;
-    --glow-cyan: 185 85% 65%;
-    --glow-blue: 200 95% 62%;
+    /* Christmas glow effects */
+    --glow-red: 355 90% 65%;
+    --glow-green: 145 65% 45%;
+    --glow-gold: 45 95% 60%;
     --glow-white: 0 0% 100%;
-    --gradient-primary: linear-gradient(135deg, hsl(200 95% 62%), hsl(195 100% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(185 75% 55%), hsl(190 85% 65%));
-    --gradient-winter: linear-gradient(135deg, hsl(210 30% 20%), hsl(200 40% 35%));
+    --gradient-primary: linear-gradient(135deg, hsl(355 85% 55%), hsl(355 90% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(145 55% 35%), hsl(145 65% 45%));
+    --gradient-festive: linear-gradient(135deg, hsl(355 85% 55%), hsl(45 95% 60%));
   }
 
   .dark {
@@ -108,27 +108,33 @@
     @apply tracking-tight;
   }
   
-  /* Enhanced glow utilities */
+  /* Festive glow utilities */
   .glow-orange {
-    box-shadow: 0 4px 20px hsl(var(--glow-blue) / 0.4), 
-                0 8px 40px hsl(var(--glow-blue) / 0.2),
-                0 0 60px hsl(var(--glow-blue) / 0.1);
+    box-shadow: 0 4px 20px hsl(var(--glow-red) / 0.4), 
+                0 8px 40px hsl(var(--glow-red) / 0.2),
+                0 0 60px hsl(var(--glow-red) / 0.1);
+  }
+  
+  .glow-red {
+    box-shadow: 0 4px 20px hsl(var(--glow-red) / 0.5), 
+                0 8px 40px hsl(var(--glow-red) / 0.3),
+                0 0 60px hsl(var(--glow-red) / 0.15);
   }
   
   .glow-purple {
-    box-shadow: 0 4px 20px hsl(var(--glow-cyan) / 0.4), 
-                0 8px 40px hsl(var(--glow-cyan) / 0.2);
+    box-shadow: 0 4px 20px hsl(var(--glow-green) / 0.4), 
+                0 8px 40px hsl(var(--glow-green) / 0.2);
   }
   
   .glow-green {
-    box-shadow: 0 4px 20px hsl(var(--glow-ice) / 0.35),
-                0 8px 40px hsl(var(--glow-ice) / 0.15);
+    box-shadow: 0 4px 20px hsl(var(--glow-green) / 0.45),
+                0 8px 40px hsl(var(--glow-green) / 0.25);
   }
   
-  .glow-ice {
-    box-shadow: 0 4px 20px hsl(var(--glow-ice) / 0.5), 
-                0 8px 40px hsl(var(--glow-ice) / 0.3),
-                0 0 60px hsl(var(--glow-ice) / 0.15);
+  .glow-gold {
+    box-shadow: 0 4px 20px hsl(var(--glow-gold) / 0.5), 
+                0 8px 40px hsl(var(--glow-gold) / 0.3),
+                0 0 60px hsl(var(--glow-gold) / 0.15);
   }
   
   .gradient-text {
