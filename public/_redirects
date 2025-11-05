@@ -3,4 +3,7 @@
 /sengine/scramjet.sync.js    /sengine/scramjet.sync.js    200
 /sengine/scramjet.wasm.wasm  /sengine/scramjet.wasm.wasm  200
 /sengine/*                   /sengine/index.html          200
+
+/baremux/*                   /baremux/:splat              200
+
 /*                           /index.html                  200

@@ -42,6 +42,36 @@ const Browser = () => {
 
   const currentTab = tabs.find(tab => tab.id === activeTab);
 
+  // Initialize Bare-Mux transport
+  useEffect(() => {
+    (async () => {
+      try {
+        // 1) Load Bare-Mux + Epoxy
+        const load = (src: string) => new Promise<void>((res, rej) => {
+          const s = document.createElement('script');
+          s.src = src; s.onload = () => res(); s.onerror = rej; document.head.appendChild(s);
+        });
+
+        await load('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js');
+        await load('https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.js');
+
+        // 2) Tell Bare-Mux where our worker lives
+        //    (the lib will also stash this in localStorage for the SW to use)
+        //    @ts-ignore
+        const mux = new window.BareMux.BareMuxConnection('/baremux/worker.js');
+
+        // 3) Select Epoxy with the public WISP endpoint
+        await mux.setTransport(
+          'https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2/dist/index.mjs',
+          [{ wisp: 'wss://wisp.mercurywork.shop/wisp/' }]
+        );
+
+        console.log('✅ Bare-Mux transport ready');
+      } catch (e) {
+        console.warn('Bare-Mux init failed (proxy may still work if already set):', e);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (currentTab) {
