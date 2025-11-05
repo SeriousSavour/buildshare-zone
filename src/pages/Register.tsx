@@ -214,12 +214,6 @@ const Register = () => {
 
           {/* Quick Links Section */}
           <div className="space-y-4">
-            <div className="text-center space-y-2">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-                shadow
-              </h2>
-              <p className="text-muted-foreground">discord.gg/goshadow</p>
-            </div>
             <QuickLinks />
           </div>
         </div>

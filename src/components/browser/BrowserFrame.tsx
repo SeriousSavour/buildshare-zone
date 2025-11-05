@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface BrowserFrameProps {
   children: React.ReactNode;
@@ -22,13 +23,14 @@ const BrowserFrame = ({
   const [tabs] = useState([
     { id: "1", title: "Home", url: "shadow://home" }
   ]);
+  
+  const { data: settings } = useSiteSettings();
+  const background = customBackground || settings?.login_background || 'radial-gradient(ellipse at center, hsl(220 70% 10%) 0%, hsl(220 70% 5%) 50%, hsl(220 70% 2%) 100%)';
 
   return (
     <div 
       className="min-h-screen flex flex-col"
-      style={{
-        background: customBackground || 'radial-gradient(ellipse at center, hsl(220 70% 10%) 0%, hsl(220 70% 5%) 50%, hsl(220 70% 2%) 100%)'
-      }}
+      style={{ background }}
     >
       {/* Browser Chrome */}
       {showTabs && (
