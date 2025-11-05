@@ -959,9 +959,9 @@ const BrowserView = () => {
                           src={useDirectUrl ? htmlContent || undefined : undefined}
                           srcDoc={!useDirectUrl ? htmlContent || undefined : undefined}
                           className="w-full h-full border-2 border-border rounded-lg bg-white"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                           allowFullScreen
-                          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-downloads allow-top-navigation-by-user-activation"
+                          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
                         />
                       </div>
                     ) : (
