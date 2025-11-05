@@ -1,14 +1,13 @@
-// v5 — root-scoped SW that only handles /sengine/scramjet/*
+// v5 — root-scoped SW, only handles /sengine/scramjet/*
 self.$scramjet = {
   config: {
     prefix: "/sengine/scramjet/",
     codec: "$scramjet$encode",
     files: {
-      // these paths are now absolute from the site root
-      wasm: "/sengine/scramjet.wasm.wasm",
-      worker: "/sw.js",
-      client: "/sengine/scramjet.all.js",
-      sync: "/sengine/scramjet.sync.js",
+      wasm:  "/sengine/scramjet.wasm.wasm",
+      worker:"/sw.js",
+      client:"/sengine/scramjet.all.js",
+      sync:  "/sengine/scramjet.sync.js",
     },
   },
 };
@@ -18,22 +17,18 @@ const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const sw = new ScramjetServiceWorker();
 
 self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 
-// Only intercept the proxy prefix. Everything else: network.
 self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  const { pathname } = new URL(req.url);
-
-  if (!pathname.startsWith(self.$scramjet.config.prefix)) return;
-
+  const { pathname } = new URL(event.request.url);
+  if (!pathname.startsWith(self.$scramjet.config.prefix)) return;   // only proxy prefix
   event.respondWith((async () => {
     try {
-      const resp = await sw.fetch(req);
+      const resp = await sw.fetch(event.request);
       if (resp) return resp;
     } catch (e) {
       console.error("[SW]/sengine fetch error:", e);
     }
-    return fetch(req);
+    return fetch(event.request);
   })());
 });
