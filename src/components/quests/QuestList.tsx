@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { supabase } from "@/integrations/supabase/client";
 import { Trophy, CheckCircle, Circle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 

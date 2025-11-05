@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import GameCard from "@/components/games/GameCard";
-import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Grid3x3, List, Play, Heart } from "lucide-react";

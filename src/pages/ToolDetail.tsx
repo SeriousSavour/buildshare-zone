@@ -12,7 +12,7 @@ import Navigation from "@/components/layout/Navigation";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, ExternalLink, TrendingUp } from "lucide-react";
 

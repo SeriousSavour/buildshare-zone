@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { supabaseWithProxy as supabase } from '@/lib/proxyClient';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 type QuestType = 'create_game' | 'like_games' | 'play_games' | 'add_friends' | 'upload_avatar';

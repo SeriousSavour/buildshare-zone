@@ -13,9 +13,6 @@
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/transformers": "^3.7.3",
-    "@mercuryworkshop/bare-mux": "^2.1.7",
-    "@mercuryworkshop/epoxy-transport": "^2.1.28",
-    "@mercuryworkshop/scramjet": "^2.0.0-alpha",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

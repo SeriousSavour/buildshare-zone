@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Play, MessageSquare, Share2, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { StyledText } from "@/components/ui/styled-text";
 import { useQuestTracking } from "@/hooks/useQuestTracking";

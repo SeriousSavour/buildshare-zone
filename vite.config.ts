@@ -21,12 +21,6 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "/baremux": path.resolve(__dirname, "./node_modules/@mercuryworkshop/bare-mux/dist"),
-      "/scram": path.resolve(__dirname, "./node_modules/@mercuryworkshop/scramjet/dist"),
-      "/epoxy": path.resolve(__dirname, "./node_modules/@mercuryworkshop/epoxy-transport/dist"),
     },
   },
-  optimizeDeps: {
-    exclude: ['@mercuryworkshop/scramjet', '@mercuryworkshop/bare-mux', '@mercuryworkshop/epoxy-transport']
-  }
 }));

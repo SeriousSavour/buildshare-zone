@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Creepster&family=Special+Elite&display=swap" rel="stylesheet">
 
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' https://wisp.mercurywork.shop wss://wisp.mercurywork.shop https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self' https://scramjet.mercurywork.shop;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
     <meta property="og:title" content="Learning Hub - Educational Platform" />
@@ -27,21 +27,6 @@
 
   <body>
     <div id="root"></div>
-    
-    <!-- Force custom domain (redirect from preview/embedded contexts) -->
-    <script>
-      (function () {
-        var desired = "https://scramjet.mercurywork.shop";
-        var isPreview = location.hostname.endsWith("lovableproject.com");
-        var isFramed = window.top !== window.self;
-
-        // If we're on a preview host or embedded, bounce to the custom domain.
-        if (isPreview || isFramed) {
-          var path = location.pathname + location.search + location.hash;
-          window.top.location.href = desired + path;
-        }
-      })();
-    </script>
     
     <script type="module" src="/src/main.tsx"></script>
     

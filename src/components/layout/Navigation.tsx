@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { supabaseWithProxy as supabase } from "@/lib/proxyClient";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -106,9 +106,6 @@ const Navigation = () => {
                 <span>Extra</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => navigate("/shadow")}>
-                  Shadow Browser
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/help")}>
                   Help & Contact
                 </DropdownMenuItem>
