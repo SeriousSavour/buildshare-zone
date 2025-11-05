@@ -502,8 +502,8 @@ const GameDetail = () => {
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-downloads allow-top-navigation-by-user-activation"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
             allowFullScreen
             referrerPolicy="no-referrer"
             loading="eager"
@@ -607,8 +607,8 @@ const GameDetail = () => {
                        width: `${iframeSize.width}px`,
                        height: `${iframeSize.height}px`,
                      }}
-                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
-                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-downloads allow-top-navigation-by-user-activation"
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share"
                      allowFullScreen
                      referrerPolicy="no-referrer"
                      loading="eager"
