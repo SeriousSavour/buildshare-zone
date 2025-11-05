@@ -1482,7 +1482,7 @@ const Admin = () => {
                               ? 'bg-green-500/20 text-green-400' 
                               : report.status === 'reviewed' 
                               ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-orange-500/20 text-orange-400'
+                              : 'bg-primary/20 text-primary'
                           }`}>
                             {report.status}
                           </span>
@@ -1568,7 +1568,7 @@ const Admin = () => {
                               ? 'bg-green-500/20 text-green-400' 
                               : message.status === 'reviewed' 
                               ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-orange-500/20 text-orange-400'
+                              : 'bg-primary/20 text-primary'
                           }`}>
                             {message.status}
                           </span>

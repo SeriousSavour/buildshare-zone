@@ -49,7 +49,7 @@ const AnnouncementBanner = () => {
   const getTypeStyles = () => {
     switch (announcement.type) {
       case "warning":
-        return "from-yellow-500/15 via-orange-500/10 to-yellow-500/15 border-yellow-500/30";
+        return "from-blue-400/15 via-primary/10 to-blue-400/15 border-blue-400/30";
       case "error":
         return "from-red-500/15 via-destructive/10 to-red-500/15 border-destructive/30";
       case "success":
