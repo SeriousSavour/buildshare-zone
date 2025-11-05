@@ -484,7 +484,7 @@ const Games = () => {
               </div>
               <div className="relative p-10 md:p-14">
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="px-4 py-2 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground rounded-full text-sm font-bold shadow-lg glow-orange">
+                  <span className="px-4 py-2 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground rounded-full text-sm font-bold shadow-lg glow-festive">
                     👑 Featured Game (2/5)
                   </span>
                 </div>
@@ -506,7 +506,7 @@ const Games = () => {
                     <span className="text-muted-foreground">likes</span>
                   </span>
                 </div>
-                <Button size="lg" className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange hover-lift shadow-xl font-semibold" onClick={() => navigate(`/games/${featuredGame.id}`)}>
+                <Button size="lg" className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive hover-lift shadow-xl font-semibold" onClick={() => navigate(`/games/${featuredGame.id}`)}>
                   <Play className="w-5 h-5" />
                   Play Now! 🎮
                 </Button>

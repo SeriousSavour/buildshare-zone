@@ -664,7 +664,7 @@ const BrowserView = () => {
                                     </span>
                                   </div>
                                 </div>
-                                <Button size="lg" className="glow-orange hover-scale">
+                                <Button size="lg" className="glow-festive hover-scale shadow-lg">
                                   Play Now
                                 </Button>
                               </div>

@@ -178,7 +178,7 @@ const GameCard = ({
             </div>
           )}
           
-          <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm shadow-xl hover-scale glow-orange pointer-events-none">
+          <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm shadow-xl hover-scale glow-festive pointer-events-none">
             <StyledText text={genre} weirdLetterIndex={genre === "Action" ? 2 : 0} />
           </div>
         </div>
@@ -229,7 +229,7 @@ const GameCard = ({
       <CardFooter className="p-7 pt-0 flex gap-3">
         <Button
           onClick={handlePlay}
-          className="flex-1 glow-orange hover-scale transition-all duration-300 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 text-base font-semibold py-6 shadow-lg"
+          className="flex-1 glow-festive hover-scale transition-all duration-300 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 text-base font-semibold py-6 shadow-lg"
           size="lg"
         >
           <Play className="w-5 h-5 mr-2" />
@@ -241,7 +241,7 @@ const GameCard = ({
           disabled={isLiking}
           variant={localLiked ? "default" : "outline"}
           size="lg"
-          className={`transition-all duration-300 hover-scale py-6 ${localLiked ? "bg-gradient-to-r from-primary to-primary-glow glow-orange animate-pulse-glow" : "hover-glow border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/10"}`}
+          className={`transition-all duration-300 hover-scale py-6 ${localLiked ? "bg-gradient-to-r from-primary to-primary-glow glow-festive animate-pulse-glow" : "hover-glow border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/10"}`}
         >
           <Heart className={`w-5 h-5 transition-transform duration-300 ${localLiked ? "fill-current scale-110" : ""}`} />
         </Button>

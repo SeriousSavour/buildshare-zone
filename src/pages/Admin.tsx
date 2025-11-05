@@ -850,7 +850,7 @@ const Admin = () => {
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Enhanced Header */}
         <div className="flex items-center gap-4 mb-10 animate-fade-in">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 glow-orange">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 glow-festive">
             <Shield className="w-12 h-12 text-primary" />
           </div>
           <div>
@@ -974,7 +974,7 @@ const Admin = () => {
                   <Button 
                     onClick={handlePromoteUser} 
                     disabled={loading || !promoteUsername}
-                    className="h-14 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange font-semibold"
+                    className="h-14 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive font-semibold shadow-lg"
                   >
                     <UserPlus className="w-5 h-5 mr-2" />
                     Promote to Admin
@@ -1092,7 +1092,7 @@ const Admin = () => {
                   <Button
                     onClick={handleUpdateGame}
                     disabled={loading || !editGameTitle.trim()}
-                    className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange font-semibold"
+                    className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive font-semibold shadow-lg"
                   >
                     Save Changes
                   </Button>
@@ -1205,7 +1205,7 @@ const Admin = () => {
                         size="lg"
                         onClick={() => handleResolveFlag(flag.id)}
                         disabled={loading}
-                        className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange hover-scale"
+                        className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive hover-scale shadow-lg"
                       >
                         Resolve
                       </Button>
@@ -1260,7 +1260,7 @@ const Admin = () => {
                   <Button
                     onClick={handleCreateAnnouncement}
                     disabled={loading || !announcementTitle || !announcementMessage}
-                    className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange font-semibold"
+                    className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive font-semibold shadow-lg"
                   >
                     <Plus className="w-5 h-5 mr-2" />
                     Create
@@ -1644,7 +1644,7 @@ const Admin = () => {
                 <Button 
                   onClick={runNetworkDiagnostics} 
                   disabled={loading}
-                  className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-orange font-semibold"
+                  className="h-12 px-6 bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive font-semibold shadow-lg"
                 >
                   <Shield className="w-5 h-5 mr-2" />
                   Run Diagnostics
