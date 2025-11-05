@@ -627,30 +627,31 @@ const BrowserView = () => {
                     )}
 
                     {/* Search and Filters */}
-                    <div className="mb-8 space-y-6">
+                    <div className="mb-10 space-y-6">
+                      {/* Search Bar with View Mode */}
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-1">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
                             placeholder="Search games, creators, or descriptions..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 h-12 text-lg"
+                            className="pl-12 h-14 text-base bg-card/50 border-2 hover:border-primary/30 focus:border-primary transition-colors rounded-xl"
                           />
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 bg-card/50 p-2 rounded-xl border-2 border-border">
                           <Button
-                            variant={viewMode === "grid" ? "default" : "outline"}
+                            variant={viewMode === "grid" ? "default" : "ghost"}
                             size="icon"
-                            className="h-12 w-12"
+                            className="h-10 w-10 rounded-lg transition-all"
                             onClick={() => setViewMode("grid")}
                           >
                             <Grid3x3 className="w-5 h-5" />
                           </Button>
                           <Button
-                            variant={viewMode === "list" ? "default" : "outline"}
+                            variant={viewMode === "list" ? "default" : "ghost"}
                             size="icon"
-                            className="h-12 w-12"
+                            className="h-10 w-10 rounded-lg transition-all"
                             onClick={() => setViewMode("list")}
                           >
                             <List className="w-5 h-5" />
@@ -658,111 +659,143 @@ const BrowserView = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-3">
-                        <div className="flex items-center gap-2">
-                          <Filter className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">Filter:</span>
+                      {/* Modern Filter Pills */}
+                      <div className="bg-card/50 rounded-2xl p-6 border-2 border-border space-y-5">
+                        {/* Category Filters */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                            <Filter className="w-4 h-4" />
+                            <span>Categories</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant={categoryFilter === "all" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCategoryFilter("all")}
+                              className="rounded-full px-5 h-9 font-medium transition-all hover:scale-105"
+                            >
+                              All Games
+                            </Button>
+                            <Button
+                              variant={categoryFilter === "popular" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCategoryFilter("popular")}
+                              className="rounded-full px-5 h-9 font-medium transition-all hover:scale-105"
+                            >
+                              🔥 Popular
+                            </Button>
+                            <Button
+                              variant={categoryFilter === "new" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCategoryFilter("new")}
+                              className="rounded-full px-5 h-9 font-medium transition-all hover:scale-105"
+                            >
+                              ✨ New
+                            </Button>
+                            <Button
+                              variant={categoryFilter === "favorites" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCategoryFilter("favorites")}
+                              className="rounded-full px-5 h-9 font-medium transition-all hover:scale-105"
+                            >
+                              <Heart className={`w-4 h-4 mr-2 ${categoryFilter === "favorites" ? "fill-current" : ""}`} />
+                              Favorites
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          variant={categoryFilter === "all" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCategoryFilter("all")}
-                        >
-                          All Games
-                        </Button>
-                        <Button
-                          variant={categoryFilter === "popular" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCategoryFilter("popular")}
-                        >
-                          Popular
-                        </Button>
-                        <Button
-                          variant={categoryFilter === "new" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCategoryFilter("new")}
-                        >
-                          New
-                        </Button>
-                        <Button
-                          variant={categoryFilter === "favorites" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCategoryFilter("favorites")}
-                        >
-                          <Heart className="w-4 h-4 mr-2" />
-                          Favorites
-                        </Button>
-                      </div>
 
-                      <div className="flex flex-wrap gap-3">
-                        <span className="text-sm font-medium self-center">Genre:</span>
-                        <Button
-                          variant={selectedGenre === "all" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedGenre("all")}
-                        >
-                          All
-                        </Button>
-                        {genres.map((genre) => (
-                          <Button
-                            key={genre}
-                            variant={selectedGenre === genre ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setSelectedGenre(genre)}
-                          >
-                            {genre}
-                          </Button>
-                        ))}
-                      </div>
+                        {/* Genre Filters */}
+                        <div className="space-y-3">
+                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                            Genres
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant={selectedGenre === "all" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setSelectedGenre("all")}
+                              className="rounded-full px-5 h-9 font-medium transition-all hover:scale-105"
+                            >
+                              All Genres
+                            </Button>
+                            {genres.map((genre) => (
+                              <Button
+                                key={genre}
+                                variant={selectedGenre === genre ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setSelectedGenre(genre)}
+                                className="rounded-full px-5 h-9 font-medium transition-all hover:scale-105"
+                              >
+                                {genre}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
 
-                      <div className="flex flex-wrap gap-3">
-                        <span className="text-sm font-medium self-center">Sort by:</span>
-                        <Button
-                          variant={sortBy === "popular" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSortBy("popular")}
-                        >
-                          Most Popular
-                        </Button>
-                        <Button
-                          variant={sortBy === "newest" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSortBy("newest")}
-                        >
-                          Newest
-                        </Button>
-                        <Button
-                          variant={sortBy === "likes" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSortBy("likes")}
-                        >
-                          Most Liked
-                        </Button>
-                      </div>
+                        {/* Sort and Display Options */}
+                        <div className="flex flex-wrap gap-6 pt-2 border-t border-border/50">
+                          {/* Sort By */}
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-muted-foreground">Sort:</span>
+                            <div className="flex gap-2">
+                              <Button
+                                variant={sortBy === "popular" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setSortBy("popular")}
+                                className="rounded-lg px-4 h-9 font-medium transition-all hover:scale-105"
+                              >
+                                🔥 Popular
+                              </Button>
+                              <Button
+                                variant={sortBy === "newest" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setSortBy("newest")}
+                                className="rounded-lg px-4 h-9 font-medium transition-all hover:scale-105"
+                              >
+                                ⏰ Newest
+                              </Button>
+                              <Button
+                                variant={sortBy === "likes" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setSortBy("likes")}
+                                className="rounded-lg px-4 h-9 font-medium transition-all hover:scale-105"
+                              >
+                                💖 Most Liked
+                              </Button>
+                            </div>
+                          </div>
 
-                      <div className="flex gap-3">
-                        <span className="text-sm font-medium self-center">Card Size:</span>
-                        <Button
-                          variant={cardSize === "small" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCardSize("small")}
-                        >
-                          Small
-                        </Button>
-                        <Button
-                          variant={cardSize === "medium" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCardSize("medium")}
-                        >
-                          Medium
-                        </Button>
-                        <Button
-                          variant={cardSize === "large" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCardSize("large")}
-                        >
-                          Large
-                        </Button>
+                          {/* Card Size */}
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-muted-foreground">Size:</span>
+                            <div className="flex gap-1 bg-background/50 p-1 rounded-lg">
+                              <Button
+                                variant={cardSize === "small" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setCardSize("small")}
+                                className="rounded-md px-3 h-8 text-xs font-medium transition-all"
+                              >
+                                S
+                              </Button>
+                              <Button
+                                variant={cardSize === "medium" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setCardSize("medium")}
+                                className="rounded-md px-3 h-8 text-xs font-medium transition-all"
+                              >
+                                M
+                              </Button>
+                              <Button
+                                variant={cardSize === "large" ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setCardSize("large")}
+                                className="rounded-md px-3 h-8 text-xs font-medium transition-all"
+                              >
+                                L
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
