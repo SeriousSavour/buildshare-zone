@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import GameCard from "@/components/games/GameCard";
+import QuickLinks from "@/components/browser/QuickLinks";
 
 interface Tab {
   id: string;
@@ -551,23 +552,9 @@ const BrowserView = () => {
           {tabs.map((tab) => (
             <TabsContent key={tab.id} value={tab.id} className="h-full m-0 p-0">
               {tab.type === "home" && (
-                <div className="flex flex-col items-center justify-center min-h-full p-8 text-center space-y-6">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <Home className="w-10 h-10 text-primary" />
-                  </div>
-                  <div>
-                    <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-                      shadow browser
-                    </h1>
-                    <p className="text-muted-foreground text-lg">Your gaming hub in browser mode</p>
-                  </div>
-                  <div className="space-y-4 max-w-md">
-                    <Button onClick={navigateToGames} size="lg" className="w-full">
-                      Browse Games
-                    </Button>
-                    <Button onClick={() => navigate("/")} variant="outline" className="w-full">
-                      Return to Main App
-                    </Button>
+                <div className="flex flex-col items-center justify-center min-h-full p-8">
+                  <div className="w-full max-w-4xl">
+                    <QuickLinks />
                   </div>
                 </div>
               )}
