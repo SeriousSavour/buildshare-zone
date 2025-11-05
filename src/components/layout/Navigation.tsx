@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield, MoreHorizontal } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Search, Wrench, Plus, LogIn, User, Shield, MoreHorizontal, Globe } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,6 +106,10 @@ const Navigation = () => {
                 <span>Extra</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => navigate("/browser")}>
+                  <Globe className="w-4 h-4 mr-2" />
+                  Browser View
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/help")}>
                   Help & Contact
                 </DropdownMenuItem>
