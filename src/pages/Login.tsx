@@ -54,34 +54,46 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log("Login attempt for username:", username);
+
     try {
+      console.log("Calling validate_user_login RPC...");
       const { data: userId, error } = await supabase.rpc("validate_user_login", {
         _username: username,
         _password: password,
       });
 
+      console.log("validate_user_login response:", { userId, error });
+
       if (error || !userId) {
+        console.error("Login validation failed:", error);
         toast.error("Invalid username or password");
         setIsLoading(false);
         return;
       }
 
+      console.log("Creating session for user:", userId);
       const { data: sessionToken, error: sessionError } = await supabase.rpc(
         "create_secure_user_session",
         { _user_id: userId }
       );
 
+      console.log("create_secure_user_session response:", { sessionToken, sessionError });
+
       if (sessionError || !sessionToken) {
+        console.error("Session creation failed:", sessionError);
         toast.error("Failed to create session");
         setIsLoading(false);
         return;
       }
 
       // Store session token
+      console.log("Storing session token...");
       localStorage.setItem("session_token", sessionToken);
       sessionStorage.setItem("session_token", sessionToken);
       localStorage.setItem("auth_initialized", "true");
       
+      console.log("Login successful! Navigating to games...");
       toast.success("Welcome back!");
       
       // Navigate without reload to avoid race conditions

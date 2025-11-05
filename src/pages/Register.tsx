@@ -66,10 +66,15 @@ const Register = () => {
 
     setIsLoading(true);
 
+    console.log("Registration attempt for username:", username);
+
     try {
-      const { data: exists } = await supabase.rpc("check_username_exists", {
+      console.log("Checking if username exists...");
+      const { data: exists, error: checkError } = await supabase.rpc("check_username_exists", {
         _username: username,
       });
+
+      console.log("check_username_exists response:", { exists, checkError });
 
       if (exists) {
         toast.error("Username already taken");
@@ -77,29 +82,47 @@ const Register = () => {
         return;
       }
 
-      const { data: passwordHash } = await supabase.rpc("hash_password", {
+      console.log("Hashing password...");
+      const { data: passwordHash, error: hashError } = await supabase.rpc("hash_password", {
         _password: password,
       });
 
+      console.log("hash_password response:", { passwordHash, hashError });
+
+      if (hashError || !passwordHash) {
+        console.error("Password hashing failed:", hashError);
+        toast.error("Failed to process password");
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("Creating user account...");
       const { data: userId, error: createError } = await supabase
         .from("user_auth")
         .insert({ username, password_hash: passwordHash })
         .select("id")
         .single();
 
+      console.log("User creation response:", { userId, createError });
+
       if (createError || !userId) {
+        console.error("User creation failed:", createError);
         toast.error("Failed to create account");
         setIsLoading(false);
         return;
       }
 
-      await supabase.from("profiles").insert({
+      console.log("Creating user profile...");
+      const { error: profileError } = await supabase.from("profiles").insert({
         user_id: userId.id,
         username,
         display_name: username,
       });
 
+      console.log("Profile creation response:", { profileError });
+
       toast.success("Account created successfully!");
+      console.log("Registration successful! Redirecting to login...");
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
