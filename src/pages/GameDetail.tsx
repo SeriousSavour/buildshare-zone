@@ -77,7 +77,13 @@ const GameDetail = () => {
   // Embed HTML content directly like Google Sites
   useEffect(() => {
     const embedGameHtml = async () => {
-      if (!game?.game_url) return;
+      console.log('[GAME EMBED] Starting embedGameHtml');
+      console.log('[GAME EMBED] game?.game_url:', game?.game_url);
+      
+      if (!game?.game_url) {
+        console.log('[GAME EMBED] No game_url, returning');
+        return;
+      }
       
       // Check if game_url is raw HTML code (starts with < or contains HTML tags)
       const isRawHtml = game.game_url.trim().startsWith('<') || 
@@ -85,55 +91,63 @@ const GameDetail = () => {
                         game.game_url.includes('<html') ||
                         game.game_url.includes('&lt;'); // Also check for escaped HTML
       
+      console.log('[GAME EMBED] isRawHtml:', isRawHtml);
+      
       if (isRawHtml) {
         // Raw HTML code - decode any HTML entities and execute directly using srcDoc
-        console.log('Raw HTML detected, decoding and executing with srcDoc');
+        console.log('[GAME EMBED] Raw HTML detected, decoding and executing with srcDoc');
         const decodedHtml = decodeHtmlEntities(game.game_url);
-        console.log('Decoded HTML preview:', decodedHtml.substring(0, 200));
+        console.log('[GAME EMBED] Decoded HTML preview:', decodedHtml.substring(0, 200));
         setHtmlContent(decodedHtml);
         setUseDirectUrl(false);
+        console.log('[GAME EMBED] Set htmlContent (raw), useDirectUrl=false');
         return;
       }
       
       // If it's an HTML file from storage, fetch and embed it
       if (game.game_url.endsWith('.html')) {
         try {
-          console.log('Fetching HTML from:', game.game_url);
+          console.log('[GAME EMBED] Fetching HTML from:', game.game_url);
           const response = await fetch(game.game_url);
           const html = await response.text();
-          console.log('HTML fetched, length:', html.length);
+          console.log('[GAME EMBED] HTML fetched, length:', html.length);
+          console.log('[GAME EMBED] HTML preview:', html.substring(0, 200));
           
           // Check for <base> tag with external href
           const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
           if (baseMatch && baseMatch[1]) {
             const baseUrl = baseMatch[1];
-            console.log('Found base URL:', baseUrl);
+            console.log('[GAME EMBED] Found base URL:', baseUrl);
             // If base href points to external resources, use that URL directly
             if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-              console.log('Using external URL directly:', baseUrl);
+              console.log('[GAME EMBED] Using external URL directly:', baseUrl);
               setUseDirectUrl(true);
               setHtmlContent(baseUrl);
+              console.log('[GAME EMBED] Set htmlContent (base URL), useDirectUrl=true');
               toast.success('Loading game from external source');
               return;
             }
           }
           
           // Otherwise embed the HTML content directly (Google Sites style)
-          console.log('Embedding HTML content with srcDoc');
+          console.log('[GAME EMBED] Embedding HTML content with srcDoc');
           setHtmlContent(html);
           setUseDirectUrl(false);
+          console.log('[GAME EMBED] Set htmlContent (fetched), useDirectUrl=false');
         } catch (error) {
-          console.error('Error fetching HTML:', error);
+          console.error('[GAME EMBED] Error fetching HTML:', error);
           toast.error('Failed to load game');
           // Fallback to direct URL
           setHtmlContent(game.game_url);
           setUseDirectUrl(true);
+          console.log('[GAME EMBED] Fallback: Set htmlContent (direct), useDirectUrl=true');
         }
       } else {
         // For non-HTML files, use direct URL
-        console.log('Non-HTML file, using direct URL');
+        console.log('[GAME EMBED] Non-HTML file, using direct URL:', game.game_url);
         setHtmlContent(game.game_url);
         setUseDirectUrl(true);
+        console.log('[GAME EMBED] Set htmlContent (non-HTML), useDirectUrl=true');
       }
     };
     
@@ -347,20 +361,27 @@ const GameDetail = () => {
 
   // Debug iframe loading
   const handleIframeLoad = () => {
-    console.log('[IFRAME] Successfully loaded:', game?.game_url);
+    console.log('[IFRAME LOAD] Successfully loaded');
+    console.log('[IFRAME LOAD] game?.game_url:', game?.game_url);
+    console.log('[IFRAME LOAD] htmlContent:', htmlContent?.substring(0, 100));
+    console.log('[IFRAME LOAD] useDirectUrl:', useDirectUrl);
     if (iframeRef.current) {
       try {
         const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-        console.log('[IFRAME] Content document:', iframeDoc);
-        console.log('[IFRAME] Document body:', iframeDoc?.body?.innerHTML?.substring(0, 200));
+        console.log('[IFRAME LOAD] Content document:', iframeDoc);
+        console.log('[IFRAME LOAD] Document body:', iframeDoc?.body?.innerHTML?.substring(0, 200));
       } catch (e) {
-        console.error('[IFRAME] Cross-origin access error:', e);
+        console.error('[IFRAME LOAD] Cross-origin access error (expected):', e);
       }
     }
   };
 
   const handleIframeError = (e: any) => {
-    console.error('[IFRAME] Failed to load:', game?.game_url, e);
+    console.error('[IFRAME ERROR] Failed to load');
+    console.error('[IFRAME ERROR] game?.game_url:', game?.game_url);
+    console.error('[IFRAME ERROR] htmlContent:', htmlContent?.substring(0, 100));
+    console.error('[IFRAME ERROR] useDirectUrl:', useDirectUrl);
+    console.error('[IFRAME ERROR] Error:', e);
   };
 
   // Listen for messages from iframe
@@ -372,14 +393,21 @@ const GameDetail = () => {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Debug game URL
+  // Debug game URL and state
   useEffect(() => {
     if (game?.game_url) {
-      console.log('[DEBUG] Game URL:', game.game_url);
-      console.log('[DEBUG] Is HTML file:', game.game_url.includes('.html') || game.game_url.includes('.htm'));
-      console.log('[DEBUG] URL pathname:', new URL(game.game_url).pathname);
+      console.log('[DEBUG STATE] Game URL:', game.game_url);
+      console.log('[DEBUG STATE] htmlContent length:', htmlContent?.length);
+      console.log('[DEBUG STATE] useDirectUrl:', useDirectUrl);
+      try {
+        const url = new URL(game.game_url);
+        console.log('[DEBUG STATE] URL pathname:', url.pathname);
+        console.log('[DEBUG STATE] Is HTML file:', game.game_url.includes('.html') || game.game_url.includes('.htm'));
+      } catch (e) {
+        console.log('[DEBUG STATE] Not a valid URL (might be raw HTML)');
+      }
     }
-  }, [game?.game_url]);
+  }, [game?.game_url, htmlContent, useDirectUrl]);
 
   const fetchComments = async () => {
     const sessionToken = localStorage.getItem('session_token');

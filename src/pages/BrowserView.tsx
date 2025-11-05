@@ -382,41 +382,53 @@ const BrowserView = () => {
   };
 
   const loadGameContent = async (gameUrl: string) => {
+    console.log('[BROWSER GAME] Loading game content:', gameUrl);
     const isRawHtml = gameUrl.trim().startsWith('<') || 
                       gameUrl.includes('<!DOCTYPE') ||
                       gameUrl.includes('<html') ||
                       gameUrl.includes('&lt;');
     
+    console.log('[BROWSER GAME] isRawHtml:', isRawHtml);
+    
     if (isRawHtml) {
       const decodedHtml = decodeHtmlEntities(gameUrl);
+      console.log('[BROWSER GAME] Decoded HTML preview:', decodedHtml.substring(0, 100));
       setHtmlContent(decodedHtml);
       setUseDirectUrl(false);
+      console.log('[BROWSER GAME] Set srcDoc content');
       return;
     }
     
     if (gameUrl.endsWith('.html')) {
       try {
+        console.log('[BROWSER GAME] Fetching HTML from:', gameUrl);
         const response = await fetch(gameUrl);
         const html = await response.text();
+        console.log('[BROWSER GAME] Fetched HTML length:', html.length);
         
         const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
         if (baseMatch && baseMatch[1]) {
           const baseUrl = baseMatch[1];
+          console.log('[BROWSER GAME] Found base URL:', baseUrl);
           if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
             setUseDirectUrl(true);
             setHtmlContent(baseUrl);
+            console.log('[BROWSER GAME] Using base URL directly');
             return;
           }
         }
         
         setHtmlContent(html);
         setUseDirectUrl(false);
+        console.log('[BROWSER GAME] Set fetched HTML as srcDoc');
       } catch (error) {
-        console.error('Error fetching HTML:', error);
+        console.error('[BROWSER GAME] Error fetching HTML:', error);
         setHtmlContent(gameUrl);
         setUseDirectUrl(true);
+        console.log('[BROWSER GAME] Fallback to direct URL');
       }
     } else {
+      console.log('[BROWSER GAME] Using direct URL');
       setHtmlContent(gameUrl);
       setUseDirectUrl(true);
     }
