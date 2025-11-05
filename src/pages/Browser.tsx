@@ -15,7 +15,7 @@ import { ensureEngineReady } from "@/lib/ensureEngine";
 // Force absolute URLs to production domain (not relative to Lovable editor)
 const PROD_ORIGIN = 'https://buildshare-zone.lovable.app';
 const ENGINE_ORIGIN = (location.origin === PROD_ORIGIN) ? PROD_ORIGIN : PROD_ORIGIN;
-const ENGINE_PREFIX = '/sengine/scramjet/';
+const ENGINE_PREFIX = '/sengine/scramjet/';  // matches SW prefix exactly
 
 function normalizeUserInput(input: string): string {
   let s = input.trim();
