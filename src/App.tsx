@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
+import { SnowEffect } from "@/components/winter/SnowEffect";
+import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -46,6 +48,8 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <TooltipProvider>
+          <SnowEffect />
+          <WalkingSnowman />
           <Toaster />
           <Sonner />
           <BrowserRouter>
