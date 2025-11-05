@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import GameCard from "@/components/games/GameCard";
-import QuickLinks from "@/components/browser/QuickLinks";
+import BrowserQuickLinks from "@/components/browser/BrowserQuickLinks";
 
 interface Tab {
   id: string;
@@ -130,6 +130,15 @@ const BrowserView = () => {
       setTabs([...tabs, newTab]);
       setActiveTab(newTab.id);
       setAddressBar(newTab.url);
+    }
+  };
+
+  const handleQuickLinkNavigate = (path: string, title: string) => {
+    if (path === "/games") {
+      navigateToGames();
+    } else {
+      // For future expansion - other pages can be added as browser tabs
+      toast.info(`${title} will open in browser soon!`);
     }
   };
 
@@ -554,7 +563,7 @@ const BrowserView = () => {
               {tab.type === "home" && (
                 <div className="flex flex-col items-center justify-center min-h-full p-8">
                   <div className="w-full max-w-4xl">
-                    <QuickLinks />
+                    <BrowserQuickLinks onNavigate={handleQuickLinkNavigate} />
                   </div>
                 </div>
               )}
