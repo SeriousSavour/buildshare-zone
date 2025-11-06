@@ -55,32 +55,6 @@ const GameDetail = () => {
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const PROXY_PREFIX = '/proxy/game/';
-
-  // Helper to convert URL to proxy URL
-  const toProxyUrl = (rawUrl: string): string => {
-    const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-    const proxied = `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
-    console.log('[PROXY] Converting URL:', rawUrl, '→', proxied);
-    return proxied;
-  };
-
-  // Ensure service worker is installed
-  useEffect(() => {
-    console.log('[SW-INIT] Checking for service worker support');
-    if ('serviceWorker' in navigator) {
-      console.log('[SW-INIT] Service worker supported, registering...');
-      navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
-        .then(reg => {
-          console.log('[SW-INIT] Registered with scope:', reg.scope);
-          return navigator.serviceWorker.ready;
-        })
-        .then(() => {
-          console.log('[SW-INIT] Service worker is ready');
-        })
-        .catch(err => console.error('[SW-INIT] Registration failed:', err));
-    }
-  }, []);
 
   useEffect(() => {
     if (id) {
@@ -97,7 +71,7 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Load game through proxy to strip frame-blocking headers
+  // Use edge function proxy to strip frame-blocking headers
   useEffect(() => {
     const loadGame = async () => {
       console.log('[GAME LOAD] Starting, game_url:', game?.game_url);
@@ -131,25 +105,12 @@ const GameDetail = () => {
         return;
       }
       
-      // External URL - use proxy to strip X-Frame-Options
-      try {
-        console.log('[GAME LOAD] Waiting for service worker...');
-        if ('serviceWorker' in navigator) {
-          await navigator.serviceWorker.ready;
-          console.log('[GAME LOAD] Service worker ready');
-        }
-        
-        const proxyUrl = toProxyUrl(game.game_url);
-        console.log('[GAME LOAD] Using proxy URL:', proxyUrl);
-        setHtmlContent(proxyUrl);
-        setUseDirectUrl(true);
-        setIsLoadingGame(false);
-      } catch (error) {
-        console.error('[GAME LOAD] Error:', error);
-        setLoadError('Failed to load game');
-        setIframeBlocked(true);
-        setIsLoadingGame(false);
-      }
+      // External URL - use edge function proxy
+      const edgeProxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
+      console.log('[GAME LOAD] Using edge function proxy:', edgeProxyUrl);
+      setHtmlContent(edgeProxyUrl);
+      setUseDirectUrl(true);
+      setIsLoadingGame(false);
     };
     
     loadGame();
@@ -386,32 +347,15 @@ const GameDetail = () => {
   const testGameUrl = async () => {
     if (!game?.game_url) return;
     
-    console.log('[TEST] Testing direct fetch to:', game.game_url);
+    console.log('[TEST] Testing game URL:', game.game_url);
     toast.info('Testing game URL...');
     
-    try {
-      const response = await fetch(game.game_url, {
-        method: 'HEAD',
-        mode: 'no-cors', // Try no-cors first
-      });
-      
-      console.log('[TEST] Fetch response:', response);
-      console.log('[TEST] Status:', response.status);
-      console.log('[TEST] Type:', response.type);
-      
-      toast.success(`URL is reachable (type: ${response.type})`);
-    } catch (error) {
-      console.error('[TEST] Fetch error:', error);
-      toast.error(`Fetch failed: ${error.message}`);
-    }
-    
-    // Now test with the proxy
-    console.log('[TEST] Testing proxy fetch...');
-    const proxyUrl = toProxyUrl(game.game_url);
-    console.log('[TEST] Proxy URL:', proxyUrl);
+    // Test edge function proxy
+    const edgeProxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
+    console.log('[TEST] Edge proxy URL:', edgeProxyUrl);
     
     try {
-      const proxyResponse = await fetch(proxyUrl);
+      const proxyResponse = await fetch(edgeProxyUrl);
       console.log('[TEST] Proxy response:', proxyResponse);
       console.log('[TEST] Proxy status:', proxyResponse.status);
       console.log('[TEST] Proxy headers:', [...proxyResponse.headers.entries()]);
@@ -420,7 +364,7 @@ const GameDetail = () => {
       console.log('[TEST] Proxy content length:', text.length);
       console.log('[TEST] Proxy content preview:', text.substring(0, 200));
       
-      toast.success('Proxy fetch successful!');
+      toast.success(`Proxy working! Status: ${proxyResponse.status}, Length: ${text.length}`);
     } catch (error) {
       console.error('[TEST] Proxy fetch error:', error);
       toast.error(`Proxy fetch failed: ${error.message}`);
