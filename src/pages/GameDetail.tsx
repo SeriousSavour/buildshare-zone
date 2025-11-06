@@ -383,6 +383,50 @@ const GameDetail = () => {
     }
   };
 
+  const testGameUrl = async () => {
+    if (!game?.game_url) return;
+    
+    console.log('[TEST] Testing direct fetch to:', game.game_url);
+    toast.info('Testing game URL...');
+    
+    try {
+      const response = await fetch(game.game_url, {
+        method: 'HEAD',
+        mode: 'no-cors', // Try no-cors first
+      });
+      
+      console.log('[TEST] Fetch response:', response);
+      console.log('[TEST] Status:', response.status);
+      console.log('[TEST] Type:', response.type);
+      
+      toast.success(`URL is reachable (type: ${response.type})`);
+    } catch (error) {
+      console.error('[TEST] Fetch error:', error);
+      toast.error(`Fetch failed: ${error.message}`);
+    }
+    
+    // Now test with the proxy
+    console.log('[TEST] Testing proxy fetch...');
+    const proxyUrl = toProxyUrl(game.game_url);
+    console.log('[TEST] Proxy URL:', proxyUrl);
+    
+    try {
+      const proxyResponse = await fetch(proxyUrl);
+      console.log('[TEST] Proxy response:', proxyResponse);
+      console.log('[TEST] Proxy status:', proxyResponse.status);
+      console.log('[TEST] Proxy headers:', [...proxyResponse.headers.entries()]);
+      
+      const text = await proxyResponse.text();
+      console.log('[TEST] Proxy content length:', text.length);
+      console.log('[TEST] Proxy content preview:', text.substring(0, 200));
+      
+      toast.success('Proxy fetch successful!');
+    } catch (error) {
+      console.error('[TEST] Proxy fetch error:', error);
+      toast.error(`Proxy fetch failed: ${error.message}`);
+    }
+  };
+
 
   const fetchComments = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -689,6 +733,14 @@ const GameDetail = () => {
                    >
                      <Maximize2 className="w-5 h-5" />
                      New Tab
+                   </Button>
+                   <Button
+                     onClick={testGameUrl}
+                     size="lg"
+                     variant="secondary"
+                     className="gap-2 flex-1"
+                   >
+                     Test URL
                    </Button>
                  </div>
 
