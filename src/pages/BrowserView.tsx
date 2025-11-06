@@ -55,6 +55,7 @@ const BrowserView = () => {
   const [iframeSize, setIframeSize] = useState({ width: 900, height: 600 });
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [useDirectUrl, setUseDirectUrl] = useState(false);
+  const [iframeBlocked, setIframeBlocked] = useState(false);
   
   // Games page filters and options
   const [searchQuery, setSearchQuery] = useState("");
@@ -383,6 +384,8 @@ const BrowserView = () => {
 
   const loadGameContent = async (gameUrl: string) => {
     console.log('[BROWSER GAME] Loading game content:', gameUrl);
+    setIframeBlocked(false);
+    
     const isRawHtml = gameUrl.trim().startsWith('<') || 
                       gameUrl.includes('<!DOCTYPE') ||
                       gameUrl.includes('<html') ||
@@ -399,7 +402,22 @@ const BrowserView = () => {
       return;
     }
     
-    if (gameUrl.endsWith('.html')) {
+    // Check if URL is HTML-like
+    let isHtmlLike = false;
+    try {
+      const url = new URL(gameUrl);
+      const pathname = url.pathname;
+      isHtmlLike = pathname.endsWith('.html') || 
+                   pathname.endsWith('.htm') || 
+                   pathname.endsWith('/') ||
+                   pathname.includes('/html/');
+      console.log('[BROWSER GAME] URL pathname:', pathname);
+      console.log('[BROWSER GAME] isHtmlLike:', isHtmlLike);
+    } catch (e) {
+      isHtmlLike = gameUrl.endsWith('.html') || gameUrl.endsWith('.htm');
+    }
+    
+    if (isHtmlLike) {
       try {
         console.log('[BROWSER GAME] Fetching HTML from:', gameUrl);
         const response = await fetch(gameUrl);
@@ -495,6 +513,13 @@ const BrowserView = () => {
     } catch (error) {
       console.error('Error toggling like:', error);
       toast.error("Failed to update like");
+    }
+  };
+
+  const handleOpenGameInNewTab = () => {
+    if (currentGame?.game_url) {
+      window.open(currentGame.game_url, '_blank', 'noopener,noreferrer');
+      toast.success('Game opened in new tab!');
     }
   };
 
@@ -958,6 +983,10 @@ const BrowserView = () => {
                       <Button variant="outline" size="sm" onClick={() => setIsFullscreen(true)}>
                         <Maximize2 className="w-4 h-4 mr-2" />
                         Fullscreen
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={handleOpenGameInNewTab}>
+                        <Maximize2 className="w-4 h-4 mr-2" />
+                        New Tab
                       </Button>
                     </div>
                   </div>

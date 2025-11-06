@@ -51,6 +51,7 @@ const GameDetail = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [useDirectUrl, setUseDirectUrl] = useState(false);
+  const [iframeBlocked, setIframeBlocked] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -382,16 +383,35 @@ const GameDetail = () => {
     console.log('[IFRAME LOAD] game?.game_url:', game?.game_url);
     console.log('[IFRAME LOAD] htmlContent:', htmlContent?.substring(0, 100));
     console.log('[IFRAME LOAD] useDirectUrl:', useDirectUrl);
-    toast.success('Game loaded successfully!');
+    setIframeBlocked(false);
     if (iframeRef.current) {
       try {
         const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
         console.log('[IFRAME LOAD] Content document:', iframeDoc);
-        console.log('[IFRAME LOAD] Document body:', iframeDoc?.body?.innerHTML?.substring(0, 200));
+        if (iframeDoc && iframeDoc.body) {
+          console.log('[IFRAME LOAD] Document body exists');
+        }
       } catch (e) {
         console.error('[IFRAME LOAD] Cross-origin access error (expected for external sites):', e);
       }
     }
+    
+    // Detect CSP blocking after a short delay
+    setTimeout(() => {
+      if (iframeRef.current) {
+        try {
+          const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+          if (!iframeDoc || !iframeDoc.body || iframeDoc.body.innerHTML === '') {
+            console.error('[IFRAME] CSP block detected - iframe is empty');
+            setIframeBlocked(true);
+            toast.error('Game cannot be embedded. Click "Open in New Tab" to play.');
+          }
+        } catch (e) {
+          // Cross-origin means it likely loaded successfully
+          console.log('[IFRAME] Cross-origin (game likely loaded)');
+        }
+      }
+    }, 1000);
   };
 
   const handleIframeError = (e: any) => {
@@ -400,7 +420,15 @@ const GameDetail = () => {
     console.error('[IFRAME ERROR] htmlContent:', htmlContent?.substring(0, 100));
     console.error('[IFRAME ERROR] useDirectUrl:', useDirectUrl);
     console.error('[IFRAME ERROR] Error:', e);
-    toast.error('Game failed to load. The site may block embedding.');
+    setIframeBlocked(true);
+    toast.error('Game failed to load. Try "Open in New Tab".');
+  };
+
+  const handleOpenInNewTab = () => {
+    if (game?.game_url) {
+      window.open(game.game_url, '_blank', 'noopener,noreferrer');
+      toast.success('Game opened in new tab!');
+    }
   };
 
   // Listen for messages from iframe
@@ -604,14 +632,34 @@ const GameDetail = () => {
           <div className="flex-1 flex flex-col items-center gap-6">
             {game.game_url ? (
               <>
-                <div className="relative inline-block">
-                  {!isFullscreen && (
-                    <>
-                      {/* Edge Resize Handles */}
-                      <div
-                        className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
-                        onMouseDown={handleResizeStart('left')}
-                      />
+                 <div className="relative inline-block">
+                   {iframeBlocked && (
+                     <div className="absolute inset-0 z-30 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-destructive">
+                       <div className="text-center space-y-4 max-w-md px-6">
+                         <div className="text-6xl">🚫</div>
+                         <h3 className="text-2xl font-bold text-destructive">Game Blocked</h3>
+                         <p className="text-muted-foreground">
+                           This game cannot be embedded due to security restrictions from the host website.
+                         </p>
+                         <Button
+                           onClick={handleOpenInNewTab}
+                           size="lg"
+                           className="gap-2"
+                         >
+                           <Maximize2 className="w-5 h-5" />
+                           Open in New Tab
+                         </Button>
+                       </div>
+                     </div>
+                   )}
+                   
+                   {!isFullscreen && (
+                     <>
+                       {/* Edge Resize Handles */}
+                       <div
+                         className="absolute -left-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
+                         onMouseDown={handleResizeStart('left')}
+                       />
                       <div
                         className="absolute -right-1 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-primary/50 z-10"
                         onMouseDown={handleResizeStart('right')}
@@ -664,15 +712,26 @@ const GameDetail = () => {
                    />
                 </div>
 
-                {/* Fullscreen Button */}
-                <Button
-                  onClick={handleFullscreen}
-                  size="lg"
-                  className="gap-2 w-full max-w-md"
-                >
-                  <Maximize2 className="w-5 h-5" />
-                  Open in Fullscreen
-                </Button>
+                 {/* Fullscreen and Open in New Tab Buttons */}
+                 <div className="flex gap-4 w-full max-w-md">
+                   <Button
+                     onClick={handleFullscreen}
+                     size="lg"
+                     className="gap-2 flex-1"
+                   >
+                     <Maximize2 className="w-5 h-5" />
+                     Fullscreen
+                   </Button>
+                   <Button
+                     onClick={handleOpenInNewTab}
+                     size="lg"
+                     variant="outline"
+                     className="gap-2 flex-1"
+                   >
+                     <Maximize2 className="w-5 h-5" />
+                     New Tab
+                   </Button>
+                 </div>
 
                 {/* Comments Section */}
                 <Card className="w-full max-w-4xl">
