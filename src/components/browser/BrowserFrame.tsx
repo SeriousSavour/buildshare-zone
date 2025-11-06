@@ -34,35 +34,35 @@ const BrowserFrame = ({
     >
       {/* Browser Chrome */}
       {showTabs && (
-        <div className="bg-card border-b border-border">
+        <div className="bg-[#0f1419] border-b border-white/5">
           {/* Tab Bar */}
-          <div className="flex items-center px-2 py-1 bg-muted/30">
+          <div className="flex items-center px-2 py-1 bg-[#0a0e13]">
             {tabs.map((tab) => (
               <div
                 key={tab.id}
-                className="flex items-center gap-2 px-4 py-2 bg-background border-t border-x border-border rounded-t-lg min-w-[180px]"
+                className="flex items-center gap-2 px-4 py-2 bg-[#1a1f29] border-t border-x border-white/10 rounded-t-lg min-w-[180px]"
               >
-                <span className="text-sm truncate">{tab.title}</span>
-                <button className="opacity-0 hover:opacity-100">
-                  <X className="h-3 w-3" />
+                <span className="text-sm truncate text-gray-300">{tab.title}</span>
+                <button className="opacity-0 hover:opacity-100 transition-opacity">
+                  <X className="h-3 w-3 text-gray-400 hover:text-gray-200" />
                 </button>
               </div>
             ))}
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-1">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-1 hover:bg-white/5 text-gray-400 hover:text-gray-200">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Navigation Bar */}
-          <div className="px-3 py-2 flex items-center gap-2 bg-background">
+          <div className="px-3 py-2 flex items-center gap-2 bg-[#0f1419]">
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
                 <RotateCw className="h-4 w-4" />
               </Button>
             </div>
@@ -72,20 +72,20 @@ const BrowserFrame = ({
               <Input
                 value={addressBar}
                 onChange={(e) => setAddressBar(e.target.value)}
-                className="w-full bg-muted/50 border-border pr-10"
+                className="w-full bg-[#1a1f29] border-white/10 pr-10 text-gray-300 placeholder:text-gray-500 focus:border-white/20"
                 placeholder="Enter URL..."
               />
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
                 onClick={() => navigate("/")}
               >
                 <Home className="h-4 w-4" />
               </Button>
             </div>
 
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
