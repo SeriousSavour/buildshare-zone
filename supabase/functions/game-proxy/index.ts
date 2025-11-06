@@ -29,6 +29,7 @@ serve(async (req) => {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
+      redirect: 'manual',
     });
 
     if (!gameResponse.ok) {
@@ -64,17 +65,35 @@ serve(async (req) => {
       console.log('[GAME PROXY] Rewritten HTML preview:', content.substring(0, 500));
     }
 
-    // Return the proxied content with appropriate headers
-    return new Response(content, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600',
-        // Remove X-Frame-Options to allow embedding
-        // Add permissive CSP to allow all resources
-        'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-ancestors *;",
-      },
-    });
+    // Build clean headers - strip frame-blocking headers from upstream
+    const responseHeaders = new Headers(corsHeaders);
+    responseHeaders.set('Content-Type', contentType);
+    responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    
+    // CRITICAL: Strip frame-blocking headers
+    // Don't copy x-frame-options from upstream
+    
+    // Handle CSP: remove frame-ancestors directive if present
+    const upstreamCSP = gameResponse.headers.get('content-security-policy');
+    let cleanCSP = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-ancestors *;";
+    if (upstreamCSP) {
+      // Remove frame-ancestors from upstream CSP and merge with ours
+      const withoutFrameAncestors = upstreamCSP
+        .replace(/frame-ancestors[^;]*;?/gi, '')
+        .replace(/;\s*;/g, ';')
+        .trim();
+      if (withoutFrameAncestors) {
+        cleanCSP = `${withoutFrameAncestors}; frame-ancestors *;`;
+      }
+    }
+    responseHeaders.set('Content-Security-Policy', cleanCSP);
+    
+    // Relax COOP/COEP that can break embedding
+    responseHeaders.set('Cross-Origin-Opener-Policy', 'unsafe-none');
+    responseHeaders.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
+
+    // Return the proxied content with clean headers
+    return new Response(content, { headers: responseHeaders });
 
   } catch (error) {
     console.error('[GAME PROXY] Error:', error);
