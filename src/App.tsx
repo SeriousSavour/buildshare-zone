@@ -4,10 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SnowEffect } from "@/components/winter/SnowEffect";
 import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
+import LoadingScreen from "@/components/LoadingScreen";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -29,6 +30,9 @@ import AdminAuth from "./components/admin/AdminAuth";
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [loading, setLoading] = useState(true);
+  const [showContent, setShowContent] = useState(false);
+  
   // Initialize Christmas theme
   useChristmasTheme();
   
@@ -48,7 +52,18 @@ const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!loading) {
+      setTimeout(() => setShowContent(true), 300);
+    }
+  }, [loading]);
+
+  if (loading) {
+    return <LoadingScreen onLoadComplete={() => setLoading(false)} />;
+  }
+
   return (
+    <div className={`transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <TooltipProvider>
@@ -79,6 +94,7 @@ const App = () => {
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
+    </div>
   );
 };
 
