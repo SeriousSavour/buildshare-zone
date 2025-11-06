@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { StyledText } from "@/components/ui/styled-text";
 
 interface LoadingScreenProps {
   onLoadComplete: () => void;
+  siteName?: string;
 }
 
-const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
+const LoadingScreen = ({ onLoadComplete, siteName = "shadow" }: LoadingScreenProps) => {
   const [progress, setProgress] = useState(0);
-  const { data: settings } = useSiteSettings();
-  const siteName = settings?.site_name || "shadow";
 
   useEffect(() => {
     // Simulate loading progress

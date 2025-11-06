@@ -58,12 +58,9 @@ const App = () => {
     }
   }, [loading]);
 
-  if (loading) {
-    return <LoadingScreen onLoadComplete={() => setLoading(false)} />;
-  }
-
   return (
-    <div className={`transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="relative">{loading && <LoadingScreen onLoadComplete={() => setLoading(false)} />}
+    <div className={`transition-opacity duration-500 ${showContent && !loading ? 'opacity-100' : 'opacity-0'}`}>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <TooltipProvider>
@@ -94,6 +91,7 @@ const App = () => {
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
+    </div>
     </div>
   );
 };
