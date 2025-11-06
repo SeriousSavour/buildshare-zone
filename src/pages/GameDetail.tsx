@@ -104,8 +104,25 @@ const GameDetail = () => {
         return;
       }
       
-      // If it's an HTML file or directory URL from storage, fetch and embed it
-      if (game.game_url.endsWith('.html') || game.game_url.endsWith('.htm') || game.game_url.endsWith('/')) {
+      // Check if URL is a valid HTTP(S) URL
+      let isHtmlLike = false;
+      try {
+        const url = new URL(game.game_url);
+        const pathname = url.pathname;
+        // Check if it's an HTML file or directory-like URL
+        isHtmlLike = pathname.endsWith('.html') || 
+                     pathname.endsWith('.htm') || 
+                     pathname.endsWith('/') ||
+                     pathname.includes('/html/'); // Common pattern for HTML games
+        console.log('[GAME EMBED] URL pathname:', pathname);
+        console.log('[GAME EMBED] isHtmlLike:', isHtmlLike);
+      } catch (e) {
+        console.log('[GAME EMBED] Not a valid URL, might be relative path');
+        isHtmlLike = game.game_url.endsWith('.html') || game.game_url.endsWith('.htm');
+      }
+      
+      // If it's an HTML-like URL, fetch and embed it
+      if (isHtmlLike) {
         try {
           console.log('[GAME EMBED] Fetching HTML from:', game.game_url);
           const response = await fetch(game.game_url);
