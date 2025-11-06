@@ -1,6 +1,6 @@
 // Service Worker for proxying game content and stripping frame-blocking headers
 
-const PROXY_PREFIX = '/sengine/scramjet/';
+const PROXY_PREFIX = '/proxy/game/';
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
@@ -59,6 +59,7 @@ self.addEventListener('fetch', (event) => {
         console.error('[SW] Response not OK:', response.status, response.statusText);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+      
       // Clone the response so we can modify headers
       const headers = new Headers(response.headers);
       

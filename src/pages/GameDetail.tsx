@@ -55,7 +55,7 @@ const GameDetail = () => {
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const PROXY_PREFIX = '/sengine/scramjet/';
+  const PROXY_PREFIX = '/proxy/game/';
 
   // Helper to convert URL to proxy URL
   const toProxyUrl = (rawUrl: string): string => {
@@ -102,7 +102,7 @@ const GameDetail = () => {
   // Ensure service worker is installed
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sengine/sw.js', { scope: '/sengine/' })
+      navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
         .then(reg => console.log('[SW] Registered:', reg.scope))
         .catch(err => console.error('[SW] Registration failed:', err));
     }

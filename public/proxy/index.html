@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <title>Game Proxy</title>
   <script>
-    // Register the service worker for the /sengine/ scope
+    // Register the service worker for the /proxy/ scope
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sengine/sw.js', { scope: '/sengine/' })
+      navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
         .then(reg => {
           console.log('[SW] Registered:', reg.scope);
           // Wait for the service worker to be active
