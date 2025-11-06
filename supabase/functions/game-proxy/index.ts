@@ -70,8 +70,9 @@ serve(async (req) => {
         ...corsHeaders,
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=3600',
-        'X-Frame-Options': 'ALLOWALL', // Override frame restrictions
-        'Content-Security-Policy': '', // Remove CSP restrictions
+        // Remove X-Frame-Options to allow embedding
+        // Add permissive CSP to allow all resources
+        'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-ancestors *;",
       },
     });
 
