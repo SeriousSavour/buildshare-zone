@@ -21,7 +21,7 @@ interface Tab {
 }
 
 const Index = () => {
-  const { data: settings } = useSiteSettings();
+  const { data: settings, isLoading } = useSiteSettings();
   const [tabs, setTabs] = useState<Tab[]>([
     { id: "1", title: "Home", url: "shadow://home", type: "home" }
   ]);
@@ -92,6 +92,15 @@ const Index = () => {
   const renderContent = () => {
     const activeTabData = tabs.find(t => t.id === activeTab);
     if (!activeTabData) return null;
+
+    // Show loading state while settings are loading for home page
+    if (activeTabData.type === "home" && isLoading) {
+      return (
+        <div className="w-full max-w-4xl flex items-center justify-center">
+          <div className="text-gray-400 text-lg">Loading...</div>
+        </div>
+      );
+    }
 
     switch (activeTabData.type) {
       case "home":

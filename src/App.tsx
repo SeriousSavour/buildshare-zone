@@ -9,6 +9,7 @@ import { SnowEffect } from "@/components/winter/SnowEffect";
 import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 import LoadingScreen from "@/components/LoadingScreen";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -61,6 +62,7 @@ const App = () => {
   return (
     <div className="relative">{loading && <LoadingScreen onLoadComplete={() => setLoading(false)} />}
     <div className={`transition-opacity duration-500 ${showContent && !loading ? 'opacity-100' : 'opacity-0'}`}>
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <TooltipProvider>
@@ -91,6 +93,7 @@ const App = () => {
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
     </div>
     </div>
   );
