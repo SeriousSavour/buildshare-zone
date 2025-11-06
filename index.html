@@ -120,6 +120,27 @@
         observer.observe(document.documentElement, { childList: true, subtree: true });
         
         console.log('🛡️ Enhanced security protection active');
+        
+        // Register Service Worker for network-level protection
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/security-sw.js')
+              .then(function(registration) {
+                console.log('🛡️ Security SW registered:', registration.scope);
+                
+                // Listen for messages from Service Worker
+                navigator.serviceWorker.addEventListener('message', function(event) {
+                  if (event.data.type === 'REDIRECT_BLOCKED') {
+                    console.error('🛡️ Service Worker blocked redirect to:', event.data.blockedUrl);
+                    alert('Security: Malicious redirect blocked by Service Worker');
+                  }
+                });
+              })
+              .catch(function(error) {
+                console.warn('🛡️ Security SW registration failed:', error);
+              });
+          });
+        }
       })();
     </script>
     
