@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { StyledText } from "@/components/ui/styled-text";
-import BrowserQuickLinks from "@/components/browser/BrowserQuickLinks";
-import FriendsContent from "@/components/browser/FriendsContent";
-import ChatContent from "@/components/browser/ChatContent";
-import ToolsContent from "@/components/browser/ToolsContent";
-import HelpContent from "@/components/browser/HelpContent";
-import { useNavigate } from "react-router-dom";
+import Games from "./Games";
+import Friends from "./Friends";
+import Chat from "./Chat";
+import Tools from "./Tools";
+import Help from "./Help";
 
 interface Tab {
   id: string;
@@ -21,7 +20,6 @@ interface Tab {
 
 const Index = () => {
   const { data: settings } = useSiteSettings();
-  const navigate = useNavigate();
   const [tabs, setTabs] = useState<Tab[]>([
     { id: "1", title: "Home", url: "shadow://home", type: "home" }
   ]);
@@ -76,11 +74,6 @@ const Index = () => {
       help: "Help"
     };
 
-    if (type === "games") {
-      navigate("/games");
-      return;
-    }
-
     const activeTabData = tabs.find(t => t.id === activeTab);
     if (activeTabData) {
       const updatedTabs = tabs.map(t => 
@@ -130,14 +123,16 @@ const Index = () => {
             </div>
           </div>
         );
+      case "games":
+        return <div className="w-full h-full"><Games /></div>;
       case "friends":
-        return <FriendsContent />;
+        return <div className="w-full h-full"><Friends /></div>;
       case "chat":
-        return <ChatContent />;
+        return <div className="w-full h-full"><Chat /></div>;
       case "tools":
-        return <ToolsContent />;
+        return <div className="w-full h-full"><Tools /></div>;
       case "help":
-        return <HelpContent />;
+        return <div className="w-full h-full"><Help /></div>;
       default:
         return null;
     }
@@ -227,7 +222,7 @@ const Index = () => {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>
     </div>
