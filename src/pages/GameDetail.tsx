@@ -104,8 +104,8 @@ const GameDetail = () => {
         return;
       }
       
-      // If it's an HTML file from storage, fetch and embed it
-      if (game.game_url.endsWith('.html')) {
+      // If it's an HTML file or directory URL from storage, fetch and embed it
+      if (game.game_url.endsWith('.html') || game.game_url.endsWith('.htm') || game.game_url.endsWith('/')) {
         try {
           console.log('[GAME EMBED] Fetching HTML from:', game.game_url);
           const response = await fetch(game.game_url);
@@ -136,7 +136,7 @@ const GameDetail = () => {
           console.log('[GAME EMBED] Set htmlContent (fetched), useDirectUrl=false');
         } catch (error) {
           console.error('[GAME EMBED] Error fetching HTML:', error);
-          toast.error('Failed to load game');
+          toast.error('Failed to load game - opening in new tab may work better');
           // Fallback to direct URL
           setHtmlContent(game.game_url);
           setUseDirectUrl(true);
@@ -365,13 +365,14 @@ const GameDetail = () => {
     console.log('[IFRAME LOAD] game?.game_url:', game?.game_url);
     console.log('[IFRAME LOAD] htmlContent:', htmlContent?.substring(0, 100));
     console.log('[IFRAME LOAD] useDirectUrl:', useDirectUrl);
+    toast.success('Game loaded successfully!');
     if (iframeRef.current) {
       try {
         const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
         console.log('[IFRAME LOAD] Content document:', iframeDoc);
         console.log('[IFRAME LOAD] Document body:', iframeDoc?.body?.innerHTML?.substring(0, 200));
       } catch (e) {
-        console.error('[IFRAME LOAD] Cross-origin access error (expected):', e);
+        console.error('[IFRAME LOAD] Cross-origin access error (expected for external sites):', e);
       }
     }
   };
@@ -382,6 +383,7 @@ const GameDetail = () => {
     console.error('[IFRAME ERROR] htmlContent:', htmlContent?.substring(0, 100));
     console.error('[IFRAME ERROR] useDirectUrl:', useDirectUrl);
     console.error('[IFRAME ERROR] Error:', e);
+    toast.error('Game failed to load. The site may block embedding.');
   };
 
   // Listen for messages from iframe
