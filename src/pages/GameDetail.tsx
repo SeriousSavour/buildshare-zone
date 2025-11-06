@@ -71,7 +71,7 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Simple direct game loading
+  // Simple direct game loading - working version from 9:39 PM
   useEffect(() => {
     if (!game?.game_url) return;
     
@@ -84,6 +84,7 @@ const GameDetail = () => {
       setHtmlContent(decodeHtmlEntities(game.game_url));
       setUseDirectUrl(false);
     } else {
+      // Direct URL loading - no proxy
       setHtmlContent(game.game_url);
       setUseDirectUrl(true);
     }
@@ -440,11 +441,12 @@ const GameDetail = () => {
           </div>
           <iframe
             ref={iframeRef}
-            {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
+            src={useDirectUrl ? htmlContent : undefined}
+            srcDoc={!useDirectUrl ? htmlContent : undefined}
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             referrerPolicy="no-referrer"
@@ -574,20 +576,16 @@ const GameDetail = () => {
 
                     {!iframeBlocked && htmlContent && (
                       <iframe
-                        ref={(el) => {
-                          if (el) {
-                            iframeRef.current = el;
-                            console.log('[IFRAME] Ref set, src:', el.src, 'srcDoc length:', el.srcdoc?.length);
-                          }
-                        }}
-                        {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
+                        ref={iframeRef}
+                        src={useDirectUrl ? htmlContent : undefined}
+                        srcDoc={!useDirectUrl ? htmlContent : undefined}
                         title={game.title}
                         className="border-2 border-primary/20 rounded-lg shadow-2xl"
                         style={{
                           width: `${iframeSize.width}px`,
                           height: `${iframeSize.height}px`,
                         }}
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowFullScreen
                         referrerPolicy="no-referrer"
