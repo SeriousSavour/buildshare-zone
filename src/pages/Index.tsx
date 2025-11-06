@@ -154,7 +154,7 @@ const Index = () => {
       case "games":
         return <Games onGameClick={openGameInTab} hideNavigation={true} />;
       case "game":
-        return activeTabData.gameId ? <GameDetailContent gameId={activeTabData.gameId} /> : null;
+        return activeTabData.gameId ? <GameDetailContent gameId={activeTabData.gameId} isFullscreen={isFullscreen} /> : null;
       case "friends":
         return <Friends hideNavigation={true} />;
       case "chat":
@@ -292,7 +292,13 @@ const Index = () => {
       )}
 
       {/* Content Area */}
-      <div className={`flex-1 overflow-auto ${activeTabData?.type === 'home' ? 'flex items-center justify-center p-8' : ''}`}>
+      <div className={`flex-1 overflow-auto ${
+        isFullscreen 
+          ? 'fixed inset-0 z-40' 
+          : activeTabData?.type === 'home' 
+            ? 'flex items-center justify-center p-8' 
+            : ''
+      }`}>
         {renderContent()}
       </div>
     </div>

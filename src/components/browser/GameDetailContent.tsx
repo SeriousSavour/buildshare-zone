@@ -34,9 +34,10 @@ interface Comment {
 
 interface GameDetailContentProps {
   gameId: string;
+  isFullscreen?: boolean;
 }
 
-const GameDetailContent = ({ gameId }: GameDetailContentProps) => {
+const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }: GameDetailContentProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
@@ -240,7 +241,7 @@ const GameDetailContent = ({ gameId }: GameDetailContentProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading game...</div>
+        <div className="text-lg text-white">Loading game...</div>
       </div>
     );
   }
@@ -248,11 +249,55 @@ const GameDetailContent = ({ gameId }: GameDetailContentProps) => {
   if (!game) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Game not found</div>
+        <div className="text-lg text-white">Game not found</div>
       </div>
     );
   }
 
+  // Fullscreen mode - just show the game
+  if (isParentFullscreen) {
+    return (
+      <div className="w-full h-full bg-black">
+        {isLoadingGame && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+            <div className="text-white">Loading game...</div>
+          </div>
+        )}
+        
+        {useDirectUrl ? (
+          <iframe
+            ref={iframeRef}
+            src={htmlContent || ''}
+            className="w-full h-full"
+            style={{ 
+              width: '100%',
+              height: '100vh',
+              border: 'none'
+            }}
+            title={game.title}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
+            allowFullScreen
+          />
+        ) : (
+          <iframe
+            ref={iframeRef}
+            srcDoc={htmlContent || ''}
+            className="w-full h-full"
+            style={{ 
+              width: '100%',
+              height: '100vh',
+              border: 'none'
+            }}
+            title={game.title}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
+            allowFullScreen
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Normal mode with sidebar
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <div className="container mx-auto px-4 py-8">
