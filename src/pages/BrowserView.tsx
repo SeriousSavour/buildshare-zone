@@ -56,6 +56,8 @@ const BrowserView = () => {
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [useDirectUrl, setUseDirectUrl] = useState(false);
   const [iframeBlocked, setIframeBlocked] = useState(false);
+  const [isLoadingGame, setIsLoadingGame] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   
   // Games page filters and options
   const [searchQuery, setSearchQuery] = useState("");
@@ -385,6 +387,8 @@ const BrowserView = () => {
   const loadGameContent = async (gameUrl: string) => {
     console.log('[BROWSER GAME] Loading game content:', gameUrl);
     setIframeBlocked(false);
+    setIsLoadingGame(true);
+    setLoadError(null);
     
     const isRawHtml = gameUrl.trim().startsWith('<') || 
                       gameUrl.includes('<!DOCTYPE') ||
@@ -398,39 +402,67 @@ const BrowserView = () => {
       console.log('[BROWSER GAME] Decoded HTML preview:', decodedHtml.substring(0, 100));
       setHtmlContent(decodedHtml);
       setUseDirectUrl(false);
-      console.log('[BROWSER GAME] Set srcDoc content');
+      setIsLoadingGame(false);
+      toast.success('Game loaded!');
       return;
     }
     
     // For external URLs, use the proxy server
     try {
+      toast.info('Loading game...');
       const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/game-proxy?url=${encodeURIComponent(gameUrl)}`;
       console.log('[BROWSER GAME] Using proxy URL:', proxyUrl);
       
-      const testResponse = await fetch(proxyUrl, { method: 'HEAD' });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const testResponse = await fetch(proxyUrl, { 
+        method: 'HEAD',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
       
       if (testResponse.ok) {
         console.log('[BROWSER GAME] Proxy successful');
         setHtmlContent(proxyUrl);
         setUseDirectUrl(true);
+        setIsLoadingGame(false);
+        toast.success('Game loaded!');
       } else {
-        throw new Error('Proxy failed');
+        throw new Error(`Proxy returned ${testResponse.status}`);
       }
     } catch (error) {
-      console.error('[BROWSER GAME] Proxy failed, trying direct:', error);
+      console.error('[BROWSER GAME] Proxy failed:', error);
+      
+      if (error.name === 'AbortError') {
+        setLoadError('Loading timed out');
+        toast.error('Loading timed out');
+      } else {
+        toast.warning('Trying direct connection...');
+      }
       
       try {
-        const response = await fetch(gameUrl, { method: 'HEAD' });
+        const response = await fetch(gameUrl, { 
+          method: 'HEAD',
+          signal: AbortSignal.timeout(5000),
+        });
+        
         if (response.ok) {
           setHtmlContent(gameUrl);
           setUseDirectUrl(true);
+          setIsLoadingGame(false);
+          setLoadError(null);
+          toast.success('Game loaded!');
         } else {
-          throw new Error('Direct URL failed');
+          throw new Error('Direct failed');
         }
       } catch (directError) {
         console.error('[BROWSER GAME] Both failed');
         setIframeBlocked(true);
-        toast.error('Game cannot be loaded. Use "Open in New Tab".');
+        setIsLoadingGame(false);
+        setLoadError('Unable to load game');
+        toast.error('Cannot load game. Try "Open in New Tab".');
       }
     }
   };
@@ -976,12 +1008,20 @@ const BrowserView = () => {
 
                   {/* Game Iframe */}
                   <div className="flex-1 flex items-center justify-center bg-background p-8">
-                    {iframeBlocked ? (
+                    {isLoadingGame ? (
+                      <div className="relative bg-background/95 backdrop-blur-sm border-2 border-primary/50 rounded-lg p-12 text-center space-y-4 max-w-2xl">
+                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <h3 className="text-2xl font-bold gradient-text-animated">Loading Game...</h3>
+                        <p className="text-muted-foreground">
+                          Fetching game content...
+                        </p>
+                      </div>
+                    ) : iframeBlocked ? (
                       <div className="relative bg-background/95 backdrop-blur-sm border-2 border-destructive rounded-lg p-12 text-center space-y-4 max-w-2xl">
                         <div className="text-6xl">🚫</div>
-                        <h3 className="text-2xl font-bold text-destructive">Game Cannot Be Embedded</h3>
+                        <h3 className="text-2xl font-bold text-destructive">Game Cannot Load</h3>
                         <p className="text-muted-foreground">
-                          This game is hosted on an external site that blocks embedding due to security restrictions.
+                          {loadError || 'This game is hosted on an external site that blocks embedding due to security restrictions.'}
                         </p>
                         <Button
                           onClick={handleOpenGameInNewTab}

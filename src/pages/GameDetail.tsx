@@ -52,6 +52,8 @@ const GameDetail = () => {
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
   const [useDirectUrl, setUseDirectUrl] = useState(false);
   const [iframeBlocked, setIframeBlocked] = useState(false);
+  const [isLoadingGame, setIsLoadingGame] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -84,10 +86,13 @@ const GameDetail = () => {
       if (!game?.game_url) {
         console.log('[GAME EMBED] No game_url, returning');
         setIframeBlocked(false);
+        setIsLoadingGame(false);
         return;
       }
       
       setIframeBlocked(false);
+      setIsLoadingGame(true);
+      setLoadError(null);
       
       // Check if game_url is raw HTML code
       const isRawHtml = game.game_url.trim().startsWith('<') || 
@@ -103,44 +108,71 @@ const GameDetail = () => {
         const decodedHtml = decodeHtmlEntities(game.game_url);
         setHtmlContent(decodedHtml);
         setUseDirectUrl(false);
+        setIsLoadingGame(false);
         toast.success('Game loaded successfully');
         return;
       }
       
       // For external URLs, use the proxy server
       try {
+        toast.info('Fetching game through proxy server...');
         const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
         console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
         
-        // Test if proxy can fetch the content
+        // Test if proxy can fetch the content with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
         const testResponse = await fetch(proxyUrl, {
           method: 'HEAD',
+          signal: controller.signal,
         });
+        
+        clearTimeout(timeoutId);
         
         if (testResponse.ok) {
           console.log('[GAME EMBED] Proxy successful, using proxy URL');
           setHtmlContent(proxyUrl);
           setUseDirectUrl(true);
-          toast.success('Game loaded via proxy');
+          setIsLoadingGame(false);
+          toast.success('Game loaded successfully!');
         } else {
-          throw new Error('Proxy failed');
+          const errorText = await testResponse.text();
+          throw new Error(`Proxy returned ${testResponse.status}: ${errorText}`);
         }
       } catch (error) {
-        console.error('[GAME EMBED] Proxy failed, trying direct URL:', error);
+        console.error('[GAME EMBED] Proxy failed:', error);
+        
+        if (error.name === 'AbortError') {
+          setLoadError('Game loading timed out. The server may be slow or unreachable.');
+          toast.error('Loading timed out. Try opening in new tab.');
+        } else {
+          setLoadError('Proxy server failed to fetch the game.');
+          toast.warning('Trying direct connection...');
+        }
         
         // Fallback: try direct URL
         try {
-          const response = await fetch(game.game_url, { method: 'HEAD' });
+          const response = await fetch(game.game_url, { 
+            method: 'HEAD',
+            signal: AbortSignal.timeout(5000),
+          });
+          
           if (response.ok) {
             console.log('[GAME EMBED] Direct URL works');
             setHtmlContent(game.game_url);
             setUseDirectUrl(true);
+            setIsLoadingGame(false);
+            setLoadError(null);
+            toast.success('Game loaded directly!');
           } else {
             throw new Error('Direct URL failed');
           }
         } catch (directError) {
-          console.error('[GAME EMBED] Both proxy and direct failed');
+          console.error('[GAME EMBED] Both proxy and direct failed:', directError);
           setIframeBlocked(true);
+          setIsLoadingGame(false);
+          setLoadError('Unable to load game. The game website may block embedding or be offline.');
           toast.error('Unable to load game. Try opening in new tab.');
         }
       }
@@ -610,13 +642,25 @@ const GameDetail = () => {
             {game.game_url ? (
               <>
                  <div className="relative inline-block">
-                   {iframeBlocked && (
+                   {isLoadingGame && (
+                     <div className="absolute inset-0 z-30 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-primary/50">
+                       <div className="text-center space-y-4 max-w-md px-6">
+                         <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                         <h3 className="text-2xl font-bold gradient-text-animated">Loading Game...</h3>
+                         <p className="text-muted-foreground">
+                           Fetching game content through proxy server
+                         </p>
+                       </div>
+                     </div>
+                   )}
+                   
+                   {iframeBlocked && !isLoadingGame && (
                      <div className="absolute inset-0 z-30 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-destructive">
                        <div className="text-center space-y-4 max-w-md px-6">
                          <div className="text-6xl">🚫</div>
-                         <h3 className="text-2xl font-bold text-destructive">Game Blocked</h3>
+                         <h3 className="text-2xl font-bold text-destructive">Game Cannot Load</h3>
                          <p className="text-muted-foreground">
-                           This game cannot be embedded due to security restrictions from the host website.
+                           {loadError || 'This game cannot be embedded due to security restrictions from the host website.'}
                          </p>
                          <Button
                            onClick={handleOpenInNewTab}
