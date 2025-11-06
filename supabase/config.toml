@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.game-proxy]
 verify_jwt = false
+
+[functions.check-embeddable]
+verify_jwt = false

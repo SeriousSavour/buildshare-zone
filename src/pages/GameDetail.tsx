@@ -113,15 +113,44 @@ const GameDetail = () => {
         return;
       }
       
-      // For external URLs, use the proxy server
+      // First, check if the URL can be embedded
       try {
-        toast.info('Fetching game through proxy server...');
+        toast.info('Checking if game can be embedded...');
+        const checkUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/check-embeddable?url=${encodeURIComponent(game.game_url)}`;
+        console.log('[GAME EMBED] Checking embeddability:', checkUrl);
+        
+        const checkResponse = await fetch(checkUrl, {
+          signal: AbortSignal.timeout(8000),
+        });
+        
+        const checkResult = await checkResponse.json();
+        console.log('[GAME EMBED] Embeddability check result:', checkResult);
+        
+        if (!checkResult.embeddable) {
+          // Show specific error based on reason
+          let errorMessage = checkResult.message || 'This site blocks embedding';
+          
+          if (checkResult.reason === 'mixed-content') {
+            errorMessage = 'Only HTTPS game links are supported';
+          } else if (checkResult.reason === 'x-frame-options' || checkResult.reason === 'csp-frame-ancestors') {
+            errorMessage = 'This site prevents embedding in iframes. Please upload game files directly or use the "Open in New Tab" option.';
+          }
+          
+          console.log('[GAME EMBED] Not embeddable:', errorMessage);
+          setIframeBlocked(true);
+          setIsLoadingGame(false);
+          setLoadError(errorMessage);
+          toast.error(errorMessage);
+          return;
+        }
+        
+        // If embeddable, proceed with proxy
+        toast.info('Loading game through proxy...');
         const proxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
         console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
         
-        // Test if proxy can fetch the content with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         const testResponse = await fetch(proxyUrl, {
           method: 'HEAD',
@@ -131,7 +160,7 @@ const GameDetail = () => {
         clearTimeout(timeoutId);
         
         if (testResponse.ok) {
-          console.log('[GAME EMBED] Proxy successful, using proxy URL');
+          console.log('[GAME EMBED] Proxy successful');
           setHtmlContent(proxyUrl);
           setUseDirectUrl(true);
           setIsLoadingGame(false);
@@ -141,40 +170,18 @@ const GameDetail = () => {
           throw new Error(`Proxy returned ${testResponse.status}: ${errorText}`);
         }
       } catch (error) {
-        console.error('[GAME EMBED] Proxy failed:', error);
+        console.error('[GAME EMBED] Loading failed:', error);
         
         if (error.name === 'AbortError') {
-          setLoadError('Game loading timed out. The server may be slow or unreachable.');
-          toast.error('Loading timed out. Try opening in new tab.');
+          setLoadError('Game loading timed out. Try opening in new tab.');
+          toast.error('Loading timed out');
         } else {
-          setLoadError('Proxy server failed to fetch the game.');
-          toast.warning('Trying direct connection...');
+          setLoadError('Unable to load game. The site may be blocking embedding. Try opening in new tab.');
+          toast.error('Failed to load game');
         }
         
-        // Fallback: try direct URL
-        try {
-          const response = await fetch(game.game_url, { 
-            method: 'HEAD',
-            signal: AbortSignal.timeout(5000),
-          });
-          
-          if (response.ok) {
-            console.log('[GAME EMBED] Direct URL works');
-            setHtmlContent(game.game_url);
-            setUseDirectUrl(true);
-            setIsLoadingGame(false);
-            setLoadError(null);
-            toast.success('Game loaded directly!');
-          } else {
-            throw new Error('Direct URL failed');
-          }
-        } catch (directError) {
-          console.error('[GAME EMBED] Both proxy and direct failed:', directError);
-          setIframeBlocked(true);
-          setIsLoadingGame(false);
-          setLoadError('Unable to load game. The game website may block embedding or be offline.');
-          toast.error('Unable to load game. Try opening in new tab.');
-        }
+        setIframeBlocked(true);
+        setIsLoadingGame(false);
       }
     };
     
