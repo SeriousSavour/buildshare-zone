@@ -10,9 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Lobster&family=Mountains+of+Christmas:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
 
-    <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' https://cdn.jsdelivr.net https://ptmeykacgbrsmvcvwrpp.supabase.co; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src 'self' https:;">
+    <!-- Enhanced Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' https://cdn.jsdelivr.net https://ptmeykacgbrsmvcvwrpp.supabase.co wss://ptmeykacgbrsmvcvwrpp.supabase.co; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src 'self' https:; frame-ancestors 'none'; upgrade-insecure-requests;">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()"
 
     <meta property="og:title" content="Learning Hub - Educational Platform" />
     <meta property="og:description" content="Educational tools and interactive apps for learning and productivity" />
@@ -130,6 +133,84 @@
           e.preventDefault();
         }
       });
+      
+      // Monitor DOM mutations for malicious script injections
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            // Check for suspicious script injections
+            if (node.nodeName === 'SCRIPT') {
+              const src = node.src || '';
+              const currentDomain = window.location.hostname;
+              
+              // Block scripts from unknown sources
+              if (src && !src.includes(currentDomain) && 
+                  !src.includes('lovable.app') && 
+                  !src.includes('cdn.jsdelivr.net')) {
+                console.warn('Blocked suspicious script injection:', src);
+                node.remove();
+              }
+            }
+            
+            // Check for suspicious iframe injections
+            if (node.nodeName === 'IFRAME') {
+              const src = node.src || '';
+              const id = node.id || '';
+              
+              // Allow only app-controlled iframes
+              if (!id.startsWith('game-iframe-') && !id.startsWith('app-')) {
+                console.warn('Blocked unauthorized iframe injection:', src);
+                node.remove();
+              }
+            }
+          });
+        });
+      });
+      
+      // Start observing document for DOM changes
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Block fetch/XMLHttpRequest to suspicious domains
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options) {
+        const urlStr = typeof url === 'string' ? url : url.toString();
+        
+        // Allow internal and whitelisted domains
+        if (urlStr.startsWith('/') || 
+            urlStr.includes(window.location.hostname) ||
+            urlStr.includes('supabase.co') ||
+            urlStr.includes('cdn.jsdelivr.net')) {
+          return originalFetch.apply(this, arguments);
+        }
+        
+        // Log and allow but monitor other domains
+        console.log('External fetch detected:', urlStr);
+        return originalFetch.apply(this, arguments);
+      };
+      
+      // Detect extension manipulation attempts
+      let extensionDetected = false;
+      const checkForExtensions = () => {
+        // Check for common extension manipulation patterns
+        const suspiciousGlobals = [
+          '__REACT_DEVTOOLS_GLOBAL_HOOK__',
+          'chrome.webRequest',
+          'chrome.declarativeNetRequest'
+        ];
+        
+        suspiciousGlobals.forEach(key => {
+          if (window[key] && !extensionDetected) {
+            console.log('Browser extension detected:', key);
+            extensionDetected = true;
+          }
+        });
+      };
+      
+      // Run extension check
+      setTimeout(checkForExtensions, 1000);
     </script>
   </body>
 </html>

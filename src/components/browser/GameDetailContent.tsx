@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Heart, Share2, User, Play, Maximize2, Send, Minimize2 } from "lucide-react";
+import { IframeSecurityMonitor } from "@/components/security/IframeSecurityMonitor";
 
 interface Game {
   id: string;
@@ -258,6 +259,8 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
   if (isParentFullscreen) {
     return (
       <div className="w-full h-full bg-black">
+        <IframeSecurityMonitor iframeRef={iframeRef} />
+        
         {isLoadingGame && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
             <div className="text-white">Loading game...</div>
@@ -267,6 +270,7 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
         {useDirectUrl ? (
           <iframe
             ref={iframeRef}
+            id="game-iframe-fullscreen"
             src={htmlContent || ''}
             className="w-full h-full"
             style={{ 
@@ -276,11 +280,14 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
             }}
             title={game.title}
             sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
         ) : (
           <iframe
             ref={iframeRef}
+            id="game-iframe-fullscreen"
             srcDoc={htmlContent || ''}
             className="w-full h-full"
             style={{ 
@@ -290,6 +297,8 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
             }}
             title={game.title}
             sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
         )}
@@ -304,6 +313,8 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
         <div className={`grid ${showSidebar ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'} gap-6`}>
           {/* Main Game Area */}
           <div className={showSidebar ? 'lg:col-span-2' : 'col-span-1'}>
+            <IframeSecurityMonitor iframeRef={iframeRef} />
+            
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 <div className="relative bg-black" style={{ minHeight: '600px' }}>
@@ -316,6 +327,7 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
                   {useDirectUrl ? (
                     <iframe
                       ref={iframeRef}
+                      id="game-iframe-normal"
                       src={htmlContent || ''}
                       className="w-full h-full"
                       style={{ 
@@ -325,11 +337,14 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
                       }}
                       title={game.title}
                       sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      referrerPolicy="strict-origin-when-cross-origin"
                       allowFullScreen
                     />
                   ) : (
                     <iframe
                       ref={iframeRef}
+                      id="game-iframe-normal"
                       srcDoc={htmlContent || ''}
                       className="w-full h-full"
                       style={{ 
@@ -339,6 +354,8 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
                       }}
                       title={game.title}
                       sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      referrerPolicy="strict-origin-when-cross-origin"
                       allowFullScreen
                     />
                   )}
