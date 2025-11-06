@@ -493,6 +493,12 @@ const GameDetail = () => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log('[IFRAME] Message received:', event.origin, event.data);
+      
+      // Handle open in new tab request from error page
+      if (event.data?.type === 'open-new-tab' && event.data?.url) {
+        window.open(event.data.url, '_blank', 'noopener,noreferrer');
+        toast.info('Opening game in new tab...');
+      }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);

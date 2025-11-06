@@ -42,14 +42,23 @@ self.addEventListener('fetch', (event) => {
   
   event.respondWith(
     fetch(targetUrl, {
-      method: event.request.method,
+      method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       },
+      mode: 'cors',
       redirect: 'follow',
       credentials: 'omit'
     })
     .then(response => {
+      if (!response.ok) {
+        console.error('[SW] Response not OK:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       // Clone the response so we can modify headers
       const headers = new Headers(response.headers);
       
@@ -81,7 +90,38 @@ self.addEventListener('fetch', (event) => {
     })
     .catch(error => {
       console.error('[SW] Fetch error:', error);
-      return new Response(`Proxy error: ${error.message}`, { status: 502 });
+      console.error('[SW] Failed URL:', targetUrl);
+      
+      // Return detailed error message
+      const errorHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Proxy Error</title></head>
+        <body style="font-family: sans-serif; padding: 40px; text-align: center;">
+          <h1>Unable to Load Game</h1>
+          <p>The proxy encountered an error while fetching the game.</p>
+          <p><strong>Error:</strong> ${error.message}</p>
+          <p><strong>URL:</strong> ${targetUrl}</p>
+          <p>This usually happens when:</p>
+          <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
+            <li>The game server is blocking requests</li>
+            <li>The URL is incorrect or the game is offline</li>
+            <li>Network connectivity issues</li>
+          </ul>
+          <button onclick="window.parent.postMessage({type: 'open-new-tab', url: '${targetUrl}'}, '*')" 
+                  style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            Try Opening in New Tab
+          </button>
+        </body>
+        </html>
+      `;
+      
+      return new Response(errorHtml, { 
+        status: 502,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8'
+        }
+      });
     })
   );
 });
