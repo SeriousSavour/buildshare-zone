@@ -39,7 +39,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Browser Mode */}
           <button
-            onClick={() => navigate("/browser")}
+            onClick={() => navigate("/browser", { state: { fromIndex: true } })}
             className="group relative flex flex-col items-center gap-6 p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20"
           >
             <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-blue-600/30 transition-all duration-300">

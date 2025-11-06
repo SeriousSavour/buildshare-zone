@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,16 @@ const STORAGE_KEY = 'browser_tabs_session';
 const ACTIVE_TAB_KEY = 'browser_active_tab';
 
 const Browser = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { data: settings, isLoading } = useSiteSettings();
+
+  // Redirect to index if user didn't come from mode selection
+  useEffect(() => {
+    if (!location.state?.fromIndex) {
+      navigate("/", { replace: true });
+    }
+  }, [location.state, navigate]);
   
   // Load tabs from localStorage or use default
   const [tabs, setTabs] = useState<Tab[]>(() => {
