@@ -74,7 +74,10 @@ const GameDetail = () => {
 
   // Simple direct loading - no proxy needed
   useEffect(() => {
+    console.log('[GAME LOAD] Starting, game_url:', game?.game_url);
+    
     if (!game?.game_url) {
+      console.log('[GAME LOAD] No game_url');
       setIframeBlocked(false);
       setIsLoadingGame(false);
       return;
@@ -90,13 +93,17 @@ const GameDetail = () => {
                       game.game_url.includes('<html') ||
                       game.game_url.includes('&lt;');
     
+    console.log('[GAME LOAD] isRawHtml:', isRawHtml);
+    
     if (isRawHtml) {
       // Raw HTML - decode and use srcDoc
       const decodedHtml = decodeHtmlEntities(game.game_url);
+      console.log('[GAME LOAD] Using srcDoc, length:', decodedHtml.length);
       setHtmlContent(decodedHtml);
       setUseDirectUrl(false);
     } else {
       // Direct URL
+      console.log('[GAME LOAD] Using direct URL:', game.game_url);
       setHtmlContent(game.game_url);
       setUseDirectUrl(true);
     }
@@ -310,14 +317,19 @@ const GameDetail = () => {
   };
 
   const handleIframeLoad = () => {
+    console.log('[IFRAME] Load event fired');
+    console.log('[IFRAME] Current src:', iframeRef.current?.src);
+    console.log('[IFRAME] Current srcDoc:', iframeRef.current?.srcdoc?.substring(0, 100));
     setIframeBlocked(false);
     setIsLoadingGame(false);
   };
 
-  const handleIframeError = () => {
+  const handleIframeError = (e: any) => {
+    console.error('[IFRAME] Error event fired:', e);
+    console.error('[IFRAME] Current src:', iframeRef.current?.src);
     setIframeBlocked(true);
     setIsLoadingGame(false);
-    setLoadError('Game failed to load');
+    setLoadError('Game failed to load - may be blocked by host');
   };
 
   const handleOpenInNewTab = () => {
@@ -580,7 +592,12 @@ const GameDetail = () => {
 
                     {!iframeBlocked && htmlContent && (
                       <iframe
-                        ref={iframeRef}
+                        ref={(el) => {
+                          if (el) {
+                            iframeRef.current = el;
+                            console.log('[IFRAME] Ref set, src:', el.src, 'srcDoc length:', el.srcdoc?.length);
+                          }
+                        }}
                         {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
                         title={game.title}
                         className="border-2 border-primary/20 rounded-lg shadow-2xl"
