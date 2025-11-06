@@ -18,7 +18,7 @@ interface Particle {
   size: number;
 }
 
-const Help = () => {
+const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -155,8 +155,8 @@ const Help = () => {
         ))}
       </div>
 
-      <Navigation />
-      <AnnouncementBanner />
+      {!hideNavigation && <Navigation />}
+      {!hideNavigation && <AnnouncementBanner />}
       <div className="container mx-auto px-4 py-8 relative z-10 max-w-2xl">
         <h1 className="text-4xl font-bold gradient-text mb-8">Help & Contact</h1>
         

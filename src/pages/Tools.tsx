@@ -28,7 +28,7 @@ interface Tool {
   clicks: number;
 }
 
-const Tools = () => {
+const Tools = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [tools, setTools] = useState<Tool[]>([]);
@@ -129,8 +129,8 @@ const Tools = () => {
         <div className="absolute bottom-[30%] right-[5%] text-5xl animate-float-delayed opacity-20">🎃</div>
       </div>
 
-      <Navigation />
-      <AnnouncementBanner />
+      {!hideNavigation && <Navigation />}
+      {!hideNavigation && <AnnouncementBanner />}
       
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}

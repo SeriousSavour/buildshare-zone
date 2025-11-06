@@ -22,7 +22,7 @@ interface Message {
   created_at: string;
 }
 
-const Chat = () => {
+const Chat = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -118,8 +118,8 @@ const Chat = () => {
         <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
       </div>
 
-      <Navigation />
-      <AnnouncementBanner />
+      {!hideNavigation && <Navigation />}
+      {!hideNavigation && <AnnouncementBanner />}
       
       <div className="container mx-auto px-4 py-12 relative z-10 max-w-6xl">
         {/* Header */}

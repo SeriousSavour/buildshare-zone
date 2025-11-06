@@ -127,17 +127,17 @@ const Index = () => {
           </div>
         );
       case "games":
-        return <div className="w-full h-full"><Games onGameClick={openGameInTab} /></div>;
+        return <div className="w-full h-full"><Games onGameClick={openGameInTab} hideNavigation={true} /></div>;
       case "game":
         return activeTabData.gameId ? <GameDetailContent gameId={activeTabData.gameId} /> : null;
       case "friends":
-        return <div className="w-full h-full"><Friends /></div>;
+        return <div className="w-full h-full"><Friends hideNavigation={true} /></div>;
       case "chat":
-        return <div className="w-full h-full"><Chat /></div>;
+        return <div className="w-full h-full"><Chat hideNavigation={true} /></div>;
       case "tools":
-        return <div className="w-full h-full"><Tools /></div>;
+        return <div className="w-full h-full"><Tools hideNavigation={true} /></div>;
       case "help":
-        return <div className="w-full h-full"><Help /></div>;
+        return <div className="w-full h-full"><Help hideNavigation={true} /></div>;
       default:
         return null;
     }

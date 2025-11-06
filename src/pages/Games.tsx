@@ -36,9 +36,10 @@ interface Game {
 }
 interface GamesProps {
   onGameClick?: (gameId: string, gameTitle: string) => void;
+  hideNavigation?: boolean;
 }
 
-const Games = ({ onGameClick }: GamesProps = {}) => {
+const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
   const navigate = useNavigate();
   const [games, setGames] = useState<Game[]>([]);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
@@ -454,8 +455,8 @@ const Games = ({ onGameClick }: GamesProps = {}) => {
         <div className="absolute top-[15%] right-[35%] text-3xl animate-float opacity-12">💀</div>
       </div>
       
-      <Navigation />
-      <AnnouncementBanner />
+      {!hideNavigation && <Navigation />}
+      {!hideNavigation && <AnnouncementBanner />}
       
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Main Content - Full Width */}

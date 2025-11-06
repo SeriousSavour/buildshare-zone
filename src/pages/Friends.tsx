@@ -34,7 +34,7 @@ interface Friend {
   } | null;
 }
 
-const Friends = () => {
+const Friends = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => {
   const { trackQuestProgress } = useQuestTracking();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [searchUsername, setSearchUsername] = useState("");
@@ -221,8 +221,8 @@ const Friends = () => {
         <div className="absolute bottom-[20%] left-[10%] text-4xl animate-float opacity-15">🦇</div>
       </div>
 
-      <Navigation />
-      <AnnouncementBanner />
+      {!hideNavigation && <Navigation />}
+      {!hideNavigation && <AnnouncementBanner />}
       
       <div className="container mx-auto px-4 py-12 relative z-10 max-w-4xl">
         {/* Header */}
