@@ -65,17 +65,25 @@ const GameDetail = () => {
 
   // Keep iframe proxied - prevent escape back to raw URL
   const keepProxied = (iframe: HTMLIFrameElement) => {
+    let isUpdating = false; // Flag to prevent infinite loop
+    
     const fix = () => {
+      if (isUpdating) return; // Skip if we're making the change
+      
       try {
         const cur = iframe.getAttribute('src') || iframe.src || '';
         if (!cur.startsWith(window.location.origin + PROXY_PREFIX)) {
           const unwrapped = cur.startsWith('http') ? cur : iframe.src;
           if (unwrapped && unwrapped.startsWith('http')) {
+            isUpdating = true; // Set flag before changing
             iframe.src = toProxyUrl(unwrapped);
+            // Reset flag after a short delay
+            setTimeout(() => { isUpdating = false; }, 100);
           }
         }
       } catch {
         // Cross-origin read can throw; ignore
+        isUpdating = false;
       }
     };
 
