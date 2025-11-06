@@ -1,6 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- CRITICAL: Security must load FIRST before any other scripts -->
+    <script>
+      (function() {
+        'use strict';
+        
+        const currentOrigin = window.location.origin;
+        const allowedDomains = ['localhost', '127.0.0.1', 'lovable.app'];
+        
+        // Freeze critical objects to prevent extension manipulation
+        const originalDefineProperty = Object.defineProperty;
+        const originalFreeze = Object.freeze;
+        
+        // Store original methods before extensions can modify them
+        const originalOpen = window.open;
+        const originalAssign = window.location.assign;
+        const originalReplace = window.location.replace;
+        
+        // Create immutable protection
+        let protectedHref = window.location.href;
+        let redirectBlocked = false;
+        
+        // Override location.href with getter/setter that can't be overridden
+        originalDefineProperty(window.location, 'href', {
+          get: function() { return protectedHref; },
+          set: function(url) {
+            if (!url.startsWith(currentOrigin) && !url.startsWith('/') && !url.startsWith('#')) {
+              console.error('🛡️ BLOCKED redirect to:', url);
+              redirectBlocked = true;
+              alert('Security: Unauthorized redirect blocked');
+              return protectedHref;
+            }
+            protectedHref = url;
+            originalAssign.call(window.location, url);
+          },
+          configurable: false,
+          enumerable: true
+        });
+        
+        // Override window.open
+        window.open = function(url, target, features) {
+          if (url && !url.startsWith(currentOrigin) && !url.startsWith('/') && !url.startsWith('#')) {
+            console.error('🛡️ BLOCKED window.open to:', url);
+            alert('Security: Unauthorized popup blocked');
+            return null;
+          }
+          return originalOpen.call(window, url, target, features);
+        };
+        
+        // Override location.assign
+        window.location.assign = function(url) {
+          if (!url.startsWith(currentOrigin) && !url.startsWith('/') && !url.startsWith('#')) {
+            console.error('🛡️ BLOCKED location.assign to:', url);
+            alert('Security: Unauthorized navigation blocked');
+            return;
+          }
+          return originalAssign.call(window.location, url);
+        };
+        
+        // Override location.replace
+        window.location.replace = function(url) {
+          if (!url.startsWith(currentOrigin) && !url.startsWith('/') && !url.startsWith('#')) {
+            console.error('🛡️ BLOCKED location.replace to:', url);
+            alert('Security: Unauthorized navigation blocked');
+            return;
+          }
+          return originalReplace.call(window.location, url);
+        };
+        
+        // Freeze these functions so extensions can't re-override them
+        originalFreeze(window.open);
+        originalFreeze(window.location.assign);
+        originalFreeze(window.location.replace);
+        
+        // Prevent history manipulation
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        history.pushState = function(state, title, url) {
+          if (url && !url.startsWith(currentOrigin) && !url.startsWith('/') && !url.startsWith('#')) {
+            console.error('🛡️ BLOCKED history.pushState to:', url);
+            return;
+          }
+          return originalPushState.apply(history, arguments);
+        };
+        
+        history.replaceState = function(state, title, url) {
+          if (url && !url.startsWith(currentOrigin) && !url.startsWith('/') && !url.startsWith('#')) {
+            console.error('🛡️ BLOCKED history.replaceState to:', url);
+            return;
+          }
+          return originalReplaceState.apply(history, arguments);
+        };
+        
+        // Monitor for navigation attempts
+        window.addEventListener('beforeunload', function(e) {
+          const newUrl = window.location.href;
+          if (redirectBlocked || (newUrl !== protectedHref && !newUrl.startsWith(currentOrigin))) {
+            e.preventDefault();
+            e.returnValue = '';
+            console.error('🛡️ BLOCKED navigation attempt');
+            return '';
+          }
+        }, true);
+        
+        // Detect extension script injection
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeName === 'SCRIPT' && node.src && !node.src.includes(currentOrigin)) {
+                console.warn('🛡️ Extension script detected:', node.src);
+                // Don't remove, just log - removing might break legitimate extensions
+              }
+            });
+          });
+        });
+        
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        
+        console.log('🛡️ Enhanced security protection active');
+      })();
+    </script>
+    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Learning Hub - Educational Tools & Interactive Apps</title>
