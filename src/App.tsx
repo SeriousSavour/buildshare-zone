@@ -11,6 +11,7 @@ import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 import LoadingScreen from "@/components/LoadingScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
+import Browser from "./pages/Browser";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Games from "./pages/Games";
@@ -24,7 +25,6 @@ import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Help from "./pages/Help";
-import BrowserView from "./pages/BrowserView";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminAuth from "./components/admin/AdminAuth";
 
@@ -73,6 +73,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/browser" element={<Browser />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
@@ -86,7 +87,6 @@ const App = () => {
               <Route path="/admin" element={<AdminAuth><Admin /></AdminAuth>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/help" element={<Help />} />
-              <Route path="/browser" element={<ProtectedRoute><BrowserView /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
