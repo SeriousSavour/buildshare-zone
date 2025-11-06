@@ -25,6 +25,7 @@ interface GameCardProps {
   isAdmin?: boolean;
   onLikeToggle?: () => void;
   onDelete?: () => void;
+  onGameClick?: (gameId: string, gameTitle: string) => void;
 }
 
 const GameCard = ({
@@ -43,6 +44,7 @@ const GameCard = ({
   isAdmin = false,
   onLikeToggle,
   onDelete,
+  onGameClick,
 }: GameCardProps) => {
   const navigate = useNavigate();
   const { trackQuestProgress } = useQuestTracking();
@@ -105,7 +107,12 @@ const GameCard = ({
     } catch (error) {
       console.error('Error tracking play quest:', error);
     }
-    navigate(`/games/${id}`);
+    
+    if (onGameClick) {
+      onGameClick(id, title);
+    } else {
+      navigate(`/games/${id}`);
+    }
   };
 
   const handleShare = () => {

@@ -34,7 +34,11 @@ interface Game {
   created_at: string;
   creator_avatar?: string | null;
 }
-const Games = () => {
+interface GamesProps {
+  onGameClick?: (gameId: string, gameTitle: string) => void;
+}
+
+const Games = ({ onGameClick }: GamesProps = {}) => {
   const navigate = useNavigate();
   const [games, setGames] = useState<Game[]>([]);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
@@ -506,7 +510,17 @@ const Games = () => {
                     <span className="text-muted-foreground">likes</span>
                   </span>
                 </div>
-                <Button size="lg" className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive hover-lift shadow-xl font-semibold" onClick={() => navigate(`/games/${featuredGame.id}`)}>
+                <Button 
+                  size="lg" 
+                  className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive hover-lift shadow-xl font-semibold" 
+                  onClick={() => {
+                    if (onGameClick) {
+                      onGameClick(featuredGame.id, featuredGame.title);
+                    } else {
+                      navigate(`/games/${featuredGame.id}`);
+                    }
+                  }}
+                >
                   <Play className="w-5 h-5" />
                   Play Now! 🎮
                 </Button>
@@ -580,7 +594,7 @@ const Games = () => {
               Try adjusting your search or filters
             </p>
           </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
-            {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} />)}
+            {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} onGameClick={onGameClick} />)}
           </div>}
         </div>
       </div>

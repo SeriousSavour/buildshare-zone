@@ -10,12 +10,14 @@ import Friends from "./Friends";
 import Chat from "./Chat";
 import Tools from "./Tools";
 import Help from "./Help";
+import GameDetailContent from "@/components/browser/GameDetailContent";
 
 interface Tab {
   id: string;
   title: string;
   url: string;
-  type: "home" | "games" | "friends" | "chat" | "tools" | "help";
+  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "game";
+  gameId?: string;
 }
 
 const Index = () => {
@@ -71,7 +73,8 @@ const Index = () => {
       friends: "Friends", 
       chat: "Chat",
       tools: "Tools",
-      help: "Help"
+      help: "Help",
+      game: "Game"
     };
 
     const activeTabData = tabs.find(t => t.id === activeTab);
@@ -124,7 +127,9 @@ const Index = () => {
           </div>
         );
       case "games":
-        return <div className="w-full h-full"><Games /></div>;
+        return <div className="w-full h-full"><Games onGameClick={openGameInTab} /></div>;
+      case "game":
+        return activeTabData.gameId ? <GameDetailContent gameId={activeTabData.gameId} /> : null;
       case "friends":
         return <div className="w-full h-full"><Friends /></div>;
       case "chat":
@@ -136,6 +141,19 @@ const Index = () => {
       default:
         return null;
     }
+  };
+
+  const openGameInTab = (gameId: string, gameTitle: string) => {
+    const newTab: Tab = {
+      id: Date.now().toString(),
+      title: gameTitle,
+      url: `shadow://game/${gameId}`,
+      type: "game",
+      gameId: gameId
+    };
+    setTabs([...tabs, newTab]);
+    setActiveTab(newTab.id);
+    setAddressBar(newTab.url);
   };
 
   const background = settings?.login_background || 'radial-gradient(ellipse at center, hsl(220 70% 10%) 0%, hsl(220 70% 5%) 50%, hsl(220 70% 2%) 100%)';
