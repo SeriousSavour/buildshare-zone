@@ -54,6 +54,7 @@ const GameDetail = () => {
   const [iframeBlocked, setIframeBlocked] = useState(false);
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [useProxy, setUseProxy] = useState(false);
 
 
   useEffect(() => {
@@ -71,50 +72,41 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Use edge function proxy to strip frame-blocking headers
+  // Load game - direct or proxy
   useEffect(() => {
-    const loadGame = async () => {
-      console.log('[GAME LOAD] Starting, game_url:', game?.game_url);
-      
-      if (!game?.game_url) {
-        console.log('[GAME LOAD] No game_url');
-        setIframeBlocked(false);
-        setIsLoadingGame(false);
-        return;
-      }
-      
+    if (!game?.game_url) {
       setIframeBlocked(false);
-      setIsLoadingGame(true);
-      setLoadError(null);
-      
-      // Check if game_url is raw HTML code
-      const isRawHtml = game.game_url.trim().startsWith('<') || 
-                        game.game_url.includes('<!DOCTYPE') ||
-                        game.game_url.includes('<html') ||
-                        game.game_url.includes('&lt;');
-      
-      console.log('[GAME LOAD] isRawHtml:', isRawHtml);
-      
-      if (isRawHtml) {
-        // Raw HTML - decode and use srcDoc
-        const decodedHtml = decodeHtmlEntities(game.game_url);
-        console.log('[GAME LOAD] Using srcDoc, length:', decodedHtml.length);
-        setHtmlContent(decodedHtml);
-        setUseDirectUrl(false);
-        setIsLoadingGame(false);
-        return;
-      }
-      
-      // External URL - use edge function proxy
-      const edgeProxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
-      console.log('[GAME LOAD] Using edge function proxy:', edgeProxyUrl);
-      setHtmlContent(edgeProxyUrl);
-      setUseDirectUrl(true);
       setIsLoadingGame(false);
-    };
+      return;
+    }
     
-    loadGame();
-  }, [game?.game_url]);
+    setIframeBlocked(false);
+    setIsLoadingGame(true);
+    setLoadError(null);
+    
+    // Check if raw HTML
+    const isRawHtml = game.game_url.trim().startsWith('<') || 
+                      game.game_url.includes('<!DOCTYPE') ||
+                      game.game_url.includes('<html') ||
+                      game.game_url.includes('&lt;');
+    
+    if (isRawHtml) {
+      const decodedHtml = decodeHtmlEntities(game.game_url);
+      setHtmlContent(decodedHtml);
+      setUseDirectUrl(false);
+    } else {
+      // Use proxy or direct based on toggle
+      if (useProxy) {
+        const edgeProxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
+        setHtmlContent(edgeProxyUrl);
+      } else {
+        setHtmlContent(game.game_url);
+      }
+      setUseDirectUrl(true);
+    }
+    
+    setIsLoadingGame(false);
+  }, [game?.game_url, useProxy]);
 
   const fetchGame = async () => {
     try {
@@ -678,14 +670,20 @@ const GameDetail = () => {
                      <Maximize2 className="w-5 h-5" />
                      New Tab
                    </Button>
+                 </div>
+                 
+                 {/* Proxy Toggle */}
+                 <div className="flex gap-2 w-full max-w-md items-center justify-center">
                    <Button
-                     onClick={testGameUrl}
-                     size="lg"
-                     variant="secondary"
-                     className="gap-2 flex-1"
+                     onClick={() => setUseProxy(!useProxy)}
+                     size="sm"
+                     variant={useProxy ? "default" : "secondary"}
                    >
-                     Test URL
+                     {useProxy ? "Using Proxy" : "Direct Load"} - Click to Switch
                    </Button>
+                   <span className="text-xs text-muted-foreground">
+                     Current: {htmlContent?.substring(0, 50)}...
+                   </span>
                  </div>
 
                 {/* Comments Section */}
