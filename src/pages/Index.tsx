@@ -20,17 +20,65 @@ interface Tab {
   gameId?: string;
 }
 
+const STORAGE_KEY = 'browser_tabs_session';
+const ACTIVE_TAB_KEY = 'browser_active_tab';
+
 const Index = () => {
   const { data: settings, isLoading } = useSiteSettings();
-  const [tabs, setTabs] = useState<Tab[]>([
-    { id: "1", title: "Home", url: "shadow://home", type: "home" }
-  ]);
-  const [activeTab, setActiveTab] = useState("1");
-  const [addressBar, setAddressBar] = useState("shadow://home");
+  
+  // Load tabs from localStorage or use default
+  const [tabs, setTabs] = useState<Tab[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.length > 0 ? parsed : [{ id: "1", title: "Home", url: "shadow://home", type: "home" }];
+      }
+    } catch (error) {
+      console.error("Failed to load saved tabs:", error);
+    }
+    return [{ id: "1", title: "Home", url: "shadow://home", type: "home" }];
+  });
+  
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(ACTIVE_TAB_KEY);
+      if (saved && tabs.find(t => t.id === saved)) {
+        return saved;
+      }
+    } catch (error) {
+      console.error("Failed to load active tab:", error);
+    }
+    return tabs[0]?.id || "1";
+  });
+  
+  const [addressBar, setAddressBar] = useState(() => {
+    const activeTabData = tabs.find(t => t.id === activeTab);
+    return activeTabData?.url || "shadow://home";
+  });
+  
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const siteName = settings?.site_name || "shadow";
   const discordInvite = settings?.discord_invite || "discord.gg/goshadow";
+
+  // Save tabs to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
+    } catch (error) {
+      console.error("Failed to save tabs:", error);
+    }
+  }, [tabs]);
+
+  // Save active tab whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(ACTIVE_TAB_KEY, activeTab);
+    } catch (error) {
+      console.error("Failed to save active tab:", error);
+    }
+  }, [activeTab]);
 
   // Handle ESC key to exit fullscreen
   useEffect(() => {
@@ -38,10 +86,35 @@ const Index = () => {
       if (e.key === "Escape" && isFullscreen) {
         setIsFullscreen(false);
       }
+      // Ctrl+W or Cmd+W to close current tab
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+        e.preventDefault();
+        if (tabs.length > 1) {
+          const currentTab = tabs.find(t => t.id === activeTab);
+          if (currentTab) {
+            const mockEvent = { stopPropagation: () => {} } as React.MouseEvent;
+            closeTab(currentTab.id, mockEvent);
+          }
+        }
+      }
+      // Ctrl+T or Cmd+T to open new tab
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        addNewTab();
+      }
+      // Ctrl+Tab to switch to next tab
+      if (e.ctrlKey && e.key === 'Tab') {
+        e.preventDefault();
+        const currentIndex = tabs.findIndex(t => t.id === activeTab);
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        setActiveTab(nextTab.id);
+        setAddressBar(nextTab.url);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreen]);
+  }, [isFullscreen, tabs, activeTab]);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -70,13 +143,21 @@ const Index = () => {
 
   const closeTab = (tabId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (tabs.length === 1) return;
     
+    // Don't allow closing the last tab
+    if (tabs.length === 1) {
+      return;
+    }
+    
+    const tabIndex = tabs.findIndex(t => t.id === tabId);
     const newTabs = tabs.filter(t => t.id !== tabId);
     setTabs(newTabs);
     
+    // If closing the active tab, switch to another tab
     if (activeTab === tabId) {
-      const newActiveTab = newTabs[newTabs.length - 1];
+      // Try to activate the tab to the right, or the one to the left if at the end
+      const newActiveIndex = tabIndex >= newTabs.length ? newTabs.length - 1 : tabIndex;
+      const newActiveTab = newTabs[newActiveIndex];
       setActiveTab(newActiveTab.id);
       setAddressBar(newActiveTab.url);
     }
@@ -212,7 +293,7 @@ const Index = () => {
                 {tabs.length > 1 && (
                   <button 
                     onClick={(e) => closeTab(tab.id, e)}
-                    className="opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-70"
+                    className="ml-auto opacity-70 hover:opacity-100 transition-opacity hover:bg-white/10 rounded p-0.5"
                   >
                     <X className="h-3 w-3 text-gray-400 hover:text-gray-200" />
                   </button>
