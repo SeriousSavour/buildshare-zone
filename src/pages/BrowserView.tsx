@@ -41,7 +41,6 @@ interface Game {
 const BrowserView = () => {
   const navigate = useNavigate();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const fullscreenIframeRef = useRef<HTMLIFrameElement>(null);
   const [tabs, setTabs] = useState<Tab[]>([
     { id: "1", title: "Home", url: "shadow://home", type: "home" }
   ]);
@@ -59,43 +58,6 @@ const BrowserView = () => {
   const [iframeBlocked, setIframeBlocked] = useState(false);
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  
-  // Proxy configuration
-  const PROXY_PREFIX = 'https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=';
-
-  // Helper to build proxy URL
-  const toProxyUrl = (rawUrl: string): string => {
-    const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-    return `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
-  };
-
-  // Guard to keep iframe proxied
-  const keepProxied = (el: HTMLIFrameElement) => {
-    const fix = () => {
-      try {
-        const currentSrc = el.getAttribute('src') || el.src || '';
-        if (currentSrc && !currentSrc.startsWith(PROXY_PREFIX)) {
-          console.log('[PROXY GUARD] Iframe escaped proxy, fixing...', currentSrc);
-          const unwrapped = currentSrc.startsWith('http') ? currentSrc : el.src;
-          if (unwrapped) {
-            el.src = toProxyUrl(unwrapped);
-          }
-        }
-      } catch (e) {
-        // Cross-origin access is fine
-      }
-    };
-
-    fix();
-    const observer = new MutationObserver(() => fix());
-    observer.observe(el, { attributes: true, attributeFilter: ['src'] });
-    const onLoad = () => fix();
-    el.addEventListener('load', onLoad);
-    return () => {
-      observer.disconnect();
-      el.removeEventListener('load', onLoad);
-    };
-  };
   
   // Games page filters and options
   const [searchQuery, setSearchQuery] = useState("");
@@ -448,7 +410,7 @@ const BrowserView = () => {
     // For external URLs, use the proxy server
     try {
       toast.info('Loading game...');
-      const proxyUrl = toProxyUrl(gameUrl);
+      const proxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(gameUrl)}`;
       console.log('[BROWSER GAME] Using proxy URL:', proxyUrl);
       
       const controller = new AbortController();
@@ -584,22 +546,6 @@ const BrowserView = () => {
     }
   };
 
-  // Apply proxy guard to regular iframe
-  useEffect(() => {
-    if (iframeRef.current && htmlContent && useDirectUrl) {
-      console.log('[PROXY GUARD] Attaching guard to game iframe');
-      return keepProxied(iframeRef.current);
-    }
-  }, [iframeRef.current, htmlContent, useDirectUrl]);
-
-  // Apply proxy guard to fullscreen iframe
-  useEffect(() => {
-    if (fullscreenIframeRef.current && htmlContent && useDirectUrl) {
-      console.log('[PROXY GUARD] Attaching guard to fullscreen iframe');
-      return keepProxied(fullscreenIframeRef.current);
-    }
-  }, [fullscreenIframeRef.current, htmlContent, useDirectUrl]);
-
   const genres = Array.from(new Set(games.map(game => game.genre)));
 
   const getGridCols = () => {
@@ -631,14 +577,12 @@ const BrowserView = () => {
             </Button>
           </div>
           <iframe
-            ref={fullscreenIframeRef}
             src={useDirectUrl ? htmlContent || undefined : undefined}
             srcDoc={!useDirectUrl ? htmlContent || undefined : undefined}
             className="fixed inset-0 w-full h-full z-[99] bg-background pt-[72px]"
-            allow="fullscreen; gamepad; autoplay"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-pointer-lock"
-            referrerPolicy="no-referrer"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
           />
         </>
       )}
@@ -1095,10 +1039,9 @@ const BrowserView = () => {
                           src={useDirectUrl ? htmlContent || undefined : undefined}
                           srcDoc={!useDirectUrl ? htmlContent || undefined : undefined}
                           className="w-full h-full border-2 border-border rounded-lg bg-white"
-                          allow="fullscreen; gamepad; autoplay"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                           allowFullScreen
-                          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-pointer-lock"
-                          referrerPolicy="no-referrer"
+                          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
                         />
                       </div>
                     ) : (
