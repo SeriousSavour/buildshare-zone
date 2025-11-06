@@ -65,58 +65,10 @@ const GameDetail = () => {
     return proxied;
   };
 
-  // Keep iframe proxied - prevent escape back to raw URL
+  // Keep iframe proxied - prevent escape back to raw URL (disabled to prevent retry loops)
   const keepProxied = (iframe: HTMLIFrameElement) => {
-    let isUpdating = false; // Flag to prevent infinite loop
-    
-    const fix = () => {
-      if (isUpdating) {
-        console.log('[KEEP-PROXIED] Skipping (already updating)');
-        return;
-      }
-      
-      try {
-        const cur = iframe.getAttribute('src') || iframe.src || '';
-        console.log('[KEEP-PROXIED] Current src:', cur);
-        console.log('[KEEP-PROXIED] Expected prefix:', window.location.origin + PROXY_PREFIX);
-        
-        if (!cur.startsWith(window.location.origin + PROXY_PREFIX)) {
-          console.log('[KEEP-PROXIED] iframe escaped proxy! Re-wrapping...');
-          const unwrapped = cur.startsWith('http') ? cur : iframe.src;
-          if (unwrapped && unwrapped.startsWith('http')) {
-            isUpdating = true;
-            const newSrc = toProxyUrl(unwrapped);
-            console.log('[KEEP-PROXIED] Setting new src:', newSrc);
-            iframe.src = newSrc;
-            setTimeout(() => { isUpdating = false; }, 100);
-          }
-        } else {
-          console.log('[KEEP-PROXIED] iframe src is correctly proxied');
-        }
-      } catch (e) {
-        console.error('[KEEP-PROXIED] Error:', e);
-        isUpdating = false;
-      }
-    };
-
-    console.log('[KEEP-PROXIED] Initializing guard for iframe');
-    fix();
-    const mo = new MutationObserver(() => {
-      console.log('[KEEP-PROXIED] Mutation detected');
-      fix();
-    });
-    mo.observe(iframe, { attributes: true, attributeFilter: ['src'] });
-    const onLoad = () => {
-      console.log('[KEEP-PROXIED] iframe load event');
-      fix();
-    };
-    iframe.addEventListener('load', onLoad);
-
-    return () => {
-      console.log('[KEEP-PROXIED] Cleaning up');
-      mo.disconnect();
-      iframe.removeEventListener('load', onLoad);
-    };
+    console.log('[KEEP-PROXIED] Guard disabled to prevent retry loops');
+    return () => {}; // No-op cleanup
   };
 
   // Ensure service worker is installed
@@ -146,12 +98,12 @@ const GameDetail = () => {
       checkIfLiked();
       fetchComments();
       
+      // Disabled automatic polling to prevent console flooding
       // Poll for new comments every 5 seconds (proxy-safe polling instead of WebSocket)
-      const interval = setInterval(() => {
-        fetchComments();
-      }, 5000);
-      
-      return () => clearInterval(interval);
+      // const interval = setInterval(() => {
+      //   fetchComments();
+      // }, 5000);
+      // return () => clearInterval(interval);
     }
   }, [id]);
 
@@ -643,12 +595,7 @@ const GameDetail = () => {
             </div>
           </div>
           <iframe
-            ref={(el) => {
-              if (el) {
-                iframeRef.current = el;
-                keepProxied(el);
-              }
-            }}
+            ref={iframeRef}
             {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
@@ -783,12 +730,7 @@ const GameDetail = () => {
 
                     {!iframeBlocked && htmlContent && (
                       <iframe
-                        ref={(el) => {
-                          if (el) {
-                            iframeRef.current = el;
-                            keepProxied(el);
-                          }
-                        }}
+                        ref={iframeRef}
                         {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
                         title={game.title}
                         className="border-2 border-primary/20 rounded-lg shadow-2xl"
