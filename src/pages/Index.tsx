@@ -1,6 +1,6 @@
 import BrowserFrame from "@/components/browser/BrowserFrame";
-import { useState } from "react";
-import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -27,9 +27,25 @@ const Index = () => {
   ]);
   const [activeTab, setActiveTab] = useState("1");
   const [addressBar, setAddressBar] = useState("shadow://home");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const siteName = settings?.site_name || "shadow";
   const discordInvite = settings?.discord_invite || "discord.gg/goshadow";
+
+  // Handle ESC key to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
 
   const quickLinks = [
     { icon: Home, label: "Home", type: "home" as const },
@@ -171,84 +187,109 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col relative"
       style={{ background }}
     >
       {/* Browser Chrome */}
-      <div className="bg-[#0f1419] border-b border-white/5">
-        {/* Tab Bar */}
-        <div className="flex items-center px-2 py-1 bg-[#0a0e13]">
-          {tabs.map((tab) => (
-            <div
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setAddressBar(tab.url);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-colors ${
-                activeTab === tab.id 
-                  ? 'bg-[#1a1f29] border-white/10' 
-                  : 'bg-[#0f1419] border-white/5 hover:bg-[#1a1f29]/50'
-              }`}
+      {!isFullscreen && (
+        <div className="bg-[#0f1419] border-b border-white/5">
+          {/* Tab Bar */}
+          <div className="flex items-center px-2 py-1 bg-[#0a0e13]">
+            {tabs.map((tab) => (
+              <div
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setAddressBar(tab.url);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-colors ${
+                  activeTab === tab.id 
+                    ? 'bg-[#1a1f29] border-white/10' 
+                    : 'bg-[#0f1419] border-white/5 hover:bg-[#1a1f29]/50'
+                }`}
+              >
+                <span className="text-sm truncate text-gray-300">{tab.title}</span>
+                {tabs.length > 1 && (
+                  <button 
+                    onClick={(e) => closeTab(tab.id, e)}
+                    className="opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-70"
+                  >
+                    <X className="h-3 w-3 text-gray-400 hover:text-gray-200" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 ml-1 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+              onClick={addNewTab}
             >
-              <span className="text-sm truncate text-gray-300">{tab.title}</span>
-              {tabs.length > 1 && (
-                <button 
-                  onClick={(e) => closeTab(tab.id, e)}
-                  className="opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-70"
-                >
-                  <X className="h-3 w-3 text-gray-400 hover:text-gray-200" />
-                </button>
-              )}
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Navigation Bar */}
+          <div className="px-3 py-2 flex items-center gap-2 bg-[#0f1419]">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+                <RotateCw className="h-4 w-4" />
+              </Button>
             </div>
-          ))}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 ml-1 hover:bg-white/5 text-gray-400 hover:text-gray-200"
-            onClick={addNewTab}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
 
-        {/* Navigation Bar */}
-        <div className="px-3 py-2 flex items-center gap-2 bg-[#0f1419]">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-              <RotateCw className="h-4 w-4" />
-            </Button>
-          </div>
+            {/* Address Bar */}
+            <div className="flex-1 relative">
+              <Input
+                value={addressBar}
+                onChange={(e) => setAddressBar(e.target.value)}
+                className="w-full bg-[#1a1f29] border-white/10 pr-10 text-gray-300 placeholder:text-gray-500 focus:border-white/20"
+                placeholder="Enter URL..."
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+                onClick={() => navigateToContent("home")}
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+            </div>
 
-          {/* Address Bar */}
-          <div className="flex-1 relative">
-            <Input
-              value={addressBar}
-              onChange={(e) => setAddressBar(e.target.value)}
-              className="w-full bg-[#1a1f29] border-white/10 pr-10 text-gray-300 placeholder:text-gray-500 focus:border-white/20"
-              placeholder="Enter URL..."
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
-              onClick={() => navigateToContent("home")}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+              onClick={toggleFullscreen}
+              title="Enter fullscreen (ESC to exit)"
             >
-              <Home className="h-4 w-4" />
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+              <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
-
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
         </div>
-      </div>
+      )}
+
+      {/* Fullscreen Exit Button - Floating */}
+      {isFullscreen && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="fixed top-4 right-4 z-50 h-10 px-4 bg-black/80 hover:bg-black/90 text-white border border-white/20 backdrop-blur-sm"
+          onClick={toggleFullscreen}
+        >
+          <Minimize2 className="h-4 w-4 mr-2" />
+          Exit Fullscreen (ESC)
+        </Button>
+      )}
 
       {/* Content Area */}
       <div className={`flex-1 overflow-auto ${activeTabData?.type === 'home' ? 'flex items-center justify-center p-8' : ''}`}>
