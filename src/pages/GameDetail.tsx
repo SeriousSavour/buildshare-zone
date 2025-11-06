@@ -60,7 +60,9 @@ const GameDetail = () => {
   // Helper to convert URL to proxy URL
   const toProxyUrl = (rawUrl: string): string => {
     const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-    return `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
+    const proxied = `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
+    console.log('[PROXY] Converting URL:', rawUrl, '→', proxied);
+    return proxied;
   };
 
   // Keep iframe proxied - prevent escape back to raw URL
@@ -68,32 +70,50 @@ const GameDetail = () => {
     let isUpdating = false; // Flag to prevent infinite loop
     
     const fix = () => {
-      if (isUpdating) return; // Skip if we're making the change
+      if (isUpdating) {
+        console.log('[KEEP-PROXIED] Skipping (already updating)');
+        return;
+      }
       
       try {
         const cur = iframe.getAttribute('src') || iframe.src || '';
+        console.log('[KEEP-PROXIED] Current src:', cur);
+        console.log('[KEEP-PROXIED] Expected prefix:', window.location.origin + PROXY_PREFIX);
+        
         if (!cur.startsWith(window.location.origin + PROXY_PREFIX)) {
+          console.log('[KEEP-PROXIED] iframe escaped proxy! Re-wrapping...');
           const unwrapped = cur.startsWith('http') ? cur : iframe.src;
           if (unwrapped && unwrapped.startsWith('http')) {
-            isUpdating = true; // Set flag before changing
-            iframe.src = toProxyUrl(unwrapped);
-            // Reset flag after a short delay
+            isUpdating = true;
+            const newSrc = toProxyUrl(unwrapped);
+            console.log('[KEEP-PROXIED] Setting new src:', newSrc);
+            iframe.src = newSrc;
             setTimeout(() => { isUpdating = false; }, 100);
           }
+        } else {
+          console.log('[KEEP-PROXIED] iframe src is correctly proxied');
         }
-      } catch {
-        // Cross-origin read can throw; ignore
+      } catch (e) {
+        console.error('[KEEP-PROXIED] Error:', e);
         isUpdating = false;
       }
     };
 
+    console.log('[KEEP-PROXIED] Initializing guard for iframe');
     fix();
-    const mo = new MutationObserver(() => fix());
+    const mo = new MutationObserver(() => {
+      console.log('[KEEP-PROXIED] Mutation detected');
+      fix();
+    });
     mo.observe(iframe, { attributes: true, attributeFilter: ['src'] });
-    const onLoad = () => fix();
+    const onLoad = () => {
+      console.log('[KEEP-PROXIED] iframe load event');
+      fix();
+    };
     iframe.addEventListener('load', onLoad);
 
     return () => {
+      console.log('[KEEP-PROXIED] Cleaning up');
       mo.disconnect();
       iframe.removeEventListener('load', onLoad);
     };
@@ -101,16 +121,22 @@ const GameDetail = () => {
 
   // Ensure service worker is installed
   useEffect(() => {
+    console.log('[SW-INIT] Checking for service worker support');
     if ('serviceWorker' in navigator) {
+      console.log('[SW-INIT] Service worker supported, registering...');
       navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
         .then(reg => {
-          console.log('[SW] Registered:', reg.scope);
+          console.log('[SW-INIT] Registered with scope:', reg.scope);
+          console.log('[SW-INIT] Registration state:', reg.installing ? 'installing' : reg.waiting ? 'waiting' : reg.active ? 'active' : 'unknown');
           return navigator.serviceWorker.ready;
         })
         .then(() => {
-          console.log('[SW] Service worker is ready and controlling');
+          console.log('[SW-INIT] Service worker is ready and controlling');
+          console.log('[SW-INIT] Controller:', navigator.serviceWorker.controller);
         })
-        .catch(err => console.error('[SW] Registration failed:', err));
+        .catch(err => console.error('[SW-INIT] Registration failed:', err));
+    } else {
+      console.error('[SW-INIT] Service worker not supported!');
     }
   }, []);
 
@@ -185,19 +211,27 @@ const GameDetail = () => {
       
       // Load through local proxy - it will strip any frame-blocking headers
       try {
+        console.log('[GAME EMBED] Waiting for service worker...');
+        
         // Wait for service worker to be ready
         if ('serviceWorker' in navigator) {
           await navigator.serviceWorker.ready;
           console.log('[GAME EMBED] Service worker is ready');
+          console.log('[GAME EMBED] Controller:', navigator.serviceWorker.controller);
+        } else {
+          throw new Error('Service worker not supported');
         }
         
         const proxyUrl = toProxyUrl(game.game_url);
-        console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
+        console.log('[GAME EMBED] Final proxy URL:', proxyUrl);
+        console.log('[GAME EMBED] Setting htmlContent and useDirectUrl=true');
         
         // Set the proxy URL directly - service worker will handle the fetch
         setHtmlContent(proxyUrl);
         setUseDirectUrl(true);
         setIsLoadingGame(false);
+        
+        console.log('[GAME EMBED] Setup complete, iframe should load from:', proxyUrl);
         toast.success('Loading game...');
       } catch (error) {
         console.error('[GAME EMBED] Setup error:', error);
@@ -418,15 +452,36 @@ const GameDetail = () => {
 
   // Debug iframe loading
   const handleIframeLoad = () => {
-    console.log('[IFRAME LOAD] Successfully loaded');
+    console.log('[IFRAME LOAD] ========== IFRAME LOADED ==========');
+    console.log('[IFRAME LOAD] iframe element:', iframeRef.current);
     console.log('[IFRAME LOAD] iframe src:', iframeRef.current?.src);
+    
     setIframeBlocked(false);
     setIsLoadingGame(false);
     toast.success('Game loaded!');
+    
+    // Try to check if content actually loaded
+    setTimeout(() => {
+      if (iframeRef.current) {
+        try {
+          const doc = iframeRef.current.contentDocument;
+          console.log('[IFRAME LOAD] Can access contentDocument:', !!doc);
+          if (doc) {
+            console.log('[IFRAME LOAD] Document title:', doc.title);
+            console.log('[IFRAME LOAD] Document body exists:', !!doc.body);
+          }
+        } catch (e) {
+          console.log('[IFRAME LOAD] Cross-origin (expected):', e.message);
+        }
+      }
+    }, 500);
   };
 
   const handleIframeError = (e: any) => {
-    console.error('[IFRAME ERROR] Failed to load', e);
+    console.error('[IFRAME ERROR] ========== IFRAME ERROR ==========');
+    console.error('[IFRAME ERROR] Event:', e);
+    console.error('[IFRAME ERROR] iframe src:', iframeRef.current?.src);
+    
     setIframeBlocked(true);
     setIsLoadingGame(false);
     setLoadError('Game failed to load');

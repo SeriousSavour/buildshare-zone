@@ -3,27 +3,35 @@
 const PROXY_PREFIX = '/proxy/game/';
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing...');
+  console.log('[SW] ========== INSTALLING ==========');
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating...');
+  console.log('[SW] ========== ACTIVATING ==========');
   event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
+  console.log('[SW] Fetch intercepted:', url.pathname);
+  
   // Only intercept requests to our proxy path
   if (!url.pathname.startsWith(PROXY_PREFIX)) {
+    console.log('[SW] Not proxy path, passing through');
     return;
   }
+  
+  console.log('[SW] ========== PROXY REQUEST ==========');
   
   // Extract the target URL from the path
   const encodedTarget = url.pathname.substring(PROXY_PREFIX.length);
   
+  console.log('[SW] Encoded target:', encodedTarget);
+  
   if (!encodedTarget) {
+    console.error('[SW] Missing target URL!');
     return event.respondWith(
       new Response('Missing target URL', { status: 400 })
     );
@@ -32,13 +40,15 @@ self.addEventListener('fetch', (event) => {
   let targetUrl;
   try {
     targetUrl = decodeURIComponent(encodedTarget);
+    console.log('[SW] Decoded target URL:', targetUrl);
   } catch (e) {
+    console.error('[SW] Failed to decode target URL:', e);
     return event.respondWith(
       new Response('Invalid target URL', { status: 400 })
     );
   }
   
-  console.log('[SW] Proxying:', targetUrl);
+  console.log('[SW] Fetching from:', targetUrl);
   
   event.respondWith(
     fetch(targetUrl, {
@@ -55,6 +65,9 @@ self.addEventListener('fetch', (event) => {
       credentials: 'omit'
     })
     .then(response => {
+      console.log('[SW] Response received:', response.status, response.statusText);
+      console.log('[SW] Response headers:', [...response.headers.entries()]);
+      
       if (!response.ok) {
         console.error('[SW] Response not OK:', response.status, response.statusText);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -62,6 +75,9 @@ self.addEventListener('fetch', (event) => {
       
       // Clone the response so we can modify headers
       const headers = new Headers(response.headers);
+      
+      console.log('[SW] Original X-Frame-Options:', headers.get('x-frame-options'));
+      console.log('[SW] Original CSP:', headers.get('content-security-policy'));
       
       // CRITICAL: Strip all frame-blocking headers
       headers.delete('x-frame-options');
@@ -81,7 +97,10 @@ self.addEventListener('fetch', (event) => {
       headers.set('access-control-allow-methods', '*');
       headers.set('access-control-allow-headers', '*');
       
-      console.log('[SW] Proxied response:', response.status, headers.get('content-type'));
+      console.log('[SW] Modified headers set');
+      console.log('[SW] New X-Frame-Options:', headers.get('x-frame-options'));
+      console.log('[SW] New CSP:', headers.get('content-security-policy'));
+      console.log('[SW] Returning proxied response');
       
       return new Response(response.body, {
         status: response.status,
