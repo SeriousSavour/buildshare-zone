@@ -402,56 +402,36 @@ const BrowserView = () => {
       return;
     }
     
-    // Check if URL is HTML-like
-    let isHtmlLike = false;
+    // For external URLs, use the proxy server
     try {
-      const url = new URL(gameUrl);
-      const pathname = url.pathname;
-      isHtmlLike = pathname.endsWith('.html') || 
-                   pathname.endsWith('.htm') || 
-                   pathname.endsWith('/') ||
-                   pathname.includes('/html/');
-      console.log('[BROWSER GAME] URL pathname:', pathname);
-      console.log('[BROWSER GAME] isHtmlLike:', isHtmlLike);
-    } catch (e) {
-      isHtmlLike = gameUrl.endsWith('.html') || gameUrl.endsWith('.htm');
-    }
-    
-    if (isHtmlLike) {
-      try {
-        console.log('[BROWSER GAME] Fetching HTML from:', gameUrl);
-        const response = await fetch(gameUrl);
-        const html = await response.text();
-        console.log('[BROWSER GAME] Fetched HTML length:', html.length);
-        
-        const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
-        if (baseMatch && baseMatch[1]) {
-          const baseUrl = baseMatch[1];
-          console.log('[BROWSER GAME] Found base URL:', baseUrl);
-          if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-            setUseDirectUrl(true);
-            setHtmlContent(baseUrl);
-            console.log('[BROWSER GAME] Using base URL directly');
-            return;
-          }
-        }
-        
-        setHtmlContent(html);
-        setUseDirectUrl(false);
-        console.log('[BROWSER GAME] Set fetched HTML as srcDoc');
-      } catch (error) {
-        console.error('[BROWSER GAME] Error fetching HTML (CORS or network):', error);
-        // External sites block embedding - show blocked state
-        setIframeBlocked(true);
-        setHtmlContent(null);
-        setUseDirectUrl(false);
-        toast.error('Game cannot be embedded. Use "Open in New Tab" to play.');
-        console.log('[BROWSER GAME] External site blocked - showing fallback');
+      const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/game-proxy?url=${encodeURIComponent(gameUrl)}`;
+      console.log('[BROWSER GAME] Using proxy URL:', proxyUrl);
+      
+      const testResponse = await fetch(proxyUrl, { method: 'HEAD' });
+      
+      if (testResponse.ok) {
+        console.log('[BROWSER GAME] Proxy successful');
+        setHtmlContent(proxyUrl);
+        setUseDirectUrl(true);
+      } else {
+        throw new Error('Proxy failed');
       }
-    } else {
-      console.log('[BROWSER GAME] Using direct URL');
-      setHtmlContent(gameUrl);
-      setUseDirectUrl(true);
+    } catch (error) {
+      console.error('[BROWSER GAME] Proxy failed, trying direct:', error);
+      
+      try {
+        const response = await fetch(gameUrl, { method: 'HEAD' });
+        if (response.ok) {
+          setHtmlContent(gameUrl);
+          setUseDirectUrl(true);
+        } else {
+          throw new Error('Direct URL failed');
+        }
+      } catch (directError) {
+        console.error('[BROWSER GAME] Both failed');
+        setIframeBlocked(true);
+        toast.error('Game cannot be loaded. Use "Open in New Tab".');
+      }
     }
   };
 

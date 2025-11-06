@@ -75,7 +75,7 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Embed HTML content directly like Google Sites
+  // Embed game content using proxy server
   useEffect(() => {
     const embedGameHtml = async () => {
       console.log('[GAME EMBED] Starting embedGameHtml');
@@ -83,95 +83,66 @@ const GameDetail = () => {
       
       if (!game?.game_url) {
         console.log('[GAME EMBED] No game_url, returning');
+        setIframeBlocked(false);
         return;
       }
       
-      // Check if game_url is raw HTML code (starts with < or contains HTML tags)
+      setIframeBlocked(false);
+      
+      // Check if game_url is raw HTML code
       const isRawHtml = game.game_url.trim().startsWith('<') || 
                         game.game_url.includes('<!DOCTYPE') ||
                         game.game_url.includes('<html') ||
-                        game.game_url.includes('&lt;'); // Also check for escaped HTML
+                        game.game_url.includes('&lt;');
       
       console.log('[GAME EMBED] isRawHtml:', isRawHtml);
       
       if (isRawHtml) {
-        // Raw HTML code - decode any HTML entities and execute directly using srcDoc
-        console.log('[GAME EMBED] Raw HTML detected, decoding and executing with srcDoc');
+        // Raw HTML - decode and use srcDoc
+        console.log('[GAME EMBED] Raw HTML detected, using srcDoc');
         const decodedHtml = decodeHtmlEntities(game.game_url);
-        console.log('[GAME EMBED] Decoded HTML preview:', decodedHtml.substring(0, 200));
         setHtmlContent(decodedHtml);
         setUseDirectUrl(false);
-        console.log('[GAME EMBED] Set htmlContent (raw), useDirectUrl=false');
+        toast.success('Game loaded successfully');
         return;
       }
       
-      // Check if URL is a valid HTTP(S) URL
-      let isHtmlLike = false;
+      // For external URLs, use the proxy server
       try {
-        const url = new URL(game.game_url);
-        const pathname = url.pathname;
-        // Check if it's an HTML file or directory-like URL
-        isHtmlLike = pathname.endsWith('.html') || 
-                     pathname.endsWith('.htm') || 
-                     pathname.endsWith('/') ||
-                     pathname.includes('/html/'); // Common pattern for HTML games
-        console.log('[GAME EMBED] URL pathname:', pathname);
-        console.log('[GAME EMBED] isHtmlLike:', isHtmlLike);
-      } catch (e) {
-        console.log('[GAME EMBED] Not a valid URL, might be relative path');
-        isHtmlLike = game.game_url.endsWith('.html') || game.game_url.endsWith('.htm');
-      }
-      
-      // If it's an HTML-like URL, fetch and embed it
-      if (isHtmlLike) {
-        try {
-          console.log('[GAME EMBED] Fetching HTML from:', game.game_url);
-          const response = await fetch(game.game_url);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const html = await response.text();
-          console.log('[GAME EMBED] HTML fetched, length:', html.length);
-          console.log('[GAME EMBED] HTML preview:', html.substring(0, 200));
-          
-          // Check for <base> tag with external href
-          const baseMatch = html.match(/<base\s+href=["']([^"']+)["']/i);
-          if (baseMatch && baseMatch[1]) {
-            const baseUrl = baseMatch[1];
-            console.log('[GAME EMBED] Found base URL:', baseUrl);
-            // If base href points to external resources, use that URL directly
-            if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-              console.log('[GAME EMBED] Using external URL directly:', baseUrl);
-              setUseDirectUrl(true);
-              setHtmlContent(baseUrl);
-              console.log('[GAME EMBED] Set htmlContent (base URL), useDirectUrl=true');
-              toast.success('Loading game from external source');
-              return;
-            }
-          }
-          
-          // Otherwise embed the HTML content directly (Google Sites style)
-          console.log('[GAME EMBED] Embedding HTML content with srcDoc');
-          setHtmlContent(html);
-          setUseDirectUrl(false);
-          console.log('[GAME EMBED] Set htmlContent (fetched), useDirectUrl=false');
-        } catch (error) {
-          console.error('[GAME EMBED] Error fetching HTML (CORS or network):', error);
-          // External sites block embedding - show blocked state immediately
-          setIframeBlocked(true);
-          setHtmlContent(null);
-          setUseDirectUrl(false);
-          toast.error('This game cannot be embedded. Click "Open in New Tab" to play.');
-          console.log('[GAME EMBED] External site blocked - showing fallback UI');
+        const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
+        console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
+        
+        // Test if proxy can fetch the content
+        const testResponse = await fetch(proxyUrl, {
+          method: 'HEAD',
+        });
+        
+        if (testResponse.ok) {
+          console.log('[GAME EMBED] Proxy successful, using proxy URL');
+          setHtmlContent(proxyUrl);
+          setUseDirectUrl(true);
+          toast.success('Game loaded via proxy');
+        } else {
+          throw new Error('Proxy failed');
         }
-      } else {
-        // For non-HTML files, try direct URL but expect it might be blocked
-        console.log('[GAME EMBED] Non-HTML file, using direct URL:', game.game_url);
-        setHtmlContent(game.game_url);
-        setUseDirectUrl(true);
-        console.log('[GAME EMBED] Set htmlContent (non-HTML), useDirectUrl=true');
+      } catch (error) {
+        console.error('[GAME EMBED] Proxy failed, trying direct URL:', error);
+        
+        // Fallback: try direct URL
+        try {
+          const response = await fetch(game.game_url, { method: 'HEAD' });
+          if (response.ok) {
+            console.log('[GAME EMBED] Direct URL works');
+            setHtmlContent(game.game_url);
+            setUseDirectUrl(true);
+          } else {
+            throw new Error('Direct URL failed');
+          }
+        } catch (directError) {
+          console.error('[GAME EMBED] Both proxy and direct failed');
+          setIframeBlocked(true);
+          toast.error('Unable to load game. Try opening in new tab.');
+        }
       }
     };
     
