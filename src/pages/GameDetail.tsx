@@ -55,7 +55,32 @@ const GameDetail = () => {
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Remove all proxy logic - use direct loading
+  const PROXY_PREFIX = '/proxy/game/';
+
+  // Helper to convert URL to proxy URL
+  const toProxyUrl = (rawUrl: string): string => {
+    const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    const proxied = `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
+    console.log('[PROXY] Converting URL:', rawUrl, '→', proxied);
+    return proxied;
+  };
+
+  // Ensure service worker is installed
+  useEffect(() => {
+    console.log('[SW-INIT] Checking for service worker support');
+    if ('serviceWorker' in navigator) {
+      console.log('[SW-INIT] Service worker supported, registering...');
+      navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
+        .then(reg => {
+          console.log('[SW-INIT] Registered with scope:', reg.scope);
+          return navigator.serviceWorker.ready;
+        })
+        .then(() => {
+          console.log('[SW-INIT] Service worker is ready');
+        })
+        .catch(err => console.error('[SW-INIT] Registration failed:', err));
+    }
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -72,43 +97,62 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Simple direct loading - no proxy needed
+  // Load game through proxy to strip frame-blocking headers
   useEffect(() => {
-    console.log('[GAME LOAD] Starting, game_url:', game?.game_url);
-    
-    if (!game?.game_url) {
-      console.log('[GAME LOAD] No game_url');
+    const loadGame = async () => {
+      console.log('[GAME LOAD] Starting, game_url:', game?.game_url);
+      
+      if (!game?.game_url) {
+        console.log('[GAME LOAD] No game_url');
+        setIframeBlocked(false);
+        setIsLoadingGame(false);
+        return;
+      }
+      
       setIframeBlocked(false);
-      setIsLoadingGame(false);
-      return;
-    }
+      setIsLoadingGame(true);
+      setLoadError(null);
+      
+      // Check if game_url is raw HTML code
+      const isRawHtml = game.game_url.trim().startsWith('<') || 
+                        game.game_url.includes('<!DOCTYPE') ||
+                        game.game_url.includes('<html') ||
+                        game.game_url.includes('&lt;');
+      
+      console.log('[GAME LOAD] isRawHtml:', isRawHtml);
+      
+      if (isRawHtml) {
+        // Raw HTML - decode and use srcDoc
+        const decodedHtml = decodeHtmlEntities(game.game_url);
+        console.log('[GAME LOAD] Using srcDoc, length:', decodedHtml.length);
+        setHtmlContent(decodedHtml);
+        setUseDirectUrl(false);
+        setIsLoadingGame(false);
+        return;
+      }
+      
+      // External URL - use proxy to strip X-Frame-Options
+      try {
+        console.log('[GAME LOAD] Waiting for service worker...');
+        if ('serviceWorker' in navigator) {
+          await navigator.serviceWorker.ready;
+          console.log('[GAME LOAD] Service worker ready');
+        }
+        
+        const proxyUrl = toProxyUrl(game.game_url);
+        console.log('[GAME LOAD] Using proxy URL:', proxyUrl);
+        setHtmlContent(proxyUrl);
+        setUseDirectUrl(true);
+        setIsLoadingGame(false);
+      } catch (error) {
+        console.error('[GAME LOAD] Error:', error);
+        setLoadError('Failed to load game');
+        setIframeBlocked(true);
+        setIsLoadingGame(false);
+      }
+    };
     
-    setIframeBlocked(false);
-    setIsLoadingGame(true);
-    setLoadError(null);
-    
-    // Check if game_url is raw HTML code
-    const isRawHtml = game.game_url.trim().startsWith('<') || 
-                      game.game_url.includes('<!DOCTYPE') ||
-                      game.game_url.includes('<html') ||
-                      game.game_url.includes('&lt;');
-    
-    console.log('[GAME LOAD] isRawHtml:', isRawHtml);
-    
-    if (isRawHtml) {
-      // Raw HTML - decode and use srcDoc
-      const decodedHtml = decodeHtmlEntities(game.game_url);
-      console.log('[GAME LOAD] Using srcDoc, length:', decodedHtml.length);
-      setHtmlContent(decodedHtml);
-      setUseDirectUrl(false);
-    } else {
-      // Direct URL
-      console.log('[GAME LOAD] Using direct URL:', game.game_url);
-      setHtmlContent(game.game_url);
-      setUseDirectUrl(true);
-    }
-    
-    setIsLoadingGame(false);
+    loadGame();
   }, [game?.game_url]);
 
   const fetchGame = async () => {
@@ -462,7 +506,7 @@ const GameDetail = () => {
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             referrerPolicy="no-referrer"
@@ -605,7 +649,7 @@ const GameDetail = () => {
                           width: `${iframeSize.width}px`,
                           height: `${iframeSize.height}px`,
                         }}
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowFullScreen
                         referrerPolicy="no-referrer"
