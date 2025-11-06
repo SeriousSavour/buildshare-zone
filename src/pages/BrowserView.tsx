@@ -410,7 +410,7 @@ const BrowserView = () => {
     // For external URLs, use the proxy server
     try {
       toast.info('Loading game...');
-      const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/game-proxy?url=${encodeURIComponent(gameUrl)}`;
+      const proxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(gameUrl)}`;
       console.log('[BROWSER GAME] Using proxy URL:', proxyUrl);
       
       const controller = new AbortController();

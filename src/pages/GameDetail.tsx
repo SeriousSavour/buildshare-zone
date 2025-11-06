@@ -116,7 +116,7 @@ const GameDetail = () => {
       // For external URLs, use the proxy server
       try {
         toast.info('Fetching game through proxy server...');
-        const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
+        const proxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
         console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
         
         // Test if proxy can fetch the content with timeout
