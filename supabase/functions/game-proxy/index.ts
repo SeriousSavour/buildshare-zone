@@ -36,14 +36,19 @@ serve(async (req) => {
       throw new Error(`Failed to fetch game: ${gameResponse.status}`);
     }
 
+    const upstreamContentType = gameResponse.headers.get('content-type') || 'text/html';
     let content = await gameResponse.text();
-    const contentType = gameResponse.headers.get('content-type') || 'text/html';
 
-    console.log('[GAME PROXY] Fetched content type:', contentType);
+    console.log('[GAME PROXY] Fetched content type:', upstreamContentType);
     console.log('[GAME PROXY] Content length:', content.length);
 
+    // Determine if this is HTML content
+    const isHtml = upstreamContentType.includes('text/html') || 
+                   content.trim().startsWith('<!DOCTYPE') ||
+                   content.trim().startsWith('<html');
+
     // If it's HTML, rewrite URLs to be absolute
-    if (contentType.includes('text/html')) {
+    if (isHtml) {
       const baseUrl = new URL(gameUrl);
       const baseUrlString = `${baseUrl.protocol}//${baseUrl.host}`;
       
@@ -67,8 +72,13 @@ serve(async (req) => {
 
     // Build clean headers - strip frame-blocking headers from upstream
     const responseHeaders = new Headers(corsHeaders);
-    responseHeaders.set('Content-Type', contentType);
+    
+    // Force correct Content-Type for HTML content
+    const finalContentType = isHtml ? 'text/html; charset=utf-8' : upstreamContentType;
+    responseHeaders.set('Content-Type', finalContentType);
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    
+    console.log('[GAME PROXY] Setting Content-Type:', finalContentType);
     
     // CRITICAL: Strip frame-blocking headers
     // Don't copy x-frame-options from upstream
