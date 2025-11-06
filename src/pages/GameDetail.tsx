@@ -55,6 +55,51 @@ const GameDetail = () => {
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const PROXY_PREFIX = '/sengine/scramjet/';
+
+  // Helper to convert URL to proxy URL
+  const toProxyUrl = (rawUrl: string): string => {
+    const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    return `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
+  };
+
+  // Keep iframe proxied - prevent escape back to raw URL
+  const keepProxied = (iframe: HTMLIFrameElement) => {
+    const fix = () => {
+      try {
+        const cur = iframe.getAttribute('src') || iframe.src || '';
+        if (!cur.startsWith(window.location.origin + PROXY_PREFIX)) {
+          const unwrapped = cur.startsWith('http') ? cur : iframe.src;
+          if (unwrapped && unwrapped.startsWith('http')) {
+            iframe.src = toProxyUrl(unwrapped);
+          }
+        }
+      } catch {
+        // Cross-origin read can throw; ignore
+      }
+    };
+
+    fix();
+    const mo = new MutationObserver(() => fix());
+    mo.observe(iframe, { attributes: true, attributeFilter: ['src'] });
+    const onLoad = () => fix();
+    iframe.addEventListener('load', onLoad);
+
+    return () => {
+      mo.disconnect();
+      iframe.removeEventListener('load', onLoad);
+    };
+  };
+
+  // Ensure service worker is installed
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sengine/sw.js', { scope: '/sengine/' })
+        .then(reg => console.log('[SW] Registered:', reg.scope))
+        .catch(err => console.error('[SW] Registration failed:', err));
+    }
+  }, []);
+
   useEffect(() => {
     if (id) {
       fetchGame();
@@ -124,10 +169,10 @@ const GameDetail = () => {
         return;
       }
       
-      // Load through proxy - it will strip any frame-blocking headers
+      // Load through local proxy - it will strip any frame-blocking headers
       try {
         toast.info('Loading game through proxy...');
-        const proxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
+        const proxyUrl = toProxyUrl(game.game_url);
         console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
         
         try {
@@ -578,12 +623,18 @@ const GameDetail = () => {
             </div>
           </div>
           <iframe
+            ref={(el) => {
+              if (el) {
+                iframeRef.current = el;
+                keepProxied(el);
+              }
+            }}
             {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"
+            allow="fullscreen; gamepad; autoplay"
             allowFullScreen
             referrerPolicy="no-referrer"
             loading="eager"
@@ -710,25 +761,30 @@ const GameDetail = () => {
                     </>
                   )}
 
-                   {!iframeBlocked && htmlContent && (
-                     <iframe
-                       ref={iframeRef}
-                       {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
-                       title={game.title}
-                       className="border-2 border-primary/20 rounded-lg shadow-2xl"
-                       style={{
-                         width: `${iframeSize.width}px`,
-                         height: `${iframeSize.height}px`,
-                       }}
-                       sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
-                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                       allowFullScreen
-                       referrerPolicy="no-referrer"
-                       loading="eager"
-                       onLoad={handleIframeLoad}
-                       onError={handleIframeError}
-                     />
-                   )}
+                    {!iframeBlocked && htmlContent && (
+                      <iframe
+                        ref={(el) => {
+                          if (el) {
+                            iframeRef.current = el;
+                            keepProxied(el);
+                          }
+                        }}
+                        {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
+                        title={game.title}
+                        className="border-2 border-primary/20 rounded-lg shadow-2xl"
+                        style={{
+                          width: `${iframeSize.width}px`,
+                          height: `${iframeSize.height}px`,
+                        }}
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"
+                        allow="fullscreen; gamepad; autoplay"
+                        allowFullScreen
+                        referrerPolicy="no-referrer"
+                        loading="eager"
+                        onLoad={handleIframeLoad}
+                        onError={handleIframeError}
+                      />
+                    )}
                    {(iframeBlocked || !htmlContent) && (
                      <div 
                        className="border-2 border-primary/20 rounded-lg shadow-2xl bg-background/50 flex items-center justify-center"

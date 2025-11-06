@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Game Proxy</title>
+  <script>
+    // Register the service worker for the /sengine/ scope
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sengine/sw.js', { scope: '/sengine/' })
+        .then(reg => {
+          console.log('[SW] Registered:', reg.scope);
+          // Wait for the service worker to be active
+          return navigator.serviceWorker.ready;
+        })
+        .then(() => {
+          console.log('[SW] Ready');
+          // If this page was loaded to install the SW, redirect back
+          if (window.opener) {
+            window.close();
+          }
+        })
+        .catch(err => console.error('[SW] Registration failed:', err));
+    }
+  </script>
+</head>
+<body>
+  <h1>Game Proxy Service Worker</h1>
+  <p>Installing service worker...</p>
+</body>
+</html>
