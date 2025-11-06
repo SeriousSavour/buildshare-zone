@@ -54,7 +54,6 @@ const GameDetail = () => {
   const [iframeBlocked, setIframeBlocked] = useState(false);
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [useProxy, setUseProxy] = useState(false);
 
 
   useEffect(() => {
@@ -72,41 +71,26 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Load game - direct or proxy
+  // Simple direct game loading
   useEffect(() => {
-    if (!game?.game_url) {
-      setIframeBlocked(false);
-      setIsLoadingGame(false);
-      return;
-    }
+    if (!game?.game_url) return;
     
-    setIframeBlocked(false);
-    setIsLoadingGame(true);
-    setLoadError(null);
-    
-    // Check if raw HTML
     const isRawHtml = game.game_url.trim().startsWith('<') || 
                       game.game_url.includes('<!DOCTYPE') ||
                       game.game_url.includes('<html') ||
                       game.game_url.includes('&lt;');
     
     if (isRawHtml) {
-      const decodedHtml = decodeHtmlEntities(game.game_url);
-      setHtmlContent(decodedHtml);
+      setHtmlContent(decodeHtmlEntities(game.game_url));
       setUseDirectUrl(false);
     } else {
-      // Use proxy or direct based on toggle
-      if (useProxy) {
-        const edgeProxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
-        setHtmlContent(edgeProxyUrl);
-      } else {
-        setHtmlContent(game.game_url);
-      }
+      setHtmlContent(game.game_url);
       setUseDirectUrl(true);
     }
     
     setIsLoadingGame(false);
-  }, [game?.game_url, useProxy]);
+    setIframeBlocked(false);
+  }, [game?.game_url]);
 
   const fetchGame = async () => {
     try {
@@ -336,32 +320,6 @@ const GameDetail = () => {
     }
   };
 
-  const testGameUrl = async () => {
-    if (!game?.game_url) return;
-    
-    console.log('[TEST] Testing game URL:', game.game_url);
-    toast.info('Testing game URL...');
-    
-    // Test edge function proxy
-    const edgeProxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
-    console.log('[TEST] Edge proxy URL:', edgeProxyUrl);
-    
-    try {
-      const proxyResponse = await fetch(edgeProxyUrl);
-      console.log('[TEST] Proxy response:', proxyResponse);
-      console.log('[TEST] Proxy status:', proxyResponse.status);
-      console.log('[TEST] Proxy headers:', [...proxyResponse.headers.entries()]);
-      
-      const text = await proxyResponse.text();
-      console.log('[TEST] Proxy content length:', text.length);
-      console.log('[TEST] Proxy content preview:', text.substring(0, 200));
-      
-      toast.success(`Proxy working! Status: ${proxyResponse.status}, Length: ${text.length}`);
-    } catch (error) {
-      console.error('[TEST] Proxy fetch error:', error);
-      toast.error(`Proxy fetch failed: ${error.message}`);
-    }
-  };
 
 
   const fetchComments = async () => {
@@ -651,39 +609,16 @@ const GameDetail = () => {
                    )}
                 </div>
 
-                 {/* Fullscreen and Open in New Tab Buttons */}
+                 {/* Control Buttons */}
                  <div className="flex gap-4 w-full max-w-md">
-                   <Button
-                     onClick={handleFullscreen}
-                     size="lg"
-                     className="gap-2 flex-1"
-                   >
+                   <Button onClick={handleFullscreen} size="lg" className="gap-2 flex-1">
                      <Maximize2 className="w-5 h-5" />
                      Fullscreen
                    </Button>
-                   <Button
-                     onClick={handleOpenInNewTab}
-                     size="lg"
-                     variant="outline"
-                     className="gap-2 flex-1"
-                   >
+                   <Button onClick={handleOpenInNewTab} size="lg" variant="outline" className="gap-2 flex-1">
                      <Maximize2 className="w-5 h-5" />
                      New Tab
                    </Button>
-                 </div>
-                 
-                 {/* Proxy Toggle */}
-                 <div className="flex gap-2 w-full max-w-md items-center justify-center">
-                   <Button
-                     onClick={() => setUseProxy(!useProxy)}
-                     size="sm"
-                     variant={useProxy ? "default" : "secondary"}
-                   >
-                     {useProxy ? "Using Proxy" : "Direct Load"} - Click to Switch
-                   </Button>
-                   <span className="text-xs text-muted-foreground">
-                     Current: {htmlContent?.substring(0, 50)}...
-                   </span>
                  </div>
 
                 {/* Comments Section */}
