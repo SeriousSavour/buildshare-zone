@@ -55,6 +55,49 @@ const GameDetail = () => {
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Proxy configuration
+  const PROXY_PREFIX = 'https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=';
+
+  // Helper to build proxy URL
+  const toProxyUrl = (rawUrl: string): string => {
+    const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    return `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
+  };
+
+  // Guard to keep iframe proxied
+  const keepProxied = (el: HTMLIFrameElement) => {
+    const fix = () => {
+      try {
+        const currentSrc = el.getAttribute('src') || el.src || '';
+        if (currentSrc && !currentSrc.startsWith(PROXY_PREFIX)) {
+          console.log('[PROXY GUARD] Iframe escaped proxy, fixing...', currentSrc);
+          const unwrapped = currentSrc.startsWith('http') ? currentSrc : el.src;
+          if (unwrapped) {
+            el.src = toProxyUrl(unwrapped);
+          }
+        }
+      } catch (e) {
+        // Cross-origin access is fine, means it's likely loaded correctly
+      }
+    };
+
+    // Run once on attach
+    fix();
+
+    // Watch for src attribute changes
+    const observer = new MutationObserver(() => fix());
+    observer.observe(el, { attributes: true, attributeFilter: ['src'] });
+
+    // Re-check on each load
+    const onLoad = () => fix();
+    el.addEventListener('load', onLoad);
+
+    return () => {
+      observer.disconnect();
+      el.removeEventListener('load', onLoad);
+    };
+  };
+
   useEffect(() => {
     if (id) {
       fetchGame();
@@ -124,58 +167,51 @@ const GameDetail = () => {
         return;
       }
       
-      // Load through proxy - it will strip any frame-blocking headers
+      // Build proxy URL using helper
+      const proxyUrl = toProxyUrl(game.game_url);
+      console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
+      
       try {
         toast.info('Loading game through proxy...');
-        const proxyUrl = `https://ptmeykacgbrsmvcvwrpp.supabase.co/functions/v1/game-proxy?url=${encodeURIComponent(game.game_url)}`;
-        console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
         
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
-          
-          const testResponse = await fetch(proxyUrl, {
-            method: 'HEAD',
-            signal: controller.signal,
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (testResponse.ok) {
-            console.log('[GAME EMBED] Proxy successful');
-            setHtmlContent(proxyUrl);
-            setUseDirectUrl(true);
-            setIsLoadingGame(false);
-            toast.success('Game loaded successfully!');
-          } else {
-            const errorText = await testResponse.text();
-            throw new Error(`Proxy returned ${testResponse.status}: ${errorText}`);
-          }
-        } catch (error) {
-          console.error('[GAME EMBED] Loading failed:', error);
-          
-          if (error.name === 'AbortError') {
-            setLoadError('Game loading timed out. Try opening in new tab.');
-            toast.error('Loading timed out');
-          } else {
-            setLoadError('Unable to load game. The site may be blocking embedding. Try opening in new tab.');
-            toast.error('Failed to load game');
-          }
-          
-          setIframeBlocked(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const testResponse = await fetch(proxyUrl, {
+          method: 'HEAD',
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (testResponse.ok) {
+          console.log('[GAME EMBED] Proxy successful');
+          setHtmlContent(proxyUrl);
+          setUseDirectUrl(true);
           setIsLoadingGame(false);
+          toast.success('Game loaded successfully!');
+        } else {
+          const errorText = await testResponse.text();
+          throw new Error(`Proxy returned ${testResponse.status}: ${errorText}`);
         }
       } catch (error) {
-        // Outer catch for URL validation errors
-        console.error('[GAME EMBED] Setup error:', error);
-        setLoadError('Invalid game URL');
+        console.error('[GAME EMBED] Loading failed:', error);
+        
+        if (error.name === 'AbortError') {
+          setLoadError('Game loading timed out. Try opening in new tab.');
+          toast.error('Loading timed out');
+        } else {
+          setLoadError('Unable to load game. The site may be blocking embedding. Try opening in new tab.');
+          toast.error('Failed to load game');
+        }
+        
         setIframeBlocked(true);
         setIsLoadingGame(false);
       }
     };
     
     embedGameHtml();
-  }, [game?.game_url]);
+  }, [game?.game_url, toProxyUrl]);
 
   const fetchGame = async () => {
     try {
@@ -381,6 +417,14 @@ const GameDetail = () => {
   const handleExitFullscreen = () => {
     setIsFullscreen(false);
   };
+
+  // Apply proxy guard to iframe when it loads
+  useEffect(() => {
+    if (iframeRef.current && htmlContent && useDirectUrl) {
+      console.log('[PROXY GUARD] Attaching guard to iframe');
+      return keepProxied(iframeRef.current);
+    }
+  }, [iframeRef.current, htmlContent, useDirectUrl, keepProxied]);
 
   // Debug iframe loading
   const handleIframeLoad = () => {
@@ -713,15 +757,15 @@ const GameDetail = () => {
                    {!iframeBlocked && htmlContent && (
                      <iframe
                        ref={iframeRef}
-                       {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
+                       {...(useDirectUrl ? { src: htmlContent } : { srcDoc: htmlContent })}
                        title={game.title}
                        className="border-2 border-primary/20 rounded-lg shadow-2xl"
                        style={{
                          width: `${iframeSize.width}px`,
                          height: `${iframeSize.height}px`,
                        }}
-                       sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
-                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                       sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-pointer-lock"
+                       allow="fullscreen; gamepad; autoplay"
                        allowFullScreen
                        referrerPolicy="no-referrer"
                        loading="eager"
