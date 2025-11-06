@@ -55,55 +55,13 @@ const GameDetail = () => {
   const [isLoadingGame, setIsLoadingGame] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const PROXY_PREFIX = '/proxy/game/';
-
-  // Helper to convert URL to proxy URL
-  const toProxyUrl = (rawUrl: string): string => {
-    const absolute = /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-    const proxied = `${PROXY_PREFIX}${encodeURIComponent(absolute)}`;
-    console.log('[PROXY] Converting URL:', rawUrl, '→', proxied);
-    return proxied;
-  };
-
-  // Keep iframe proxied - prevent escape back to raw URL (disabled to prevent retry loops)
-  const keepProxied = (iframe: HTMLIFrameElement) => {
-    console.log('[KEEP-PROXIED] Guard disabled to prevent retry loops');
-    return () => {}; // No-op cleanup
-  };
-
-  // Ensure service worker is installed
-  useEffect(() => {
-    console.log('[SW-INIT] Checking for service worker support');
-    if ('serviceWorker' in navigator) {
-      console.log('[SW-INIT] Service worker supported, registering...');
-      navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
-        .then(reg => {
-          console.log('[SW-INIT] Registered with scope:', reg.scope);
-          console.log('[SW-INIT] Registration state:', reg.installing ? 'installing' : reg.waiting ? 'waiting' : reg.active ? 'active' : 'unknown');
-          return navigator.serviceWorker.ready;
-        })
-        .then(() => {
-          console.log('[SW-INIT] Service worker is ready and controlling');
-          console.log('[SW-INIT] Controller:', navigator.serviceWorker.controller);
-        })
-        .catch(err => console.error('[SW-INIT] Registration failed:', err));
-    } else {
-      console.error('[SW-INIT] Service worker not supported!');
-    }
-  }, []);
+  // Remove all proxy logic - use direct loading
 
   useEffect(() => {
     if (id) {
       fetchGame();
       checkIfLiked();
       fetchComments();
-      
-      // Disabled automatic polling to prevent console flooding
-      // Poll for new comments every 5 seconds (proxy-safe polling instead of WebSocket)
-      // const interval = setInterval(() => {
-      //   fetchComments();
-      // }, 5000);
-      // return () => clearInterval(interval);
     }
   }, [id]);
 
@@ -114,87 +72,36 @@ const GameDetail = () => {
     return textarea.value;
   };
 
-  // Embed game content using proxy server
+  // Simple direct loading - no proxy needed
   useEffect(() => {
-    const embedGameHtml = async () => {
-      console.log('[GAME EMBED] Starting embedGameHtml');
-      console.log('[GAME EMBED] game?.game_url:', game?.game_url);
-      
-      if (!game?.game_url) {
-        console.log('[GAME EMBED] No game_url, returning');
-        setIframeBlocked(false);
-        setIsLoadingGame(false);
-        return;
-      }
-      
+    if (!game?.game_url) {
       setIframeBlocked(false);
-      setIsLoadingGame(true);
-      setLoadError(null);
-      
-      // Check if game_url is raw HTML code
-      const isRawHtml = game.game_url.trim().startsWith('<') || 
-                        game.game_url.includes('<!DOCTYPE') ||
-                        game.game_url.includes('<html') ||
-                        game.game_url.includes('&lt;');
-      
-      console.log('[GAME EMBED] isRawHtml:', isRawHtml);
-      
-      if (isRawHtml) {
-        // Raw HTML - decode and use srcDoc
-        console.log('[GAME EMBED] Raw HTML detected, using srcDoc');
-        const decodedHtml = decodeHtmlEntities(game.game_url);
-        setHtmlContent(decodedHtml);
-        setUseDirectUrl(false);
-        setIsLoadingGame(false);
-        toast.success('Game loaded successfully');
-        return;
-      }
-      
-      // Block HTTP URLs (mixed content)
-      const gameUrl = game.game_url.trim();
-      if (gameUrl.startsWith('http://')) {
-        console.log('[GAME EMBED] HTTP URL blocked (mixed content)');
-        setIframeBlocked(true);
-        setIsLoadingGame(false);
-        setLoadError('Only HTTPS game links are supported for security');
-        toast.error('Only HTTPS game links are supported');
-        return;
-      }
-      
-      // Load through local proxy - it will strip any frame-blocking headers
-      try {
-        console.log('[GAME EMBED] Waiting for service worker...');
-        
-        // Wait for service worker to be ready
-        if ('serviceWorker' in navigator) {
-          await navigator.serviceWorker.ready;
-          console.log('[GAME EMBED] Service worker is ready');
-          console.log('[GAME EMBED] Controller:', navigator.serviceWorker.controller);
-        } else {
-          throw new Error('Service worker not supported');
-        }
-        
-        const proxyUrl = toProxyUrl(game.game_url);
-        console.log('[GAME EMBED] Final proxy URL:', proxyUrl);
-        console.log('[GAME EMBED] Setting htmlContent and useDirectUrl=true');
-        
-        // Set the proxy URL directly - service worker will handle the fetch
-        setHtmlContent(proxyUrl);
-        setUseDirectUrl(true);
-        setIsLoadingGame(false);
-        
-        console.log('[GAME EMBED] Setup complete, iframe should load from:', proxyUrl);
-        toast.success('Loading game...');
-      } catch (error) {
-        console.error('[GAME EMBED] Setup error:', error);
-        setLoadError('Failed to set up proxy. Try opening in new tab.');
-        setIframeBlocked(true);
-        setIsLoadingGame(false);
-        toast.error('Failed to load game');
-      }
-    };
+      setIsLoadingGame(false);
+      return;
+    }
     
-    embedGameHtml();
+    setIframeBlocked(false);
+    setIsLoadingGame(true);
+    setLoadError(null);
+    
+    // Check if game_url is raw HTML code
+    const isRawHtml = game.game_url.trim().startsWith('<') || 
+                      game.game_url.includes('<!DOCTYPE') ||
+                      game.game_url.includes('<html') ||
+                      game.game_url.includes('&lt;');
+    
+    if (isRawHtml) {
+      // Raw HTML - decode and use srcDoc
+      const decodedHtml = decodeHtmlEntities(game.game_url);
+      setHtmlContent(decodedHtml);
+      setUseDirectUrl(false);
+    } else {
+      // Direct URL
+      setHtmlContent(game.game_url);
+      setUseDirectUrl(true);
+    }
+    
+    setIsLoadingGame(false);
   }, [game?.game_url]);
 
   const fetchGame = async () => {
@@ -402,42 +309,15 @@ const GameDetail = () => {
     setIsFullscreen(false);
   };
 
-  // Debug iframe loading
   const handleIframeLoad = () => {
-    console.log('[IFRAME LOAD] ========== IFRAME LOADED ==========');
-    console.log('[IFRAME LOAD] iframe element:', iframeRef.current);
-    console.log('[IFRAME LOAD] iframe src:', iframeRef.current?.src);
-    
     setIframeBlocked(false);
     setIsLoadingGame(false);
-    toast.success('Game loaded!');
-    
-    // Try to check if content actually loaded
-    setTimeout(() => {
-      if (iframeRef.current) {
-        try {
-          const doc = iframeRef.current.contentDocument;
-          console.log('[IFRAME LOAD] Can access contentDocument:', !!doc);
-          if (doc) {
-            console.log('[IFRAME LOAD] Document title:', doc.title);
-            console.log('[IFRAME LOAD] Document body exists:', !!doc.body);
-          }
-        } catch (e) {
-          console.log('[IFRAME LOAD] Cross-origin (expected):', e.message);
-        }
-      }
-    }, 500);
   };
 
-  const handleIframeError = (e: any) => {
-    console.error('[IFRAME ERROR] ========== IFRAME ERROR ==========');
-    console.error('[IFRAME ERROR] Event:', e);
-    console.error('[IFRAME ERROR] iframe src:', iframeRef.current?.src);
-    
+  const handleIframeError = () => {
     setIframeBlocked(true);
     setIsLoadingGame(false);
     setLoadError('Game failed to load');
-    toast.error('Game failed to load. Try "Open in New Tab".');
   };
 
   const handleOpenInNewTab = () => {
@@ -447,36 +327,6 @@ const GameDetail = () => {
     }
   };
 
-  // Listen for messages from iframe
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      console.log('[IFRAME] Message received:', event.origin, event.data);
-      
-      // Handle open in new tab request from error page
-      if (event.data?.type === 'open-new-tab' && event.data?.url) {
-        window.open(event.data.url, '_blank', 'noopener,noreferrer');
-        toast.info('Opening game in new tab...');
-      }
-    };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  // Debug game URL and state
-  useEffect(() => {
-    if (game?.game_url) {
-      console.log('[DEBUG STATE] Game URL:', game.game_url);
-      console.log('[DEBUG STATE] htmlContent length:', htmlContent?.length);
-      console.log('[DEBUG STATE] useDirectUrl:', useDirectUrl);
-      try {
-        const url = new URL(game.game_url);
-        console.log('[DEBUG STATE] URL pathname:', url.pathname);
-        console.log('[DEBUG STATE] Is HTML file:', game.game_url.includes('.html') || game.game_url.includes('.htm'));
-      } catch (e) {
-        console.log('[DEBUG STATE] Not a valid URL (might be raw HTML)');
-      }
-    }
-  }, [game?.game_url, htmlContent, useDirectUrl]);
 
   const fetchComments = async () => {
     const sessionToken = localStorage.getItem('session_token');
@@ -600,8 +450,8 @@ const GameDetail = () => {
             title={game.title}
             className="fixed inset-0 w-screen h-screen z-[99] border-none"
             style={{ paddingTop: '64px' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"
-            allow="fullscreen; gamepad; autoplay"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             referrerPolicy="no-referrer"
             loading="eager"
@@ -738,8 +588,8 @@ const GameDetail = () => {
                           width: `${iframeSize.width}px`,
                           height: `${iframeSize.height}px`,
                         }}
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"
-                        allow="fullscreen; gamepad; autoplay"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowFullScreen
                         referrerPolicy="no-referrer"
                         loading="eager"
