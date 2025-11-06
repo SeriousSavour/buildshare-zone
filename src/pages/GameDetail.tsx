@@ -103,7 +103,13 @@ const GameDetail = () => {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/proxy/sw.js', { scope: '/proxy/' })
-        .then(reg => console.log('[SW] Registered:', reg.scope))
+        .then(reg => {
+          console.log('[SW] Registered:', reg.scope);
+          return navigator.serviceWorker.ready;
+        })
+        .then(() => {
+          console.log('[SW] Service worker is ready and controlling');
+        })
         .catch(err => console.error('[SW] Registration failed:', err));
     }
   }, []);
@@ -179,51 +185,26 @@ const GameDetail = () => {
       
       // Load through local proxy - it will strip any frame-blocking headers
       try {
-        toast.info('Loading game through proxy...');
+        // Wait for service worker to be ready
+        if ('serviceWorker' in navigator) {
+          await navigator.serviceWorker.ready;
+          console.log('[GAME EMBED] Service worker is ready');
+        }
+        
         const proxyUrl = toProxyUrl(game.game_url);
         console.log('[GAME EMBED] Using proxy URL:', proxyUrl);
         
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
-          
-          const testResponse = await fetch(proxyUrl, {
-            method: 'HEAD',
-            signal: controller.signal,
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (testResponse.ok) {
-            console.log('[GAME EMBED] Proxy successful');
-            setHtmlContent(proxyUrl);
-            setUseDirectUrl(true);
-            setIsLoadingGame(false);
-            toast.success('Game loaded successfully!');
-          } else {
-            const errorText = await testResponse.text();
-            throw new Error(`Proxy returned ${testResponse.status}: ${errorText}`);
-          }
-        } catch (error) {
-          console.error('[GAME EMBED] Loading failed:', error);
-          
-          if (error.name === 'AbortError') {
-            setLoadError('Game loading timed out. Try opening in new tab.');
-            toast.error('Loading timed out');
-          } else {
-            setLoadError('Unable to load game. The site may be blocking embedding. Try opening in new tab.');
-            toast.error('Failed to load game');
-          }
-          
-          setIframeBlocked(true);
-          setIsLoadingGame(false);
-        }
+        // Set the proxy URL directly - service worker will handle the fetch
+        setHtmlContent(proxyUrl);
+        setUseDirectUrl(true);
+        setIsLoadingGame(false);
+        toast.success('Loading game...');
       } catch (error) {
-        // Outer catch for URL validation errors
         console.error('[GAME EMBED] Setup error:', error);
-        setLoadError('Invalid game URL');
+        setLoadError('Failed to set up proxy. Try opening in new tab.');
         setIframeBlocked(true);
         setIsLoadingGame(false);
+        toast.error('Failed to load game');
       }
     };
     
@@ -438,47 +419,17 @@ const GameDetail = () => {
   // Debug iframe loading
   const handleIframeLoad = () => {
     console.log('[IFRAME LOAD] Successfully loaded');
-    console.log('[IFRAME LOAD] game?.game_url:', game?.game_url);
-    console.log('[IFRAME LOAD] htmlContent:', htmlContent?.substring(0, 100));
-    console.log('[IFRAME LOAD] useDirectUrl:', useDirectUrl);
+    console.log('[IFRAME LOAD] iframe src:', iframeRef.current?.src);
     setIframeBlocked(false);
-    if (iframeRef.current) {
-      try {
-        const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-        console.log('[IFRAME LOAD] Content document:', iframeDoc);
-        if (iframeDoc && iframeDoc.body) {
-          console.log('[IFRAME LOAD] Document body exists');
-        }
-      } catch (e) {
-        console.error('[IFRAME LOAD] Cross-origin access error (expected for external sites):', e);
-      }
-    }
-    
-    // Detect CSP blocking after a short delay
-    setTimeout(() => {
-      if (iframeRef.current) {
-        try {
-          const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-          if (!iframeDoc || !iframeDoc.body || iframeDoc.body.innerHTML === '') {
-            console.error('[IFRAME] CSP block detected - iframe is empty');
-            setIframeBlocked(true);
-            toast.error('Game cannot be embedded. Click "Open in New Tab" to play.');
-          }
-        } catch (e) {
-          // Cross-origin means it likely loaded successfully
-          console.log('[IFRAME] Cross-origin (game likely loaded)');
-        }
-      }
-    }, 1000);
+    setIsLoadingGame(false);
+    toast.success('Game loaded!');
   };
 
   const handleIframeError = (e: any) => {
-    console.error('[IFRAME ERROR] Failed to load');
-    console.error('[IFRAME ERROR] game?.game_url:', game?.game_url);
-    console.error('[IFRAME ERROR] htmlContent:', htmlContent?.substring(0, 100));
-    console.error('[IFRAME ERROR] useDirectUrl:', useDirectUrl);
-    console.error('[IFRAME ERROR] Error:', e);
+    console.error('[IFRAME ERROR] Failed to load', e);
     setIframeBlocked(true);
+    setIsLoadingGame(false);
+    setLoadError('Game failed to load');
     toast.error('Game failed to load. Try "Open in New Tab".');
   };
 
