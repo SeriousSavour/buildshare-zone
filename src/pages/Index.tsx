@@ -136,17 +136,17 @@ const Index = () => {
           </div>
         );
       case "games":
-        return <div className="w-full h-full"><Games onGameClick={openGameInTab} hideNavigation={true} /></div>;
+        return <Games onGameClick={openGameInTab} hideNavigation={true} />;
       case "game":
         return activeTabData.gameId ? <GameDetailContent gameId={activeTabData.gameId} /> : null;
       case "friends":
-        return <div className="w-full h-full"><Friends hideNavigation={true} /></div>;
+        return <Friends hideNavigation={true} />;
       case "chat":
-        return <div className="w-full h-full"><Chat hideNavigation={true} /></div>;
+        return <Chat hideNavigation={true} />;
       case "tools":
-        return <div className="w-full h-full"><Tools hideNavigation={true} /></div>;
+        return <Tools hideNavigation={true} />;
       case "help":
-        return <div className="w-full h-full"><Help hideNavigation={true} /></div>;
+        return <Help hideNavigation={true} />;
       default:
         return null;
     }
@@ -166,6 +166,8 @@ const Index = () => {
   };
 
   const background = settings?.login_background || 'radial-gradient(ellipse at center, hsl(220 70% 10%) 0%, hsl(220 70% 5%) 50%, hsl(220 70% 2%) 100%)';
+
+  const activeTabData = tabs.find(t => t.id === activeTab);
 
   return (
     <div 
@@ -249,7 +251,7 @@ const Index = () => {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto">
+      <div className={`flex-1 overflow-auto ${activeTabData?.type === 'home' ? 'flex items-center justify-center p-8' : ''}`}>
         {renderContent()}
       </div>
     </div>
