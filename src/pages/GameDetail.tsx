@@ -127,6 +127,11 @@ const GameDetail = () => {
         try {
           console.log('[GAME EMBED] Fetching HTML from:', game.game_url);
           const response = await fetch(game.game_url);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
           const html = await response.text();
           console.log('[GAME EMBED] HTML fetched, length:', html.length);
           console.log('[GAME EMBED] HTML preview:', html.substring(0, 200));
@@ -153,15 +158,16 @@ const GameDetail = () => {
           setUseDirectUrl(false);
           console.log('[GAME EMBED] Set htmlContent (fetched), useDirectUrl=false');
         } catch (error) {
-          console.error('[GAME EMBED] Error fetching HTML:', error);
-          toast.error('Failed to load game - opening in new tab may work better');
-          // Fallback to direct URL
-          setHtmlContent(game.game_url);
-          setUseDirectUrl(true);
-          console.log('[GAME EMBED] Fallback: Set htmlContent (direct), useDirectUrl=true');
+          console.error('[GAME EMBED] Error fetching HTML (CORS or network):', error);
+          // External sites block embedding - show blocked state immediately
+          setIframeBlocked(true);
+          setHtmlContent(null);
+          setUseDirectUrl(false);
+          toast.error('This game cannot be embedded. Click "Open in New Tab" to play.');
+          console.log('[GAME EMBED] External site blocked - showing fallback UI');
         }
       } else {
-        // For non-HTML files, use direct URL
+        // For non-HTML files, try direct URL but expect it might be blocked
         console.log('[GAME EMBED] Non-HTML file, using direct URL:', game.game_url);
         setHtmlContent(game.game_url);
         setUseDirectUrl(true);
@@ -693,23 +699,36 @@ const GameDetail = () => {
                     </>
                   )}
 
-                   <iframe
-                     ref={iframeRef}
-                     {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
-                     title={game.title}
-                     className="border-2 border-primary/20 rounded-lg shadow-2xl"
-                     style={{
-                       width: `${iframeSize.width}px`,
-                       height: `${iframeSize.height}px`,
-                     }}
-                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
-                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                     allowFullScreen
-                     referrerPolicy="no-referrer"
-                     loading="eager"
-                     onLoad={handleIframeLoad}
-                     onError={handleIframeError}
-                   />
+                   {!iframeBlocked && htmlContent && (
+                     <iframe
+                       ref={iframeRef}
+                       {...(useDirectUrl ? { src: htmlContent || game.game_url } : { srcDoc: htmlContent || undefined })}
+                       title={game.title}
+                       className="border-2 border-primary/20 rounded-lg shadow-2xl"
+                       style={{
+                         width: `${iframeSize.width}px`,
+                         height: `${iframeSize.height}px`,
+                       }}
+                       sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-orientation-lock allow-pointer-lock allow-presentation"
+                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                       allowFullScreen
+                       referrerPolicy="no-referrer"
+                       loading="eager"
+                       onLoad={handleIframeLoad}
+                       onError={handleIframeError}
+                     />
+                   )}
+                   {(iframeBlocked || !htmlContent) && (
+                     <div 
+                       className="border-2 border-primary/20 rounded-lg shadow-2xl bg-background/50 flex items-center justify-center"
+                       style={{
+                         width: `${iframeSize.width}px`,
+                         height: `${iframeSize.height}px`,
+                       }}
+                     >
+                       <div className="text-muted-foreground text-lg">Loading game...</div>
+                     </div>
+                   )}
                 </div>
 
                  {/* Fullscreen and Open in New Tab Buttons */}

@@ -440,10 +440,13 @@ const BrowserView = () => {
         setUseDirectUrl(false);
         console.log('[BROWSER GAME] Set fetched HTML as srcDoc');
       } catch (error) {
-        console.error('[BROWSER GAME] Error fetching HTML:', error);
-        setHtmlContent(gameUrl);
-        setUseDirectUrl(true);
-        console.log('[BROWSER GAME] Fallback to direct URL');
+        console.error('[BROWSER GAME] Error fetching HTML (CORS or network):', error);
+        // External sites block embedding - show blocked state
+        setIframeBlocked(true);
+        setHtmlContent(null);
+        setUseDirectUrl(false);
+        toast.error('Game cannot be embedded. Use "Open in New Tab" to play.');
+        console.log('[BROWSER GAME] External site blocked - showing fallback');
       }
     } else {
       console.log('[BROWSER GAME] Using direct URL');
@@ -993,7 +996,23 @@ const BrowserView = () => {
 
                   {/* Game Iframe */}
                   <div className="flex-1 flex items-center justify-center bg-background p-8">
-                    {currentGame.game_url && htmlContent ? (
+                    {iframeBlocked ? (
+                      <div className="relative bg-background/95 backdrop-blur-sm border-2 border-destructive rounded-lg p-12 text-center space-y-4 max-w-2xl">
+                        <div className="text-6xl">🚫</div>
+                        <h3 className="text-2xl font-bold text-destructive">Game Cannot Be Embedded</h3>
+                        <p className="text-muted-foreground">
+                          This game is hosted on an external site that blocks embedding due to security restrictions.
+                        </p>
+                        <Button
+                          onClick={handleOpenGameInNewTab}
+                          size="lg"
+                          className="gap-2"
+                        >
+                          <Maximize2 className="w-5 h-5" />
+                          Open in New Tab to Play
+                        </Button>
+                      </div>
+                    ) : currentGame.game_url && htmlContent ? (
                       <div className="relative" style={{ width: `${iframeSize.width}px`, height: `${iframeSize.height}px` }}>
                         <iframe
                           ref={iframeRef}
@@ -1007,7 +1026,7 @@ const BrowserView = () => {
                       </div>
                     ) : (
                       <div className="text-center space-y-4">
-                        <p className="text-muted-foreground">No game URL available</p>
+                        <p className="text-muted-foreground">Loading game...</p>
                       </div>
                     )}
                   </div>
