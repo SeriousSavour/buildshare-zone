@@ -22,16 +22,13 @@ const Create = () => {
     image_url: "",
     genre: "Action",
     max_players: "1-4 players",
-    category: "game"
+    category: "game",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [gameFile, setGameFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const genres = [
-    "Action", "Adventure", "Puzzle", "Strategy", 
-    "Simulation", "Survival", "Horror", "RPG"
-  ];
+  const genres = ["Action", "Adventure", "Puzzle", "Strategy", "Simulation", "Survival", "Horror", "RPG"];
 
   const maxPlayersOptions = [
     "Single Player",
@@ -40,7 +37,7 @@ const Create = () => {
     "1-8 players",
     "2-4 players",
     "2-8 players",
-    "Multiplayer"
+    "Multiplayer",
   ];
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,47 +63,45 @@ const Create = () => {
   };
 
   const uploadFile = async (file: File, bucket: string, path: string): Promise<string> => {
-    const sessionToken = localStorage.getItem('session_token');
-    
+    const sessionToken = localStorage.getItem("session_token");
+
     // Set session context for storage policies
     if (sessionToken) {
-      await supabase.rpc('set_session_context', { _session_token: sessionToken });
+      await supabase.rpc("set_session_context", { _session_token: sessionToken });
     }
-    
+
     // Detect content type based on file extension for better compatibility
-    const fileExt = file.name.split('.').pop()?.toLowerCase();
-    let contentType = file.type || 'application/octet-stream';
-    
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    let contentType = file.type || "application/octet-stream";
+
     // Ensure HTML files are served with correct MIME type
-    if (fileExt === 'html' || fileExt === 'htm') {
-      contentType = 'text/html';
-    } else if (fileExt === 'zip') {
-      contentType = 'application/zip';
+    if (fileExt === "html" || fileExt === "htm") {
+      contentType = "text/html";
+    } else if (fileExt === "zip") {
+      contentType = "application/zip";
     }
-    
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(path, file, { 
-        upsert: true,
-        contentType: contentType
-      });
+
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
+      upsert: true,
+      contentType: contentType,
+    });
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(path);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(bucket).getPublicUrl(path);
 
     return publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const sessionToken = localStorage.getItem('session_token');
+
+    const sessionToken = localStorage.getItem("session_token");
     if (!sessionToken) {
       toast.error("Please login to create a game");
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -120,25 +115,35 @@ const Create = () => {
       // Upload image if selected
       if (imageFile) {
         setUploadProgress(25);
-        const fileExt = imageFile.name.split('.').pop();
+        const fileExt = imageFile.name.split(".").pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        imageUrl = await uploadFile(imageFile, 'game-assets', `game-images/${fileName}`);
+        imageUrl = await uploadFile(imageFile, "game-assets", `game-images/${fileName}`);
         setUploadProgress(50);
       }
 
-      // Upload game file if selected
+      // Upload / handle game file if selected
       if (gameFile) {
         setUploadProgress(60);
-        const fileExt = gameFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        gameUrl = await uploadFile(gameFile, 'game-assets', `game-files/${fileName}`);
+        const ext = gameFile.name.split(".").pop()?.toLowerCase();
+
+        if (ext === "html" || ext === "htm") {
+          // ✅ For HTML files: store the actual HTML in game_url
+          // so the viewer can render it via <iframe srcDoc>
+          const text = await gameFile.text();
+          gameUrl = text;
+        } else {
+          // Other files (zip, etc.) still go to Storage
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          gameUrl = await uploadFile(gameFile, "game-assets", `game-files/${fileName}`);
+        }
+
         setUploadProgress(80);
       }
 
       setUploadProgress(90);
 
       // Create new game
-      const { data, error } = await supabase.rpc('create_game_with_context', {
+      const { data, error } = await supabase.rpc("create_game_with_context", {
         _session_token: sessionToken,
         _title: formData.title,
         _description: formData.description,
@@ -146,25 +151,25 @@ const Create = () => {
         _max_players: formData.max_players,
         _game_url: gameUrl,
         _image_url: imageUrl,
-        _category: formData.category
+        _category: formData.category,
       });
 
       if (error) throw error;
-      
+
       setUploadProgress(100);
-      
+
       // Clear games cache so the new game appears immediately
-      localStorage.removeItem('games_cache_v2');
-      localStorage.removeItem('games_cache_v2_timestamp');
-      
+      localStorage.removeItem("games_cache_v2");
+      localStorage.removeItem("games_cache_v2_timestamp");
+
       // Track quest progress
-      await trackQuestProgress('create_game');
-      
+      await trackQuestProgress("create_game");
+
       toast.success("Game created successfully!");
-      
-      navigate('/games');
+
+      navigate("/games");
     } catch (error) {
-      console.error('Error creating game:', error);
+      console.error("Error creating game:", error);
       toast.error("Failed to create game");
     } finally {
       setIsSubmitting(false);
@@ -183,7 +188,7 @@ const Create = () => {
 
       <Navigation />
       <AnnouncementBanner />
-      
+
       <div className="container mx-auto px-4 py-12 relative z-10 max-w-3xl">
         <div className="mb-8 space-y-4 animate-fade-in">
           <div className="flex items-center gap-3">
@@ -192,17 +197,13 @@ const Create = () => {
               Create <span className="text-primary">Game</span>
             </h1>
           </div>
-          <p className="text-xl text-muted-foreground">
-            Share your favorite game with the community
-          </p>
+          <p className="text-xl text-muted-foreground">Share your favorite game with the community</p>
         </div>
 
         <Card className="animate-fade-in-delay-1">
           <CardHeader>
             <CardTitle>Create Game Details</CardTitle>
-            <CardDescription>
-              Fill in the information about your game
-            </CardDescription>
+            <CardDescription>Fill in the information about your game</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -214,7 +215,7 @@ const Create = () => {
                   id="title"
                   required
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Enter game title"
                   className="bg-muted/50"
                 />
@@ -228,9 +229,9 @@ const Create = () => {
                   id="description"
                   value={formData.description}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/<script[^>]*>.*?<\/script>/gi, '');
+                    const value = e.target.value.replace(/<script[^>]*>.*?<\/script>/gi, "");
                     if (value.length <= 1000) {
-                      setFormData({...formData, description: value});
+                      setFormData({ ...formData, description: value });
                     }
                   }}
                   placeholder="Describe your game..."
@@ -252,15 +253,13 @@ const Create = () => {
                   type="url"
                   required={!gameFile}
                   value={formData.game_url}
-                  onChange={(e) => setFormData({...formData, game_url: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, game_url: e.target.value })}
                   placeholder="https://example.com/game"
                   className="bg-muted/50"
                   disabled={!!gameFile}
                 />
                 {gameFile && (
-                  <p className="text-xs text-muted-foreground">
-                    Game URL is not needed when uploading a file
-                  </p>
+                  <p className="text-xs text-muted-foreground">Game URL is not needed when uploading a file</p>
                 )}
               </div>
 
@@ -273,7 +272,7 @@ const Create = () => {
                     id="image_url"
                     type="url"
                     value={formData.image_url}
-                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                     placeholder="https://example.com/image.jpg"
                     className="bg-muted/50"
                   />
@@ -290,9 +289,7 @@ const Create = () => {
                       className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/30"
                     >
                       <Upload className="w-4 h-4" />
-                      <span className="text-sm">
-                        {imageFile ? imageFile.name : "Or upload an image"}
-                      </span>
+                      <span className="text-sm">{imageFile ? imageFile.name : "Or upload an image"}</span>
                     </label>
                   </div>
                 </div>
@@ -303,20 +300,13 @@ const Create = () => {
                   Game File (Optional)
                 </label>
                 <div className="relative">
-                  <input
-                    id="game_file"
-                    type="file"
-                    onChange={handleGameFileChange}
-                    className="hidden"
-                  />
+                  <input id="game_file" type="file" onChange={handleGameFileChange} className="hidden" />
                   <label
                     htmlFor="game_file"
                     className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/30"
                   >
                     <Upload className="w-5 h-5" />
-                    <span className="text-sm">
-                      {gameFile ? gameFile.name : "Upload game file (HTML, ZIP, etc.)"}
-                    </span>
+                    <span className="text-sm">{gameFile ? gameFile.name : "Upload game file (HTML, ZIP, etc.)"}</span>
                   </label>
                   <p className="text-xs text-muted-foreground mt-1">
                     Max 100MB. Supports HTML, ZIP, and other game files.
@@ -333,11 +323,13 @@ const Create = () => {
                     id="genre"
                     required
                     value={formData.genre}
-                    onChange={(e) => setFormData({...formData, genre: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
                     className="w-full h-10 px-3 bg-muted/50 border border-border rounded-md text-foreground"
                   >
-                    {genres.map(genre => (
-                      <option key={genre} value={genre}>{genre}</option>
+                    {genres.map((genre) => (
+                      <option key={genre} value={genre}>
+                        {genre}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -350,11 +342,13 @@ const Create = () => {
                     id="max_players"
                     required
                     value={formData.max_players}
-                    onChange={(e) => setFormData({...formData, max_players: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, max_players: e.target.value })}
                     className="w-full h-10 px-3 bg-muted/50 border border-border rounded-md text-foreground"
                   >
-                    {maxPlayersOptions.map(option => (
-                      <option key={option} value={option}>{option}</option>
+                    {maxPlayersOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -368,28 +362,16 @@ const Create = () => {
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Uploading... {uploadProgress}%
-                  </p>
+                  <p className="text-xs text-center text-muted-foreground">Uploading... {uploadProgress}%</p>
                 </div>
               )}
 
               <div className="flex gap-4">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 gap-2"
-                  size="lg"
-                >
+                <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2" size="lg">
                   <Upload className="w-4 h-4" />
                   {isSubmitting ? "Creating..." : "Create Game"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate('/games')}
-                  size="lg"
-                >
+                <Button type="button" variant="outline" onClick={() => navigate("/games")} size="lg">
                   Cancel
                 </Button>
               </div>
