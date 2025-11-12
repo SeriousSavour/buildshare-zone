@@ -104,93 +104,124 @@ const Create = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 py-8 pt-24">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Create New Game</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="title">Game Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
+      <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold tracking-tight mb-2">Create New Game</h1>
+          <p className="text-muted-foreground">Upload your HTML5 game and share it with the community</p>
+        </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="genre">Genre</Label>
-                <Input
-                  id="genre"
-                  value={formData.genre}
-                  onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="max_players">Max Players</Label>
-                <Input
-                  id="max_players"
-                  value={formData.max_players}
-                  onChange={(e) => setFormData({ ...formData, max_players: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="gameFile">HTML File *</Label>
-                <div className="flex items-center gap-2">
+        <Card className="border-border/50 shadow-lg">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-base font-semibold">Game Title</Label>
                   <Input
-                    id="gameFile"
-                    type="file"
-                    accept=".html,text/html"
-                    onChange={handleGameFileChange}
-                    className="cursor-pointer"
+                    id="title"
+                    placeholder="Enter your game title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                    className="h-12"
                   />
-                  <Upload className="w-5 h-5 text-muted-foreground" />
                 </div>
-                {gameFile && (
-                  <p className="text-sm text-muted-foreground mt-1">{gameFile.name}</p>
-                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-base font-semibold">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe your game, its features, and gameplay"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={5}
+                    required
+                    className="resize-none"
+                  />
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="genre" className="text-base font-semibold">Genre</Label>
+                    <Input
+                      id="genre"
+                      placeholder="e.g., Action, Puzzle, RPG"
+                      value={formData.genre}
+                      onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                      required
+                      className="h-12"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="max_players" className="text-base font-semibold">Max Players</Label>
+                    <Input
+                      id="max_players"
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                      value={formData.max_players}
+                      onChange={(e) => setFormData({ ...formData, max_players: e.target.value })}
+                      required
+                      className="h-12"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gameFile" className="text-base font-semibold">
+                    HTML Game File <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="gameFile"
+                      type="file"
+                      accept=".html,text/html"
+                      onChange={handleGameFileChange}
+                      className="h-12 cursor-pointer file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer hover:file:bg-primary/90"
+                      required
+                    />
+                  </div>
+                  {gameFile && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2 p-3 bg-muted/30 rounded-md">
+                      <Upload className="w-4 h-4" />
+                      <span>{gameFile.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="imageFile" className="text-base font-semibold">
+                    Cover Image <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="imageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="h-12 cursor-pointer file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:bg-secondary file:text-secondary-foreground file:cursor-pointer hover:file:bg-secondary/80"
+                    />
+                  </div>
+                  {imageFile && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2 p-3 bg-muted/30 rounded-md">
+                      <Upload className="w-4 h-4" />
+                      <span>{imageFile.name}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="imageFile">Game Image (Optional)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="imageFile"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageFileChange}
-                    className="cursor-pointer"
-                  />
-                  <Upload className="w-5 h-5 text-muted-foreground" />
-                </div>
-                {imageFile && (
-                  <p className="text-sm text-muted-foreground mt-1">{imageFile.name}</p>
-                )}
+              <div className="pt-4 border-t border-border/50">
+                <Button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full h-12 text-base font-semibold"
+                >
+                  {loading ? "Creating Game..." : "Create Game"}
+                </Button>
               </div>
-
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Creating..." : "Create Game"}
-              </Button>
             </form>
           </CardContent>
         </Card>
