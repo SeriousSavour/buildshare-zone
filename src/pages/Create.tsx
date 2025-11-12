@@ -22,9 +22,9 @@ const Create = () => {
     description: "",
     genre: "Action",
     max_players: "1",
-    category: "game",
-    game_url: ""
+    category: "game"
   });
+  const [gameUrl, setGameUrl] = useState("");
   const [gameFile, setGameFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -34,13 +34,15 @@ const Create = () => {
 
   const toggleUploadMode = (isFileUpload: boolean) => {
     setUseFileUpload(isFileUpload);
-    // Clear game_url when switching to file upload mode
+    // Clear gameUrl when switching to file upload mode
     if (isFileUpload) {
-      setFormData({ ...formData, game_url: "" });
+      setGameUrl("");
+      setGameFile(null); // Also clear any existing file
     }
     // Clear game file when switching to URL mode
     if (!isFileUpload) {
       setGameFile(null);
+      setGameUrl(""); // Clear URL too
     }
   };
 
@@ -127,7 +129,7 @@ const Create = () => {
     
     console.log("Form submitted. useFileUpload:", useFileUpload);
     console.log("gameFile:", gameFile);
-    console.log("formData.game_url:", formData.game_url);
+    console.log("gameUrl state:", gameUrl);
     
     // Validate based on upload mode
     if (useFileUpload) {
@@ -136,7 +138,7 @@ const Create = () => {
         return;
       }
     } else {
-      if (!formData.game_url) {
+      if (!gameUrl || gameUrl.trim() === "") {
         toast.error("Please provide a game URL");
         return;
       }
@@ -153,15 +155,15 @@ const Create = () => {
       }
 
       // Determine game URL: either from file or from URL input
-      let gameUrl = "";
+      let finalGameUrl = "";
       if (useFileUpload && gameFile) {
         // Read the HTML file as text - DO NOT encode or escape it
-        gameUrl = await gameFile.text();
-        console.log("HTML file content length:", gameUrl.length);
-        console.log("First 200 chars:", gameUrl.substring(0, 200));
+        finalGameUrl = await gameFile.text();
+        console.log("HTML file content length:", finalGameUrl.length);
+        console.log("First 200 chars:", finalGameUrl.substring(0, 200));
       } else {
-        gameUrl = formData.game_url;
-        console.log("Using URL:", gameUrl);
+        finalGameUrl = gameUrl;
+        console.log("Using URL:", finalGameUrl);
       }
       
       // Upload image if provided
@@ -177,14 +179,14 @@ const Create = () => {
         imageUrl = supabase.storage.from("game-images").getPublicUrl(imageData.path).data.publicUrl;
       }
 
-      console.log("Calling RPC with game_url length:", gameUrl.length);
+      console.log("Calling RPC with game_url length:", finalGameUrl.length);
       
       // Create game with raw HTML content or URL
       const { data, error } = await supabase.rpc("create_game_with_context", {
         _session_token: sessionToken,
         _title: formData.title,
         _description: formData.description,
-        _game_url: gameUrl,
+        _game_url: finalGameUrl,
         _genre: formData.genre,
         _max_players: formData.max_players,
         _category: formData.category,
@@ -383,16 +385,16 @@ const Create = () => {
                         </div>
                       )}
                     </>
-                  ) : (
+                   ) : (
                     <div className="space-y-2">
                       <Input
                         id="game_url"
                         type="text"
                         placeholder="https://example.com/game.html"
-                        value={formData.game_url}
-                        onChange={(e) => setFormData({ ...formData, game_url: e.target.value })}
+                        value={gameUrl}
+                        onChange={(e) => setGameUrl(e.target.value)}
                         className="h-12"
-                        required={!useFileUpload}
+                        required
                       />
                       <p className="text-xs text-muted-foreground">
                         Enter the full URL where your game is hosted
