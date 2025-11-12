@@ -124,6 +124,8 @@ const Create = () => {
     e.preventDefault();
   };
 
+  const isHttpUrlUnder500 = (s: string) => /^https?:\/\/\S{1,498}$/i.test(s);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -138,8 +140,8 @@ const Create = () => {
         return;
       }
     } else {
-      if (!gameUrl || gameUrl.trim() === "") {
-        toast.error("Please provide a game URL");
+      if (!gameUrl || !isHttpUrlUnder500(gameUrl.trim())) {
+        toast.error("Invalid game URL: must be HTTP/HTTPS and under 500 characters");
         return;
       }
     }
@@ -394,7 +396,6 @@ const Create = () => {
                         value={gameUrl}
                         onChange={(e) => setGameUrl(e.target.value)}
                         className="h-12"
-                        required
                       />
                       <p className="text-xs text-muted-foreground">
                         Enter the full URL where your game is hosted
