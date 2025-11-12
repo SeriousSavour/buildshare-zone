@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload } from "lucide-react";
@@ -206,28 +207,62 @@ const Create = () => {
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="genre" className="text-base font-semibold">Genre</Label>
-                    <Input
-                      id="genre"
-                      placeholder="e.g., Action, Puzzle, RPG"
+                    <Select
                       value={formData.genre}
-                      onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                      required
-                      className="h-12"
-                    />
+                      onValueChange={(value) => setFormData({ ...formData, genre: value })}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select genre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Action">Action</SelectItem>
+                        <SelectItem value="Adventure">Adventure</SelectItem>
+                        <SelectItem value="Puzzle">Puzzle</SelectItem>
+                        <SelectItem value="RPG">RPG</SelectItem>
+                        <SelectItem value="Strategy">Strategy</SelectItem>
+                        <SelectItem value="Sports">Sports</SelectItem>
+                        <SelectItem value="Racing">Racing</SelectItem>
+                        <SelectItem value="Fighting">Fighting</SelectItem>
+                        <SelectItem value="Shooter">Shooter</SelectItem>
+                        <SelectItem value="Platformer">Platformer</SelectItem>
+                        <SelectItem value="Simulation">Simulation</SelectItem>
+                        <SelectItem value="Horror">Horror</SelectItem>
+                        <SelectItem value="Arcade">Arcade</SelectItem>
+                        <SelectItem value="Card">Card</SelectItem>
+                        <SelectItem value="Board">Board</SelectItem>
+                        <SelectItem value="Educational">Educational</SelectItem>
+                        <SelectItem value="Music">Music</SelectItem>
+                        <SelectItem value="Casual">Casual</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="max_players" className="text-base font-semibold">Max Players</Label>
-                    <Input
-                      id="max_players"
-                      type="number"
-                      min="1"
-                      placeholder="1"
+                    <Select
                       value={formData.max_players}
-                      onChange={(e) => setFormData({ ...formData, max_players: e.target.value })}
-                      required
-                      className="h-12"
-                    />
+                      onValueChange={(value) => setFormData({ ...formData, max_players: value })}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select max players" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Player (Single Player)</SelectItem>
+                        <SelectItem value="2">2 Players</SelectItem>
+                        <SelectItem value="3">3 Players</SelectItem>
+                        <SelectItem value="4">4 Players</SelectItem>
+                        <SelectItem value="5">5 Players</SelectItem>
+                        <SelectItem value="6">6 Players</SelectItem>
+                        <SelectItem value="7">7 Players</SelectItem>
+                        <SelectItem value="8">8 Players</SelectItem>
+                        <SelectItem value="10">10 Players</SelectItem>
+                        <SelectItem value="16">16 Players</SelectItem>
+                        <SelectItem value="32">32 Players</SelectItem>
+                        <SelectItem value="64">64 Players</SelectItem>
+                        <SelectItem value="100+">100+ Players (MMO)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
