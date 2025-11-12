@@ -210,6 +210,9 @@ const Create = () => {
       localStorage.removeItem('games_cache_v2');
       localStorage.removeItem('games_cache_v2_timestamp');
       
+      // Set a flag to force refresh on Games page
+      sessionStorage.setItem('force_games_refresh', 'true');
+      
       toast.success("Game created successfully!");
       navigate("/games");
     } catch (error: any) {

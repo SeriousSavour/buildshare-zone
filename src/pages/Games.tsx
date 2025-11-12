@@ -147,12 +147,21 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
   };
   const fetchGames = async () => {
     try {
+      // Check if we should force refresh (after game creation)
+      const forceRefresh = sessionStorage.getItem('force_games_refresh');
+      if (forceRefresh) {
+        console.log('Force refreshing games after creation');
+        sessionStorage.removeItem('force_games_refresh');
+        localStorage.removeItem('games_cache_v2');
+        localStorage.removeItem('games_cache_v2_timestamp');
+      }
+      
       // Check cache first (v2 cache key to force refresh)
       const cachedData = localStorage.getItem('games_cache_v2');
       const cacheTimestamp = localStorage.getItem('games_cache_v2_timestamp');
       const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
       
-      if (cachedData && cacheTimestamp) {
+      if (cachedData && cacheTimestamp && !forceRefresh) {
         const age = Date.now() - parseInt(cacheTimestamp);
         if (age < CACHE_DURATION) {
           // Use cached data
