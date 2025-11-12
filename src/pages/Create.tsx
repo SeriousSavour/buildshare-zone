@@ -113,14 +113,17 @@ const Create = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!useFileUpload && !formData.game_url) {
-      toast.error("Please provide a game URL");
-      return;
-    }
-    
-    if (useFileUpload && !gameFile) {
-      toast.error("Please upload an HTML file");
-      return;
+    // Validate based on upload mode
+    if (useFileUpload) {
+      if (!gameFile) {
+        toast.error("Please upload an HTML file");
+        return;
+      }
+    } else {
+      if (!formData.game_url) {
+        toast.error("Please provide a game URL");
+        return;
+      }
     }
 
     try {
@@ -134,10 +137,12 @@ const Create = () => {
       }
 
       // Determine game URL: either from file or from URL input
-      let gameUrl = formData.game_url;
+      let gameUrl = "";
       if (useFileUpload && gameFile) {
         // Read the HTML file as text - DO NOT encode or escape it
         gameUrl = await gameFile.text();
+      } else {
+        gameUrl = formData.game_url;
       }
       
       // Upload image if provided
