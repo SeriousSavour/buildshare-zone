@@ -22,6 +22,9 @@ const Create = () => {
   });
   const [gameFile, setGameFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDraggingGame, setIsDraggingGame] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
 
   const handleGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,10 +42,46 @@ const Create = () => {
     if (file) {
       if (file.type.startsWith("image/")) {
         setImageFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
       } else {
         toast.error("Please upload an image file");
       }
     }
+  };
+
+  const handleGameDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingGame(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && (file.type === "text/html" || file.name.endsWith(".html"))) {
+      setGameFile(file);
+    } else {
+      toast.error("Please upload an HTML file");
+    }
+  };
+
+  const handleImageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingImage(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast.error("Please upload an image file");
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -173,18 +212,39 @@ const Create = () => {
                   <Label htmlFor="gameFile" className="text-base font-semibold">
                     HTML Game File <span className="text-destructive">*</span>
                   </Label>
-                  <div className="relative">
+                  <div
+                    onDrop={handleGameDrop}
+                    onDragOver={handleDragOver}
+                    onDragEnter={() => setIsDraggingGame(true)}
+                    onDragLeave={() => setIsDraggingGame(false)}
+                    className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+                      isDraggingGame
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
                     <Input
                       id="gameFile"
                       type="file"
                       accept=".html,text/html"
                       onChange={handleGameFileChange}
-                      className="h-12 cursor-pointer file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer hover:file:bg-primary/90"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
+                    <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
+                      <Upload className="w-8 h-8 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          Drop your HTML file here or click to browse
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supports .html files only
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   {gameFile && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2 p-3 bg-muted/30 rounded-md">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
                       <Upload className="w-4 h-4" />
                       <span>{gameFile.name}</span>
                     </div>
@@ -195,19 +255,47 @@ const Create = () => {
                   <Label htmlFor="imageFile" className="text-base font-semibold">
                     Cover Image <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
                   </Label>
-                  <div className="relative">
+                  <div
+                    onDrop={handleImageDrop}
+                    onDragOver={handleDragOver}
+                    onDragEnter={() => setIsDraggingImage(true)}
+                    onDragLeave={() => setIsDraggingImage(false)}
+                    className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+                      isDraggingImage
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
                     <Input
                       id="imageFile"
                       type="file"
                       accept="image/*"
                       onChange={handleImageFileChange}
-                      className="h-12 cursor-pointer file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:bg-secondary file:text-secondary-foreground file:cursor-pointer hover:file:bg-secondary/80"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
+                    <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
+                      <Upload className="w-8 h-8 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          Drop your cover image here or click to browse
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supports JPG, PNG, WebP
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  {imageFile && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2 p-3 bg-muted/30 rounded-md">
-                      <Upload className="w-4 h-4" />
-                      <span>{imageFile.name}</span>
+                  {imagePreview && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium mb-2">Preview:</p>
+                      <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
+                        <img
+                          src={imagePreview}
+                          alt="Cover preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">{imageFile?.name}</p>
                     </div>
                   )}
                 </div>
