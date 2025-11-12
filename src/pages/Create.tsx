@@ -181,7 +181,11 @@ const Create = () => {
         imageUrl = supabase.storage.from("game-images").getPublicUrl(imageData.path).data.publicUrl;
       }
 
-      console.log("Calling RPC with game_url length:", finalGameUrl.length);
+      console.log("=== DEBUG: Calling RPC ===");
+      console.log("useFileUpload mode:", useFileUpload);
+      console.log("game_url length:", finalGameUrl.length);
+      console.log("game_url starts with:", finalGameUrl.substring(0, 100));
+      console.log("Looks like HTML:", finalGameUrl.startsWith("<") || finalGameUrl.includes("<!DOCTYPE"));
       
       // Create game with raw HTML content or URL
       const { data, error } = await supabase.rpc("create_game_with_context", {
