@@ -62,9 +62,12 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
   }, [gameId]);
 
   const decodeHtmlEntities = (html: string): string => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = html;
-    return textarea.value;
+    return html
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
   };
 
   useEffect(() => {
