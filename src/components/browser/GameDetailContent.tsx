@@ -62,6 +62,7 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
   }, [gameId]);
 
   const decodeHtmlEntities = (html: string): string => {
+    if (!html) return html;
     return html
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
@@ -72,20 +73,31 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
 
   useEffect(() => {
     if (!game?.game_url) return;
-    
-    const isRawHtml = game.game_url.trim().startsWith('<') || 
-                      game.game_url.includes('<!DOCTYPE') ||
-                      game.game_url.includes('<html') ||
-                      game.game_url.includes('&lt;');
-    
-    if (isRawHtml) {
-      setHtmlContent(decodeHtmlEntities(game.game_url));
-      setUseDirectUrl(false);
+
+    setIsLoadingGame(true);
+
+    const value = game.game_url.trim();
+
+    // Check BOTH real tags and encoded tags
+    const looksLikeRawHtml =
+      value.startsWith("<") ||
+      value.includes("<!DOCTYPE") ||
+      value.includes("<html") ||
+      value.includes("&lt;") ||
+      value.includes("&lt;!DOCTYPE") ||
+      value.includes("&lt;html");
+
+    if (looksLikeRawHtml) {
+      // If it was encoded, decode back to real HTML for srcDoc
+      const decoded = decodeHtmlEntities(value);
+      setHtmlContent(decoded);
+      setUseDirectUrl(false); // use srcDoc
     } else {
-      setHtmlContent(game.game_url);
-      setUseDirectUrl(true);
+      // Treat as URL
+      setHtmlContent(value);
+      setUseDirectUrl(true); // use src
     }
-    
+
     setIsLoadingGame(false);
   }, [game?.game_url]);
 
