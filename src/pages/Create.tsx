@@ -214,7 +214,13 @@ const Create = () => {
       sessionStorage.setItem('force_games_refresh', 'true');
       
       toast.success("Game created successfully!");
-      navigate("/games");
+      
+      // Check if we're in browser mode and navigate accordingly
+      if (window.location.pathname === '/browser') {
+        // Stay in browser but switch to games tab
+        window.history.pushState({}, '', '/games');
+      }
+      navigate("/games", { replace: true });
     } catch (error: any) {
       console.error("Error creating game:", error);
       toast.error(error.message || "Failed to create game");
