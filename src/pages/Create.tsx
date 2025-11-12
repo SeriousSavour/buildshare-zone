@@ -22,13 +22,15 @@ const Create = () => {
     description: "",
     genre: "Action",
     max_players: "1",
-    category: "game"
+    category: "game",
+    game_url: ""
   });
   const [gameFile, setGameFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDraggingGame, setIsDraggingGame] = useState(false);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [useFileUpload, setUseFileUpload] = useState(true);
 
   const handleGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,7 +113,12 @@ const Create = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!gameFile) {
+    if (!useFileUpload && !formData.game_url) {
+      toast.error("Please provide a game URL");
+      return;
+    }
+    
+    if (useFileUpload && !gameFile) {
       toast.error("Please upload an HTML file");
       return;
     }
@@ -126,8 +133,12 @@ const Create = () => {
         return;
       }
 
-      // Read the HTML file as text - DO NOT encode or escape it
-      const htmlText = await gameFile.text();
+      // Determine game URL: either from file or from URL input
+      let gameUrl = formData.game_url;
+      if (useFileUpload && gameFile) {
+        // Read the HTML file as text - DO NOT encode or escape it
+        gameUrl = await gameFile.text();
+      }
       
       // Upload image if provided
       let imageUrl = null;
@@ -142,12 +153,12 @@ const Create = () => {
         imageUrl = supabase.storage.from("game-images").getPublicUrl(imageData.path).data.publicUrl;
       }
 
-      // Create game with raw HTML content
+      // Create game with raw HTML content or URL
       const { data, error } = await supabase.rpc("create_game_with_context", {
         _session_token: sessionToken,
         _title: formData.title,
         _description: formData.description,
-        _game_url: htmlText, // Pass raw HTML directly
+        _game_url: gameUrl,
         _genre: formData.genre,
         _max_players: formData.max_players,
         _category: formData.category,
@@ -267,44 +278,84 @@ const Create = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gameFile" className="text-base font-semibold">
-                    HTML Game File <span className="text-destructive">*</span>
-                  </Label>
-                  <div
-                    onDrop={handleGameDrop}
-                    onDragOver={handleDragOver}
-                    onDragEnter={() => setIsDraggingGame(true)}
-                    onDragLeave={() => setIsDraggingGame(false)}
-                    className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
-                      isDraggingGame
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <Input
-                      id="gameFile"
-                      type="file"
-                      accept=".html,text/html"
-                      onChange={handleGameFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      required
-                    />
-                    <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
-                      <Upload className="w-8 h-8 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">
-                          Drop your HTML file here or click to browse
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Supports .html files (max 500MB)
-                        </p>
-                      </div>
-                    </div>
+                  <Label className="text-base font-semibold">Game Source</Label>
+                  <div className="flex gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setUseFileUpload(true)}
+                      className={`flex-1 px-4 py-2 rounded-md border transition-colors ${
+                        useFileUpload
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      Upload HTML File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUseFileUpload(false)}
+                      className={`flex-1 px-4 py-2 rounded-md border transition-colors ${
+                        !useFileUpload
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      Enter Game URL
+                    </button>
                   </div>
-                  {gameFile && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
-                      <Upload className="w-4 h-4" />
-                      <span>{gameFile.name}</span>
+
+                  {useFileUpload ? (
+                    <>
+                      <div
+                        onDrop={handleGameDrop}
+                        onDragOver={handleDragOver}
+                        onDragEnter={() => setIsDraggingGame(true)}
+                        onDragLeave={() => setIsDraggingGame(false)}
+                        className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+                          isDraggingGame
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <Input
+                          id="gameFile"
+                          type="file"
+                          accept=".html,text/html"
+                          onChange={handleGameFileChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
+                          <Upload className="w-8 h-8 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">
+                              Drop your HTML file here or click to browse
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Supports .html files (max 500MB)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      {gameFile && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
+                          <Upload className="w-4 h-4" />
+                          <span>{gameFile.name}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <Input
+                        id="game_url"
+                        type="url"
+                        placeholder="https://example.com/game.html"
+                        value={formData.game_url}
+                        onChange={(e) => setFormData({ ...formData, game_url: e.target.value })}
+                        className="h-12"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Enter the full URL where your game is hosted
+                      </p>
                     </div>
                   )}
                 </div>
