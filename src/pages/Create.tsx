@@ -14,8 +14,8 @@ const Create = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   
-  const MAX_HTML_SIZE = 10 * 1024 * 1024; // 10MB
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_HTML_SIZE = 500 * 1024 * 1024; // 500MB
+  const MAX_IMAGE_SIZE = 500 * 1024 * 1024; // 500MB
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -261,7 +261,7 @@ const Create = () => {
                           Drop your HTML file here or click to browse
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports .html files (max 10MB)
+                          Supports .html files (max 500MB)
                         </p>
                       </div>
                     </div>
@@ -303,7 +303,7 @@ const Create = () => {
                           Drop your cover image here or click to browse
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports JPG, PNG, WebP (max 5MB)
+                          Supports JPG, PNG, WebP (max 500MB)
                         </p>
                       </div>
                     </div>
