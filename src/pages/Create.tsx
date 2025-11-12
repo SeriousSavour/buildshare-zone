@@ -125,6 +125,10 @@ const Create = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log("Form submitted. useFileUpload:", useFileUpload);
+    console.log("gameFile:", gameFile);
+    console.log("formData.game_url:", formData.game_url);
+    
     // Validate based on upload mode
     if (useFileUpload) {
       if (!gameFile) {
@@ -153,8 +157,11 @@ const Create = () => {
       if (useFileUpload && gameFile) {
         // Read the HTML file as text - DO NOT encode or escape it
         gameUrl = await gameFile.text();
+        console.log("HTML file content length:", gameUrl.length);
+        console.log("First 200 chars:", gameUrl.substring(0, 200));
       } else {
         gameUrl = formData.game_url;
+        console.log("Using URL:", gameUrl);
       }
       
       // Upload image if provided
@@ -170,6 +177,8 @@ const Create = () => {
         imageUrl = supabase.storage.from("game-images").getPublicUrl(imageData.path).data.publicUrl;
       }
 
+      console.log("Calling RPC with game_url length:", gameUrl.length);
+      
       // Create game with raw HTML content or URL
       const { data, error } = await supabase.rpc("create_game_with_context", {
         _session_token: sessionToken,
@@ -182,8 +191,12 @@ const Create = () => {
         _image_url: imageUrl
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("RPC Error:", error);
+        throw error;
+      }
 
+      console.log("Game created successfully:", data);
       toast.success("Game created successfully!");
       navigate("/games");
     } catch (error: any) {
@@ -354,9 +367,19 @@ const Create = () => {
                         </div>
                       </div>
                       {gameFile && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
-                          <Upload className="w-4 h-4" />
-                          <span>{gameFile.name}</span>
+                        <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <Upload className="w-4 h-4" />
+                            <span>{gameFile.name}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setGameFile(null)}
+                            className="text-destructive hover:text-destructive/80 transition-colors"
+                            aria-label="Remove file"
+                          >
+                            ✕
+                          </button>
                         </div>
                       )}
                     </>
@@ -414,7 +437,20 @@ const Create = () => {
                   </div>
                   {imagePreview && (
                     <div className="mt-4">
-                      <p className="text-sm font-medium mb-2">Preview:</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium">Preview:</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImagePreview(null);
+                          }}
+                          className="text-destructive hover:text-destructive/80 transition-colors text-sm"
+                          aria-label="Remove image"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
                       <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
                         <img
                           src={imagePreview}
