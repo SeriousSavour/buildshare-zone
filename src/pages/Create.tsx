@@ -32,6 +32,18 @@ const Create = () => {
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [useFileUpload, setUseFileUpload] = useState(true);
 
+  const toggleUploadMode = (isFileUpload: boolean) => {
+    setUseFileUpload(isFileUpload);
+    // Clear game_url when switching to file upload mode
+    if (isFileUpload) {
+      setFormData({ ...formData, game_url: "" });
+    }
+    // Clear game file when switching to URL mode
+    if (!isFileUpload) {
+      setGameFile(null);
+    }
+  };
+
   const handleGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -287,7 +299,7 @@ const Create = () => {
                   <div className="flex gap-4 mb-4">
                     <button
                       type="button"
-                      onClick={() => setUseFileUpload(true)}
+                      onClick={() => toggleUploadMode(true)}
                       className={`flex-1 px-4 py-2 rounded-md border transition-colors ${
                         useFileUpload
                           ? "bg-primary text-primary-foreground border-primary"
@@ -298,7 +310,7 @@ const Create = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUseFileUpload(false)}
+                      onClick={() => toggleUploadMode(false)}
                       className={`flex-1 px-4 py-2 rounded-md border transition-colors ${
                         !useFileUpload
                           ? "bg-primary text-primary-foreground border-primary"
@@ -352,11 +364,12 @@ const Create = () => {
                     <div className="space-y-2">
                       <Input
                         id="game_url"
-                        type="url"
+                        type="text"
                         placeholder="https://example.com/game.html"
                         value={formData.game_url}
                         onChange={(e) => setFormData({ ...formData, game_url: e.target.value })}
                         className="h-12"
+                        required={!useFileUpload}
                       />
                       <p className="text-xs text-muted-foreground">
                         Enter the full URL where your game is hosted
