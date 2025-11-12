@@ -205,6 +205,11 @@ const Create = () => {
       }
 
       console.log("Game created successfully:", data);
+      
+      // Clear games cache to show the new game immediately
+      localStorage.removeItem('games_cache_v2');
+      localStorage.removeItem('games_cache_v2_timestamp');
+      
       toast.success("Game created successfully!");
       navigate("/games");
     } catch (error: any) {
