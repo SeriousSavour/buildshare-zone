@@ -13,6 +13,9 @@ import Navigation from "@/components/layout/Navigation";
 const Create = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  
+  const MAX_HTML_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -29,27 +32,35 @@ const Create = () => {
   const handleGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type === "text/html" || file.name.endsWith(".html")) {
-        setGameFile(file);
-      } else {
+      if (!(file.type === "text/html" || file.name.endsWith(".html"))) {
         toast.error("Please upload an HTML file");
+        return;
       }
+      if (file.size > MAX_HTML_SIZE) {
+        toast.error(`HTML file size must be less than ${MAX_HTML_SIZE / (1024 * 1024)}MB`);
+        return;
+      }
+      setGameFile(file);
     }
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type.startsWith("image/")) {
-        setImageFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
+      if (!file.type.startsWith("image/")) {
         toast.error("Please upload an image file");
+        return;
       }
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error(`Image file size must be less than ${MAX_IMAGE_SIZE / (1024 * 1024)}MB`);
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -57,27 +68,39 @@ const Create = () => {
     e.preventDefault();
     setIsDraggingGame(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && (file.type === "text/html" || file.name.endsWith(".html"))) {
-      setGameFile(file);
-    } else {
+    if (!file) return;
+    
+    if (!(file.type === "text/html" || file.name.endsWith(".html"))) {
       toast.error("Please upload an HTML file");
+      return;
     }
+    if (file.size > MAX_HTML_SIZE) {
+      toast.error(`HTML file size must be less than ${MAX_HTML_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+    setGameFile(file);
   };
 
   const handleImageDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingImage(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
+      return;
     }
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error(`Image file size must be less than ${MAX_IMAGE_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -238,7 +261,7 @@ const Create = () => {
                           Drop your HTML file here or click to browse
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports .html files only
+                          Supports .html files (max 10MB)
                         </p>
                       </div>
                     </div>
@@ -280,7 +303,7 @@ const Create = () => {
                           Drop your cover image here or click to browse
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports JPG, PNG, WebP
+                          Supports JPG, PNG, WebP (max 5MB)
                         </p>
                       </div>
                     </div>
