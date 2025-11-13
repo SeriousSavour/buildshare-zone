@@ -30,42 +30,42 @@ const BrowserTaskbar = ({
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-[#0f1419] border-t border-white/5 flex items-center px-2 gap-1 z-50">
+    <div className="fixed bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-[#0a0f1a] to-[#0d1219] border-t border-white/10 flex items-center px-4 gap-3 z-50 backdrop-blur-xl">
       {/* Start button - Windows style */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
-          className="h-10 px-3 hover:bg-white/5 text-gray-300 hover:text-white flex items-center gap-2"
+          className="h-11 px-4 hover:bg-white/10 text-foreground hover:text-primary flex items-center gap-3 rounded-xl transition-all"
         >
-          <div className="w-5 h-5 grid grid-cols-2 gap-0.5">
-            <div className="bg-primary rounded-[1px]"></div>
-            <div className="bg-secondary rounded-[1px]"></div>
-            <div className="bg-accent rounded-[1px]"></div>
-            <div className="bg-blue-500 rounded-[1px]"></div>
+          <div className="w-6 h-6 grid grid-cols-2 gap-0.5">
+            <div className="bg-primary rounded-sm"></div>
+            <div className="bg-secondary rounded-sm"></div>
+            <div className="bg-accent rounded-sm"></div>
+            <div className="bg-primary/60 rounded-sm"></div>
           </div>
         </Button>
 
         {/* Separator */}
-        <div className="w-px h-8 bg-white/10"></div>
+        <div className="w-px h-9 bg-white/10"></div>
       </div>
 
       {/* Tab buttons */}
-      <div className="flex-1 flex items-center gap-1 overflow-x-auto">
+      <div className="flex-1 flex items-center gap-2 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabSelect(tab.id)}
-            className={`group flex items-center gap-2 px-3 h-9 rounded transition-colors min-w-[140px] max-w-[200px] ${
+            className={`group flex items-center gap-3 px-4 h-10 rounded-xl transition-all min-w-[160px] max-w-[220px] ${
               activeTab === tab.id
-                ? 'bg-[#1a1f29] text-white border border-white/10'
-                : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                ? 'bg-gradient-to-b from-[#1a2332] to-[#141d2b] text-foreground border border-white/10 shadow-lg'
+                : 'bg-transparent text-muted-foreground hover:bg-white/5 hover:text-foreground'
             }`}
           >
-            <span className="text-sm truncate flex-1">{tab.title}</span>
+            <span className="text-sm font-medium truncate flex-1">{tab.title}</span>
             {tabs.length > 1 && (
               <X
-                className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTabClose(tab.id);
@@ -77,11 +77,11 @@ const BrowserTaskbar = ({
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 w-9 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+          className="h-10 w-10 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
           onClick={onNewTab}
           title="New tab (Ctrl+T)"
         >
@@ -90,16 +90,16 @@ const BrowserTaskbar = ({
 
         {isAdmin && (
           <>
-            <div className="w-px h-8 bg-white/10 mx-1"></div>
+            <div className="w-px h-9 bg-white/10 mx-1"></div>
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+              className="h-10 px-4 hover:bg-white/10 text-muted-foreground hover:text-primary flex items-center gap-2 rounded-xl transition-all"
               onClick={() => navigate("/admin")}
               title="Admin Panel"
             >
               <Shield className="h-4 w-4" />
-              <span className="text-xs">Admin</span>
+              <span className="text-sm font-medium">Admin</span>
             </Button>
           </>
         )}
