@@ -325,7 +325,7 @@ const Browser = () => {
     // Show loading state while settings are loading for home page
     if (activeTabData.type === "home" && isLoading) {
       return (
-        <div className="w-full max-w-4xl flex items-center justify-center">
+        <div className="w-full max-w-4xl flex items-center justify-center animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
           <div className="text-gray-400 text-lg">Loading...</div>
         </div>
       );
@@ -539,7 +539,10 @@ const Browser = () => {
     })();
 
     return (
-      <div className="animate-fade-in">
+      <div 
+        key={activeTab}
+        className="animate-in fade-in-0 slide-in-from-right-4 duration-500 ease-out w-full h-full"
+      >
         {content}
       </div>
     );
@@ -573,15 +576,17 @@ const Browser = () => {
           {/* Tab Bar */}
           <div className="flex items-center px-2 py-1 bg-[#0a0e13]">
             {tabs.map((tab) => (
-              <div
+                <div
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id);
-                  setAddressBar(tab.url);
+                  if (activeTab !== tab.id) {
+                    setActiveTab(tab.id);
+                    setAddressBar(tab.url);
+                  }
                 }}
-                className={`flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95 ${
                   activeTab === tab.id 
-                    ? 'bg-[#1a1f29] border-white/10' 
+                    ? 'bg-[#1a1f29] border-white/10 shadow-lg' 
                     : 'bg-[#0f1419] border-white/5 hover:bg-[#1a1f29]/50'
                 }`}
               >
@@ -707,7 +712,7 @@ const Browser = () => {
       )}
 
       {/* Content Area */}
-      <div className={`flex-1 overflow-auto ${
+      <div className={`flex-1 overflow-auto transition-all duration-300 ${
         isFullscreen 
           ? 'fixed inset-0 z-40' 
           : activeTabData?.type === 'home' 
@@ -723,9 +728,11 @@ const Browser = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabSelect={(tabId) => {
-            setActiveTab(tabId);
-            const tab = tabs.find(t => t.id === tabId);
-            if (tab) setAddressBar(tab.url);
+            if (activeTab !== tabId) {
+              setActiveTab(tabId);
+              const tab = tabs.find(t => t.id === tabId);
+              if (tab) setAddressBar(tab.url);
+            }
           }}
           onTabClose={(tabId) => {
             const mockEvent = { stopPropagation: () => {} } as React.MouseEvent;
