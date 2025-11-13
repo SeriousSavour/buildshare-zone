@@ -87,7 +87,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/browser" replace />} />
               <Route path="/browser" element={<Browser />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -102,7 +102,7 @@ const App = () => {
               <Route path="/admin" element={<AdminAuth><Admin /></AdminAuth>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/help" element={<Help />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/browser" replace />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
