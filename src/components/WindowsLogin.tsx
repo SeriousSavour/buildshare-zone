@@ -7,6 +7,7 @@ import { Eye, EyeOff, User } from "lucide-react";
 import scenery1 from "@/assets/scenery-1.jpg";
 import scenery2 from "@/assets/scenery-2.jpg";
 import scenery3 from "@/assets/scenery-3.jpg";
+import { format } from "date-fns";
 
 const sceneryImages = [scenery1, scenery2, scenery3];
 
@@ -21,6 +22,7 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const imageInterval = setInterval(() => {
@@ -30,30 +32,67 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
     return () => clearInterval(imageInterval);
   }, []);
 
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timeInterval);
+  }, []);
+
   const handleAuth = async () => {
     if (!email || !password) {
       toast.error("Please fill in all fields");
       return;
     }
 
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
-        toast.success("Welcome back!");
-        onLoginComplete();
+        if (error) {
+          if (error.message.includes("Invalid login credentials")) {
+            toast.error("Invalid email or password. Please try again or sign up.");
+          } else {
+            toast.error(error.message);
+          }
+          return;
+        }
+        if (data.user) {
+          toast.success("Welcome back!");
+          setTimeout(() => onLoginComplete(), 500);
+        }
       } else {
-        const { error } = await supabase.auth.signUp({
+        const redirectUrl = `${window.location.origin}/`;
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: redirectUrl
+          }
         });
-        if (error) throw error;
-        toast.success("Account created! Please check your email.");
-        setIsLogin(true);
+        if (error) {
+          if (error.message.includes("already registered")) {
+            toast.error("This email is already registered. Please sign in instead.");
+            setIsLogin(true);
+          } else {
+            toast.error(error.message);
+          }
+          return;
+        }
+        if (data.user) {
+          toast.success("Account created! You can now sign in.");
+          setIsLogin(true);
+          setPassword("");
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -82,6 +121,16 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
       
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
+
+      {/* Clock - Windows lock screen style */}
+      <div className="absolute top-20 left-0 right-0 flex flex-col items-center z-10">
+        <div className="text-8xl font-light text-white drop-shadow-2xl mb-2">
+          {format(currentTime, 'HH:mm')}
+        </div>
+        <div className="text-2xl font-light text-white/90 drop-shadow-lg">
+          {format(currentTime, 'EEEE, MMMM d')}
+        </div>
+      </div>
 
       {/* Login card */}
       <div className="relative w-full max-w-md p-8 space-y-6 animate-fade-in">
