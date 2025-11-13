@@ -9,6 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 import BrowserFrame from "@/components/browser/BrowserFrame";
 import QuickLinks from "@/components/browser/QuickLinks";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { getRandomQuote } from "@/lib/quotes";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -193,7 +194,7 @@ const Register = () => {
               </p>
               <div className="max-w-md mx-auto mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
                 <p className="text-xs italic text-gray-300">
-                  "{settings?.quote_of_the_day || "The only way to do great work is to love what you do. - Steve Jobs"}"
+                  "{getRandomQuote(settings?.quote_of_the_day)}"
                 </p>
               </div>
             </div>

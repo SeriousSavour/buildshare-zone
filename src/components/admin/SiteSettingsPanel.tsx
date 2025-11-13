@@ -155,15 +155,15 @@ const SiteSettingsPanel = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Quote of the Day</label>
+          <label className="text-sm font-medium">Quotes (Rotating)</label>
           <Textarea
             value={settings.quote_of_the_day}
             onChange={(e) => setSettings({ ...settings, quote_of_the_day: e.target.value })}
-            placeholder="The only way to do great work is to love what you do. - Steve Jobs"
-            rows={2}
+            placeholder="The only way to do great work is to love what you do. - Steve Jobs&#10;Innovation distinguishes between a leader and a follower. - Steve Jobs&#10;Stay hungry, stay foolish. - Steve Jobs"
+            rows={6}
           />
           <p className="text-xs text-muted-foreground">
-            Inspirational quote shown on login and home screens
+            Add multiple inspirational quotes (one per line). A random quote will be displayed on each page load.
           </p>
         </div>
 

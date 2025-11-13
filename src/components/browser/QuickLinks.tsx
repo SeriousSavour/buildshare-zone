@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { StyledText } from "@/components/ui/styled-text";
+import { getRandomQuote } from "@/lib/quotes";
 
 const QuickLinks = () => {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const QuickLinks = () => {
 
   const siteName = settings?.site_name || "shadow";
   const tagline = settings?.site_tagline || "Your Gateway to Endless Possibilities";
-  const quoteOfTheDay = settings?.quote_of_the_day || "The only way to do great work is to love what you do. - Steve Jobs";
+  const quoteOfTheDay = getRandomQuote(settings?.quote_of_the_day);
 
   const links = [
     { icon: Home, label: "Home", path: "/" },
