@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Eye, EyeOff, User } from "lucide-react";
+import scenery1 from "@/assets/scenery-1.jpg";
+import scenery2 from "@/assets/scenery-2.jpg";
+import scenery3 from "@/assets/scenery-3.jpg";
+
+const sceneryImages = [scenery1, scenery2, scenery3];
 
 interface WindowsLoginProps {
   onLoginComplete: () => void;
@@ -15,6 +20,15 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const imageInterval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % sceneryImages.length);
+    }, 5000);
+
+    return () => clearInterval(imageInterval);
+  }, []);
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -53,9 +67,21 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-background via-background to-card">
-      {/* Background blur effect */}
-      <div className="absolute inset-0 backdrop-blur-sm bg-background/80"></div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Rotating scenery backgrounds */}
+      {sceneryImages.map((image, index) => (
+        <div
+          key={index}
+          className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+          style={{
+            backgroundImage: `url(${image})`,
+            opacity: currentImageIndex === index ? 1 : 0,
+          }}
+        />
+      ))}
+      
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-md"></div>
 
       {/* Login card */}
       <div className="relative w-full max-w-md p-8 space-y-6 animate-fade-in">
