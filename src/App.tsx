@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { SnowEffect } from "@/components/winter/SnowEffect";
 import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
+import { api } from "@/lib/api";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import WindowsLogin from "@/components/WindowsLogin";
@@ -37,11 +38,35 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   
-  console.log("App state:", { loading, showLogin, showContent });
+  console.log("App state:", { loading, showLogin, showContent, checkingSession });
   
   // Initialize Christmas theme
   useChristmasTheme();
+  
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const user = await api.getCurrentUser();
+        if (user) {
+          // User has valid session, skip login
+          console.log("Valid session found, skipping login");
+          setCheckingSession(false);
+          setShowLogin(false);
+          setShowContent(true);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.log("No valid session found");
+      }
+      setCheckingSession(false);
+    };
+    
+    checkSession();
+  }, []);
   
   // Add beforeunload event listener to warn users before closing tab
   useEffect(() => {
@@ -67,17 +92,17 @@ const App = () => {
 
   return (
     <div className="relative">
-      {loading && <LoadingScreen onLoadComplete={() => {
+      {loading && !checkingSession && <LoadingScreen onLoadComplete={() => {
         console.log("onLoadComplete called");
         setLoading(false);
         setShowLogin(true);
       }} />}
-      {showLogin && !loading && <WindowsLogin onLoginComplete={() => {
+      {showLogin && !loading && !checkingSession && <WindowsLogin onLoginComplete={() => {
         console.log("onLoginComplete called");
         setShowLogin(false);
         setTimeout(() => setShowContent(true), 300);
       }} />}
-    <div className={`transition-opacity duration-500 ${showContent && !loading && !showLogin ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`transition-opacity duration-500 ${showContent && !loading && !showLogin && !checkingSession ? 'opacity-100' : 'opacity-0'}`}>
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
