@@ -11,6 +11,7 @@ const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
 
   const siteName = settings?.site_name || "shadow";
   const tagline = settings?.site_tagline || "Your Gateway to Endless Possibilities";
+  const quoteOfTheDay = settings?.quote_of_the_day || "The only way to do great work is to love what you do. - Steve Jobs";
 
   const links = [
     { icon: Home, label: "Home", path: "/", title: "Home" },
@@ -30,6 +31,9 @@ const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
         <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           {tagline}
         </p>
+        <div className="max-w-xl mx-auto mt-3 p-3 rounded-lg bg-card/30 border border-border/30">
+          <p className="text-xs italic text-muted-foreground">"{quoteOfTheDay}"</p>
+        </div>
       </div>
       
       <div className="grid grid-cols-3 gap-4">

@@ -9,6 +9,7 @@ const QuickLinks = () => {
 
   const siteName = settings?.site_name || "shadow";
   const tagline = settings?.site_tagline || "Your Gateway to Endless Possibilities";
+  const quoteOfTheDay = settings?.quote_of_the_day || "The only way to do great work is to love what you do. - Steve Jobs";
 
   const links = [
     { icon: Home, label: "Home", path: "/" },
@@ -28,6 +29,9 @@ const QuickLinks = () => {
         <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
           {tagline}
         </p>
+        <div className="max-w-2xl mx-auto mt-4 p-4 rounded-lg bg-white/5 border border-white/10">
+          <p className="text-sm italic text-gray-300">"{quoteOfTheDay}"</p>
+        </div>
       </div>
       
       <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">

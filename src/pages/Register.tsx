@@ -191,6 +191,11 @@ const Register = () => {
               <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 {settings?.site_tagline || "Your Gateway to Endless Possibilities"}
               </p>
+              <div className="max-w-md mx-auto mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                <p className="text-xs italic text-gray-300">
+                  "{settings?.quote_of_the_day || "The only way to do great work is to love what you do. - Steve Jobs"}"
+                </p>
+              </div>
             </div>
             <QuickLinks />
           </div>

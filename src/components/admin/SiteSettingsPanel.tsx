@@ -14,7 +14,8 @@ const SiteSettingsPanel = () => {
   const [settings, setSettings] = useState({
     login_background: "",
     site_name: "",
-    site_tagline: ""
+    site_tagline: "",
+    quote_of_the_day: ""
   });
 
   useEffect(() => {
@@ -53,7 +54,8 @@ const SiteSettingsPanel = () => {
       setSettings({
         login_background: settingsObj.login_background || "",
         site_name: settingsObj.site_name || "",
-        site_tagline: settingsObj.site_tagline || ""
+        site_tagline: settingsObj.site_tagline || "",
+        quote_of_the_day: settingsObj.quote_of_the_day || ""
       });
       
       toast.success("Settings loaded successfully");
@@ -149,6 +151,19 @@ const SiteSettingsPanel = () => {
           />
           <p className="text-xs text-muted-foreground">
             Cool tagline displayed below site name
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Quote of the Day</label>
+          <Textarea
+            value={settings.quote_of_the_day}
+            onChange={(e) => setSettings({ ...settings, quote_of_the_day: e.target.value })}
+            placeholder="The only way to do great work is to love what you do. - Steve Jobs"
+            rows={2}
+          />
+          <p className="text-xs text-muted-foreground">
+            Inspirational quote shown on login and home screens
           </p>
         </div>
 
