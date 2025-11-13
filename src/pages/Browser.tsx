@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield, Scroll, User, Settings as SettingsIcon, GripVertical } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCw, X, MoreVertical, Maximize2, Minimize2, Shield, GripVertical, Plus, Home, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import BrowserTaskbar from "@/components/browser/BrowserTaskbar";
 import AnimatedPhilosopherQuote from "@/components/browser/AnimatedPhilosopherQuote";
+import { 
+  HomeIcon, 
+  ActivityIcon, 
+  FriendsIcon, 
+  ChatIcon, 
+  ToolsIcon, 
+  HelpIcon, 
+  PhilosophyIcon, 
+  ProfileIcon, 
+  SettingsIcon, 
+  CreateIcon 
+} from "@/components/browser/QuickLinkIcons";
 import Games from "./Games";
 import Friends from "./Friends";
 import Chat from "./Chat";
@@ -31,16 +43,16 @@ const ACTIVE_TAB_KEY = 'browser_active_tab';
 const QUICK_LINKS_KEY = 'browser_quick_links_order';
 
 const DEFAULT_QUICK_LINKS = [
-  { icon: Home, label: "Home", type: "home" as const, id: "home" },
-  { icon: Gamepad2, label: "Activity", type: "games" as const, id: "games" },
-  { icon: Users, label: "Friends", type: "friends" as const, id: "friends" },
-  { icon: MessageCircle, label: "Chat", type: "chat" as const, id: "chat" },
-  { icon: Wrench, label: "Tools", type: "tools" as const, id: "tools" },
-  { icon: HelpCircle, label: "Help", type: "help" as const, id: "help" },
-  { icon: Scroll, label: "Philosophy", type: "philosophy" as const, id: "philosophy" },
-  { icon: User, label: "Profile", type: "profile" as const, id: "profile" },
+  { icon: HomeIcon, label: "Home", type: "home" as const, id: "home" },
+  { icon: ActivityIcon, label: "Activity", type: "games" as const, id: "games" },
+  { icon: FriendsIcon, label: "Friends", type: "friends" as const, id: "friends" },
+  { icon: ChatIcon, label: "Chat", type: "chat" as const, id: "chat" },
+  { icon: ToolsIcon, label: "Tools", type: "tools" as const, id: "tools" },
+  { icon: HelpIcon, label: "Help", type: "help" as const, id: "help" },
+  { icon: PhilosophyIcon, label: "Philosophy", type: "philosophy" as const, id: "philosophy" },
+  { icon: ProfileIcon, label: "Profile", type: "profile" as const, id: "profile" },
   { icon: SettingsIcon, label: "Settings", type: "settings" as const, id: "settings" },
-  { icon: Plus, label: "Create", type: "create" as const, id: "create" },
+  { icon: CreateIcon, label: "Create", type: "create" as const, id: "create" },
 ];
 
 const Browser = () => {
