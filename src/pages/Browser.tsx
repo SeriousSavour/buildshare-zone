@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import BrowserTaskbar from "@/components/browser/BrowserTaskbar";
+import BlueLightStreaks from "@/components/browser/BlueLightStreaks";
 import AnimatedPhilosopherQuote from "@/components/browser/AnimatedPhilosopherQuote";
 import { 
   HomeIcon, 
@@ -570,11 +571,14 @@ const Browser = () => {
       className="min-h-screen flex flex-col relative"
       style={{ background }}
     >
+      {/* Animated Background */}
+      <BlueLightStreaks />
+      
       {/* Browser Chrome */}
       {!isFullscreen && (
-        <div className="bg-[#0a0d12] border-b border-blue-500/20 shadow-lg shadow-blue-500/5">
+        <div className="relative z-10 bg-[#0a0d12] border-b border-blue-500/20 shadow-lg shadow-blue-500/10">
           {/* Tab Bar */}
-          <div className="flex items-center px-3 py-1.5 bg-gradient-to-b from-[#0d1117] to-[#0a0d12]">
+          <div className="flex items-center px-4 py-3 bg-gradient-to-b from-[#0d1117] to-[#0a0d12]">
             {tabs.map((tab) => (
               <div
                 key={tab.id}
@@ -584,20 +588,21 @@ const Browser = () => {
                     setAddressBar(tab.url);
                   }
                 }}
-                className={`relative flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95 group ${
+                className={`relative flex items-center gap-3 px-6 py-3.5 border-t border-x rounded-t-xl min-w-[220px] cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95 group ${
                   activeTab === tab.id 
-                    ? 'bg-[#0d1117] border-blue-500/40 shadow-lg shadow-blue-500/10' 
-                    : 'bg-[#0a0d12] border-blue-500/10 hover:bg-[#0d1117]/50 hover:border-blue-500/30'
+                    ? 'bg-[#0d1117] border-blue-500/40 shadow-xl shadow-blue-500/20' 
+                    : 'bg-[#0a0d12] border-blue-500/20 hover:bg-[#0d1117]/50 hover:border-blue-500/40 shadow-lg shadow-blue-500/10 hover:shadow-xl hover:shadow-blue-500/20'
                 }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <span className="relative text-xs font-medium truncate text-blue-100/90 group-hover:text-blue-50">{tab.title}</span>
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 rounded-t-xl shadow-[inset_0_0_20px_rgba(59,130,246,0.3)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative text-sm font-medium truncate text-blue-100/90 group-hover:text-blue-50 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">{tab.title}</span>
                 {tabs.length > 1 && (
                   <button 
                     onClick={(e) => closeTab(tab.id, e)}
                     className="relative ml-auto opacity-70 hover:opacity-100 transition-all hover:bg-blue-500/10 rounded p-0.5 hover:rotate-90 duration-200"
                   >
-                    <X className="h-3 w-3 text-blue-300/60 hover:text-blue-100" />
+                    <X className="h-3.5 w-3.5 text-blue-300/60 hover:text-blue-100 drop-shadow-[0_0_4px_rgba(59,130,246,0.8)]" />
                   </button>
                 )}
               </div>
@@ -605,24 +610,24 @@ const Browser = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 w-8 p-0 ml-2 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-90 border border-transparent hover:border-blue-500/20"
+              className="h-10 w-10 p-0 ml-3 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-lg transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-90 border border-transparent hover:border-blue-500/30 shadow-lg hover:shadow-blue-500/30"
               onClick={addNewTab}
             >
-              <Plus className="h-4 w-4 transition-transform duration-300" />
+              <Plus className="h-4 w-4 transition-transform duration-300 drop-shadow-[0_0_4px_rgba(59,130,246,0.8)]" />
             </Button>
           </div>
 
           {/* Navigation Bar */}
-          <div className="px-4 py-2.5 flex items-center gap-3 bg-[#0a0d12]">
-            <div className="flex items-center gap-1.5">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20">
-                <ArrowLeft className="h-3.5 w-3.5" />
+          <div className="px-5 py-4 flex items-center gap-4 bg-[#0a0d12]">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-lg transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/30 shadow-sm hover:shadow-blue-500/30">
+                <ArrowLeft className="h-4 w-4 drop-shadow-[0_0_4px_rgba(59,130,246,0.8)]" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20">
-                <ArrowRight className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-lg transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/30 shadow-sm hover:shadow-blue-500/30">
+                <ArrowRight className="h-4 w-4 drop-shadow-[0_0_4px_rgba(59,130,246,0.8)]" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20">
-                <RotateCw className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-lg transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/30 shadow-sm hover:shadow-blue-500/30">
+                <RotateCw className="h-4 w-4 drop-shadow-[0_0_4px_rgba(59,130,246,0.8)]" />
               </Button>
             </div>
 
@@ -631,16 +636,16 @@ const Browser = () => {
               <Input
                 value={addressBar}
                 onChange={(e) => setAddressBar(e.target.value)}
-                className="w-full h-9 bg-[#0d1117] border-blue-500/20 rounded-lg px-4 pr-12 text-blue-100/90 placeholder:text-blue-300/30 focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/20 focus:shadow-lg focus:shadow-blue-500/10 transition-all duration-300 font-mono text-sm"
+                className="w-full h-11 bg-[#0d1117] border-blue-500/30 rounded-xl px-5 pr-14 text-blue-100/90 placeholder:text-blue-300/30 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/30 focus:shadow-xl focus:shadow-blue-500/20 transition-all duration-300 font-mono text-sm shadow-inner shadow-blue-500/5"
                 placeholder="Enter URL..."
               />
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-lg transition-all duration-300 hover:scale-110 active:scale-90 shadow-sm hover:shadow-blue-500/30"
                 onClick={() => navigateToContent("home")}
               >
-                <Home className="h-3.5 w-3.5" />
+                <Home className="h-4 w-4 drop-shadow-[0_0_4px_rgba(59,130,246,0.8)]" />
               </Button>
             </div>
 
