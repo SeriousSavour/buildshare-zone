@@ -66,7 +66,7 @@ const Browser = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const siteName = settings?.site_name || "shadow";
-  const discordInvite = settings?.discord_invite || "discord.gg/goshadow";
+  const philosopherDefinition = "φιλόσοφος (philósophos) - Lover of Wisdom";
 
   // Check if user is "wild" for admin access
   useEffect(() => {
@@ -254,7 +254,7 @@ const Browser = () => {
                 <h1 className="text-7xl font-light tracking-wide text-foreground">
                   {siteName}
                 </h1>
-                <p className="text-muted-foreground text-base tracking-wide">{discordInvite}</p>
+                <p className="text-muted-foreground text-base tracking-wide italic">{philosopherDefinition}</p>
               </div>
               
               {/* Quick links - Windows tiles style */}
