@@ -30,7 +30,7 @@ const BrowserTaskbar = ({
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#0a0d12] via-[#0d1117] to-[#0a0d12] border-t border-blue-500/20 flex items-center px-3 gap-2 z-50 backdrop-blur-xl shadow-[0_-4px_20px_rgba(59,130,246,0.1)]">
+    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#0a0d12] via-[#0d1117] to-[#0a0d12] border-t border-blue-500/20 flex items-center px-3 gap-2 z-50 backdrop-blur-xl shadow-[0_-4px_20px_rgba(59,130,246,0.1)] rounded-t-xl">
       {/* Start button - Windows style */}
       <div className="flex items-center gap-2">
         <Button
