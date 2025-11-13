@@ -60,6 +60,10 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
   const [totalGamesCount, setTotalGamesCount] = useState(0);
 
   useEffect(() => {
+    // Force clear cache on initial mount to ensure fresh data
+    localStorage.removeItem('games_cache_v2');
+    localStorage.removeItem('games_cache_v2_timestamp');
+    
     fetchGames();
     fetchLikedGames();
     fetchPopularGames();
@@ -198,6 +202,18 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         
       if (error) throw error;
       console.log(`Fetched ${data?.length || 0} games from database`);
+      
+      // If no games exist, clear the cache immediately
+      if (!data || data.length === 0) {
+        console.log('No games found in database, clearing cache');
+        localStorage.removeItem('games_cache_v2');
+        localStorage.removeItem('games_cache_v2_timestamp');
+        setGames([]);
+        setFilteredGames([]);
+        setFeaturedGame(null);
+        setLoading(false);
+        return;
+      }
       setLoadingProgress(40);
 
       // Fetch creator profiles
