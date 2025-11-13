@@ -148,7 +148,9 @@ const Login = () => {
               <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                 {settings?.site_name || "shadow"}
               </h2>
-              <p className="text-muted-foreground">{settings?.discord_invite || "discord.gg/goshadow"}</p>
+              <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                {settings?.site_tagline || "Your Gateway to Endless Possibilities"}
+              </p>
             </div>
             <QuickLinks />
           </div>

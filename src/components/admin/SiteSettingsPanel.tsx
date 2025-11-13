@@ -14,7 +14,7 @@ const SiteSettingsPanel = () => {
   const [settings, setSettings] = useState({
     login_background: "",
     site_name: "",
-    discord_invite: ""
+    site_tagline: ""
   });
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const SiteSettingsPanel = () => {
       setSettings({
         login_background: settingsObj.login_background || "",
         site_name: settingsObj.site_name || "",
-        discord_invite: settingsObj.discord_invite || ""
+        site_tagline: settingsObj.site_tagline || ""
       });
       
       toast.success("Settings loaded successfully");
@@ -141,14 +141,14 @@ const SiteSettingsPanel = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Discord Invite</label>
+          <label className="text-sm font-medium">Site Tagline</label>
           <Input
-            value={settings.discord_invite}
-            onChange={(e) => setSettings({ ...settings, discord_invite: e.target.value })}
-            placeholder="discord.gg/goshadow"
+            value={settings.site_tagline}
+            onChange={(e) => setSettings({ ...settings, site_tagline: e.target.value })}
+            placeholder="Your Gateway to Endless Possibilities"
           />
           <p className="text-xs text-muted-foreground">
-            Discord invite link shown on login/register
+            Cool tagline displayed below site name
           </p>
         </div>
 

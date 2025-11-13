@@ -10,7 +10,7 @@ const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
   const { data: settings } = useSiteSettings();
 
   const siteName = settings?.site_name || "shadow";
-  const discordInvite = settings?.discord_invite || "discord.gg/goshadow";
+  const tagline = settings?.site_tagline || "Your Gateway to Endless Possibilities";
 
   const links = [
     { icon: Home, label: "Home", path: "/", title: "Home" },
@@ -27,7 +27,9 @@ const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
         <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
           <StyledText text={siteName} weirdLetterIndex={0} />
         </h2>
-        <p className="text-muted-foreground">{discordInvite}</p>
+        <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          {tagline}
+        </p>
       </div>
       
       <div className="grid grid-cols-3 gap-4">

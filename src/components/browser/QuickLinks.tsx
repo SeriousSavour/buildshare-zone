@@ -8,7 +8,7 @@ const QuickLinks = () => {
   const { data: settings } = useSiteSettings();
 
   const siteName = settings?.site_name || "shadow";
-  const discordInvite = settings?.discord_invite || "discord.gg/goshadow";
+  const tagline = settings?.site_tagline || "Your Gateway to Endless Possibilities";
 
   const links = [
     { icon: Home, label: "Home", path: "/" },
@@ -25,7 +25,9 @@ const QuickLinks = () => {
         <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent drop-shadow-2xl">
           <StyledText text={siteName} weirdLetterIndex={0} />
         </h1>
-        <p className="text-gray-400 text-sm">{discordInvite}</p>
+        <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
+          {tagline}
+        </p>
       </div>
       
       <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
