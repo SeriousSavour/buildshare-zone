@@ -285,19 +285,40 @@ const Browser = () => {
               </div>
               
               {/* Quick links - Windows tiles style */}
-              <div className="grid grid-cols-3 gap-4 max-w-4xl mx-auto">
-                {quickLinks.map((link) => (
-                  <button
-                    key={link.type}
-                    onClick={() => navigateToContent(link.type)}
-                    className="group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border hover:bg-card/80 hover:border-primary/50 transition-all duration-200"
-                  >
-                    <link.icon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
-                    <span className="text-base font-normal text-foreground tracking-wide">
-                      {link.label}
-                    </span>
-                  </button>
-                ))}
+              <div className="max-w-4xl mx-auto">
+                {/* First 9 links in 3x3 grid */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  {quickLinks.slice(0, 9).map((link) => (
+                    <button
+                      key={link.type}
+                      onClick={() => navigateToContent(link.type)}
+                      className="group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border hover:bg-card/80 hover:border-primary/50 transition-all duration-200"
+                    >
+                      <link.icon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+                      <span className="text-base font-normal text-foreground tracking-wide">
+                        {link.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Create button centered */}
+                {quickLinks[9] && (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => navigateToContent(quickLinks[9].type)}
+                      className="group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-primary/10 border-2 border-primary hover:bg-primary/20 hover:border-primary transition-all duration-200 w-64"
+                    >
+                      {(() => {
+                        const CreateIcon = quickLinks[9].icon;
+                        return <CreateIcon className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-200" />;
+                      })()}
+                      <span className="text-base font-semibold text-primary tracking-wide">
+                        {quickLinks[9].label}
+                      </span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* DMCA Takedown Section with Painted Arrow */}
@@ -486,6 +507,30 @@ const Browser = () => {
                 <Home className="h-4 w-4" />
               </Button>
             </div>
+
+            {/* Profile Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+              onClick={() => navigateToContent("profile")}
+              title="Profile"
+            >
+              <User className="h-4 w-4" />
+              <span className="text-xs">Profile</span>
+            </Button>
+
+            {/* Settings Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+              onClick={() => navigateToContent("settings")}
+              title="Settings"
+            >
+              <SettingsIcon className="h-4 w-4" />
+              <span className="text-xs">Settings</span>
+            </Button>
 
             {/* Admin Panel Button (only for "wild" user) */}
             {isAdmin && (
