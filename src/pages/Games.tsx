@@ -558,11 +558,22 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         </div>
 
         {/* Games Grid */}
-        {filteredGames.length === 0 ? <div className="text-center py-20 space-y-4">
-            <p className="text-2xl font-semibold">No games found</p>
-            <p className="text-muted-foreground">
-              Try adjusting your search or filters
+        {filteredGames.length === 0 ? <div className="text-center py-20 space-y-6 max-w-2xl mx-auto">
+            <div className="text-6xl mb-4">🎮</div>
+            <p className="text-3xl font-bold">No Activities Available</p>
+            <p className="text-lg text-muted-foreground">
+              {games.length === 0 
+                ? "Be the first to add a properly licensed activity! Check our content guidelines before uploading."
+                : "Try adjusting your search or filters"}
             </p>
+            {games.length === 0 && (
+              <Button 
+                onClick={() => navigate("/create")} 
+                className="mt-4 text-lg px-8 py-6"
+              >
+                Create New Activity
+              </Button>
+            )}
           </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} onGameClick={onGameClick} />)}
           </div>}
