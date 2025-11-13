@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/layout/Navigation";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
-
-interface Particle {
-  id: number;
-  emoji: string;
-  left: number;
-  animationDuration: number;
-  size: number;
-}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,37 +32,9 @@ const Friends = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) 
   const [searchUsername, setSearchUsername] = useState("");
   const [loading, setLoading] = useState(true);
   const [sendingRequest, setSendingRequest] = useState(false);
-  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
     fetchFriends();
-  }, []);
-
-  useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
-    let particleId = 0;
-
-    const generateParticle = () => {
-      const particle: Particle = {
-        id: particleId++,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 100,
-        animationDuration: 8 + Math.random() * 8,
-        size: 0.8 + Math.random() * 3,
-      };
-      
-      setParticles(prev => [...prev, particle]);
-
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => p.id !== particle.id));
-      }, particle.animationDuration * 1000);
-    };
-
-    const interval = setInterval(() => {
-      generateParticle();
-    }, 600);
-
-    return () => clearInterval(interval);
   }, []);
 
   const fetchFriends = async () => {

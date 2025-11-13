@@ -10,14 +10,6 @@ import { toast } from "sonner";
 import { User, Upload, Settings, Trophy, Heart, Gamepad2, Shield } from "lucide-react";
 import { useQuestTracking } from "@/hooks/useQuestTracking";
 
-interface Particle {
-  id: number;
-  emoji: string;
-  left: number;
-  animationDuration: number;
-  size: number;
-}
-
 interface ProfileData {
   user_id: string;
   username: string;
@@ -35,40 +27,12 @@ const Profile = () => {
   const [displayName, setDisplayName] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [stats, setStats] = useState({ gamesCreated: 0, totalLikes: 0, totalPlays: 0 });
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchProfile();
     fetchStats();
     checkAdminStatus();
-  }, []);
-
-  useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
-    let particleId = 0;
-
-    const generateParticle = () => {
-      const particle: Particle = {
-        id: particleId++,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 100,
-        animationDuration: 8 + Math.random() * 8,
-        size: 0.8 + Math.random() * 3,
-      };
-      
-      setParticles(prev => [...prev, particle]);
-
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => p.id !== particle.id));
-      }, particle.animationDuration * 1000);
-    };
-
-    const interval = setInterval(() => {
-      generateParticle();
-    }, 600);
-
-    return () => clearInterval(interval);
   }, []);
 
   const fetchProfile = async () => {

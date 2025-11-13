@@ -28,12 +28,6 @@ const Browser = () => {
   const location = useLocation();
   const { data: settings, isLoading } = useSiteSettings();
 
-  // Redirect to index if user didn't come from mode selection
-  useEffect(() => {
-    if (!location.state?.fromIndex) {
-      navigate("/", { replace: true });
-    }
-  }, [location.state, navigate]);
   
   // Load tabs from localStorage or use default
   const [tabs, setTabs] = useState<Tab[]>(() => {

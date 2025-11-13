@@ -10,16 +10,7 @@ import { Bug, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Particle {
-  id: number;
-  emoji: string;
-  left: number;
-  animationDuration: number;
-  size: number;
-}
-
 const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => {
-  const [particles, setParticles] = useState<Particle[]>([]);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,34 +24,6 @@ const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => 
   const [contactEmail, setContactEmail] = useState("");
   const [contactSubject, setContactSubject] = useState("");
   const [contactMessage, setContactMessage] = useState("");
-
-  useEffect(() => {
-    const emojis = ['🎃', '👻', '🍁', '🦇', '🍂', '💀', '🕷️', '🌙'];
-    let particleId = 0;
-
-    const generateParticle = () => {
-      const particle: Particle = {
-        id: particleId++,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 100,
-        animationDuration: 8 + Math.random() * 8,
-        size: 0.8 + Math.random() * 3,
-      };
-      
-      setParticles(prev => [...prev, particle]);
-
-      setTimeout(() => {
-        setParticles(prev => prev.filter(p => p.id !== particle.id));
-      }, particle.animationDuration * 1000);
-    };
-
-    const interval = setInterval(() => {
-      generateParticle();
-    }, 600);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const handleBugSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
