@@ -295,7 +295,7 @@ const GameDetail = () => {
   const handleLike = async () => {
     const sessionToken = localStorage.getItem("session_token");
     if (!sessionToken) {
-      toast.error("Please login to like games");
+      toast.error("Please login to like activities");
       navigate("/login");
       return;
     }
@@ -507,7 +507,7 @@ const GameDetail = () => {
             <div className="w-full max-w-7xl mb-8">
               <Button variant="ghost" onClick={() => navigate("/games")} className="gap-2 hover-scale hover-glow">
                 <ArrowLeft className="w-4 h-4" />
-                Back to Games
+                Back to Activity
               </Button>
             </div>
 

@@ -856,7 +856,7 @@ const Admin = () => {
           <Card className="p-6 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 hover:border-accent/50 transition-all hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Games</p>
+                <p className="text-sm text-muted-foreground mb-1">Total Activity</p>
                 <p className="text-3xl font-bold">{stats.totalGames}</p>
               </div>
               <BarChart3 className="w-10 h-10 text-accent opacity-50" />
@@ -890,7 +890,7 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="games" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Gamepad2 className="w-4 h-4" />
-              Games
+              Activity
             </TabsTrigger>
             <TabsTrigger value="flags" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Flag className="w-4 h-4" />
@@ -1031,16 +1031,16 @@ const Admin = () => {
           {/* Games Tab */}
           <TabsContent value="games" className="space-y-6">
             <Card className="p-8 bg-gradient-to-br from-card to-card/80 border-2 border-border/50 rounded-2xl shadow-lg">
-              <h2 className="text-3xl font-bold mb-6 gradient-text flex items-center gap-3">
+                <h2 className="text-3xl font-bold mb-6 gradient-text flex items-center gap-3">
                 <Gamepad2 className="w-8 h-8" />
-                Game Management
+                Activity Management
               </h2>
               
               {/* Edit Game Form */}
               {editingGame && (
                 <div className="mb-8 p-6 bg-primary/5 border-2 border-primary/20 rounded-xl space-y-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Edit Game</h3>
+                    <h3 className="text-xl font-bold">Edit Activity</h3>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -1055,13 +1055,13 @@ const Admin = () => {
                     </Button>
                   </div>
                   <Input
-                    placeholder="Game title..."
+                    placeholder="Activity title..."
                     value={editGameTitle}
                     onChange={(e) => setEditGameTitle(e.target.value)}
                     className="h-12 bg-card/50 border-2 border-border/50 rounded-xl"
                   />
                   <Textarea
-                    placeholder="Game description..."
+                    placeholder="Activity description..."
                     value={editGameDescription}
                     onChange={(e) => setEditGameDescription(e.target.value)}
                     className="min-h-24 bg-card/50 border-2 border-border/50 rounded-xl"
@@ -1140,7 +1140,7 @@ const Admin = () => {
                 {games.length === 0 && (
                   <div className="text-center py-16">
                     <Gamepad2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-xl text-muted-foreground">No games found</p>
+                    <p className="text-xl text-muted-foreground">No activities found</p>
                   </div>
                 )}
               </div>

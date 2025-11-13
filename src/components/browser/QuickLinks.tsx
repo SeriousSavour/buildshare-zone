@@ -12,7 +12,7 @@ const QuickLinks = () => {
 
   const links = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Gamepad2, label: "Games", path: "/games" },
+    { icon: Gamepad2, label: "Activity", path: "/games" },
     { icon: Users, label: "Friends", path: "/friends" },
     { icon: MessageCircle, label: "Chat", path: "/chat" },
     { icon: Wrench, label: "Tools", path: "/tools" },

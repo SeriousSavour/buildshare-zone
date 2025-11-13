@@ -131,7 +131,7 @@ const Browser = () => {
 
   const quickLinks = [
     { icon: Home, label: "Home", type: "home" as const },
-    { icon: Gamepad2, label: "Games", type: "games" as const },
+    { icon: Gamepad2, label: "Activity", type: "games" as const },
     { icon: Users, label: "Friends", type: "friends" as const },
     { icon: MessageCircle, label: "Chat", type: "chat" as const },
     { icon: Wrench, label: "Tools", type: "tools" as const },
@@ -175,8 +175,8 @@ const Browser = () => {
   const navigateToContent = (type: Tab["type"]) => {
     const titles: Record<Tab["type"], string> = {
       home: "Home",
-      games: "Games",
-      friends: "Friends", 
+      games: "Activity",
+      friends: "Friends",
       chat: "Chat",
       tools: "Tools",
       help: "Help",

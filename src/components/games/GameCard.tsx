@@ -58,7 +58,7 @@ const GameCard = ({
   const handleLike = async () => {
     const sessionToken = localStorage.getItem('session_token');
     if (!sessionToken) {
-      toast.error("Please login to like games");
+      toast.error("Please login to like activities");
       return;
     }
 
@@ -130,7 +130,7 @@ const GameCard = ({
     try {
       const sessionToken = localStorage.getItem('session_token');
       if (!sessionToken) {
-        toast.error("Please login to delete games");
+        toast.error("Please login to delete activities");
         return;
       }
 

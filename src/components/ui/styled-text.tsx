@@ -34,7 +34,7 @@ export const StyledKeyword: React.FC<{ keyword: string; className?: string }> = 
   className = "" 
 }) => {
   const keywordStyles: Record<string, number> = {
-    'Games': 0,      // G
+    'Activity': 0,      // A
     'Action': 2,     // t
     'Likes': 1,      // i
     'Tools': 0,      // T

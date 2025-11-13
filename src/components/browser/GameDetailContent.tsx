@@ -167,7 +167,7 @@ const GameDetailContent = ({ gameId, isFullscreen: isParentFullscreen = false }:
     try {
       const sessionToken = localStorage.getItem('session_token');
       if (!sessionToken) {
-        toast.error('Please log in to like games');
+        toast.error('Please log in to like activities');
         return;
       }
 

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ const Navigation = () => {
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search the vault..." className="pl-10 bg-muted/50 border-border focus:border-primary/50" />
+            <Input placeholder="Search..." className="pl-10 bg-muted/50 border-border focus:border-primary/50" />
           </div>
 
           {/* Navigation Links */}
@@ -86,7 +87,7 @@ const Navigation = () => {
             </Link>
             <Link to="/games" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
               <Gamepad2 className="w-4 h-4" />
-              <span>g𐌀mes</span>
+              <span>Activity</span>
             </Link>
             <Link to="/tools" className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors text-foreground">
               <Wrench className="w-4 h-4" />
@@ -119,6 +120,7 @@ const Navigation = () => {
 
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {isAuthenticated ? <>
                 {isAdmin && (
                   <Button 

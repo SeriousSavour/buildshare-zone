@@ -85,7 +85,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
           // Refetch data
           fetchGames();
           fetchPopularGames();
-          toast.success('Games updated!');
+          toast.success('Activities updated!');
         }
       )
       .subscribe();
@@ -367,7 +367,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center space-y-6 w-full max-w-md">
               <div className="space-y-3">
-                <p className="text-3xl font-bold gradient-text-animated">Loading games...</p>
+                <p className="text-3xl font-bold gradient-text-animated">Loading activities...</p>
                 <p className="text-xl text-muted-foreground font-semibold">
                   Loading {totalGamesCount || '...'} assets
                 </p>
@@ -407,7 +407,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
               </div>
               
               <p className="text-sm text-muted-foreground">
-                Gathering games...
+                Gathering activities...
               </p>
             </div>
           </div>
@@ -434,16 +434,16 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         <div className="mb-12 space-y-6 animate-fade-in text-center">
           <div className="space-y-4">
             <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text-animated text-glow leading-tight animate-pulse-ring">
-              Games
+              Activity
             </h1>
             <p className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-foreground via-primary to-muted-foreground bg-clip-text text-transparent animate-fade-in-delay-1">
-              Discover amazing games!
+              Discover exciting activities!
             </p>
           </div>
           <div className="flex justify-center gap-3 flex-wrap">
             <div className="px-5 py-2 bg-card/60 border border-primary/30 rounded-full backdrop-blur-sm">
               <p className="text-base font-medium">
-                {games.length} games available
+                {games.length} activities available
               </p>
             </div>
           </div>

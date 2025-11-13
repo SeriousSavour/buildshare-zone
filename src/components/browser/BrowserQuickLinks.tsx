@@ -14,7 +14,7 @@ const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
 
   const links = [
     { icon: Home, label: "Home", path: "/", title: "Home" },
-    { icon: Gamepad2, label: "Games", path: "/games", title: "Games" },
+    { icon: Gamepad2, label: "Activity", path: "/games", title: "Activity" },
     { icon: Users, label: "Friends", path: "/friends", title: "Friends" },
     { icon: MessageCircle, label: "Chat", path: "/chat", title: "Chat" },
     { icon: Wrench, label: "Tools", path: "/tools", title: "Tools" },

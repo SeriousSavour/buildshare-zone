@@ -213,7 +213,7 @@ const Create = () => {
       // Set a flag to force refresh on Games page
       sessionStorage.setItem('force_games_refresh', 'true');
       
-      toast.success("Game created successfully!");
+      toast.success("Activity created successfully!");
       
       // Check if we're in browser mode and navigate accordingly
       if (window.location.pathname === '/browser') {
@@ -234,8 +234,8 @@ const Create = () => {
       <Navigation />
       <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight mb-2">Create New Game</h1>
-          <p className="text-muted-foreground">Upload your HTML5 game and share it with the community</p>
+          <h1 className="text-4xl font-bold tracking-tight mb-2">Create New Activity</h1>
+          <p className="text-muted-foreground">Upload your HTML5 activity and share it with the community</p>
         </div>
 
         <Card className="border-border/50 shadow-lg">
@@ -243,10 +243,10 @@ const Create = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-base font-semibold">Game Title</Label>
+                  <Label htmlFor="title" className="text-base font-semibold">Activity Title</Label>
                   <Input
                     id="title"
-                    placeholder="Enter your game title"
+                    placeholder="Enter your activity title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
@@ -258,7 +258,7 @@ const Create = () => {
                   <Label htmlFor="description" className="text-base font-semibold">Description</Label>
                   <Textarea
                     id="description"
-                    placeholder="Describe your game, its features, and gameplay"
+                    placeholder="Describe your activity, its features, and how to use it"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={5}
@@ -330,7 +330,7 @@ const Create = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">Game Source</Label>
+                  <Label className="text-base font-semibold">Activity Source</Label>
                   <div className="flex gap-4 mb-4">
                     <button
                       type="button"
@@ -352,7 +352,7 @@ const Create = () => {
                           : "bg-background border-border hover:border-primary/50"
                       }`}
                     >
-                      Enter Game URL
+                      Enter Activity URL
                     </button>
                   </div>
 
