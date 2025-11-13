@@ -374,31 +374,34 @@ const Browser = () => {
 
                 {/* First 9 links in 3x3 grid */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
-                  {quickLinks.slice(0, 9).map((link) => (
-                    <button
-                      key={link.id}
-                      onClick={() => !isEditingLinks && navigateToContent(link.type)}
-                      draggable={isEditingLinks}
-                      onDragStart={(e) => handleDragStart(e, link.id)}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, link.id)}
-                      className={`group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border transition-all duration-200 ${
-                        isEditingLinks 
-                          ? 'cursor-move hover:border-primary hover:scale-105' 
-                          : 'cursor-pointer hover:bg-card/80 hover:border-primary/50'
-                      } ${draggedLink === link.id ? 'opacity-50' : ''}`}
-                    >
-                      {isEditingLinks && (
-                        <div className="absolute top-2 right-2">
-                          <GripVertical className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                      )}
-                      <link.icon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
-                      <span className="text-base font-normal text-foreground tracking-wide">
-                        {link.label}
-                      </span>
-                    </button>
-                  ))}
+                  {quickLinks.slice(0, 9).map((link) => {
+                    const IconComponent = link.icon;
+                    return (
+                      <button
+                        key={link.id}
+                        onClick={() => !isEditingLinks && navigateToContent(link.type)}
+                        draggable={isEditingLinks}
+                        onDragStart={(e) => handleDragStart(e, link.id)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, link.id)}
+                        className={`group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border transition-all duration-200 ${
+                          isEditingLinks 
+                            ? 'cursor-move hover:border-primary hover:scale-105' 
+                            : 'cursor-pointer hover:bg-card/80 hover:border-primary/50'
+                        } ${draggedLink === link.id ? 'opacity-50' : ''}`}
+                      >
+                        {isEditingLinks && (
+                          <div className="absolute top-2 right-2">
+                            <GripVertical className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <IconComponent className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+                        <span className="text-base font-normal text-foreground tracking-wide">
+                          {link.label}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
                 
                 {/* Create button centered */}
