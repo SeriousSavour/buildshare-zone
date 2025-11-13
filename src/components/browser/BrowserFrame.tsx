@@ -34,35 +34,35 @@ const BrowserFrame = ({
     >
       {/* Browser Chrome */}
       {showTabs && (
-        <div className="bg-[#0f1419] border-b border-white/5">
+        <div className="bg-[#0a0f1a] border-b border-white/10 backdrop-blur-xl">
           {/* Tab Bar */}
-          <div className="flex items-center px-2 py-1 bg-[#0a0e13]">
+          <div className="flex items-center px-4 py-2.5 bg-gradient-to-b from-[#0d1219] to-[#0a0f1a]">
             {tabs.map((tab) => (
               <div
                 key={tab.id}
-                className="flex items-center gap-2 px-4 py-2 bg-[#1a1f29] border-t border-x border-white/10 rounded-t-lg min-w-[180px]"
+                className="flex items-center gap-3 px-5 py-3 bg-gradient-to-b from-[#1a2332] to-[#141d2b] border border-white/10 rounded-t-xl min-w-[200px] shadow-lg"
               >
-                <span className="text-sm truncate text-gray-300">{tab.title}</span>
+                <span className="text-sm font-medium truncate text-foreground">{tab.title}</span>
                 <button className="opacity-0 hover:opacity-100 transition-opacity">
-                  <X className="h-3 w-3 text-gray-400 hover:text-gray-200" />
+                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
                 </button>
               </div>
             ))}
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-1 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 ml-2 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-lg">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Navigation Bar */}
-          <div className="px-3 py-2 flex items-center gap-2 bg-[#0f1419]">
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+          <div className="px-5 py-3.5 flex items-center gap-3 bg-[#0a0f1a]">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-lg transition-all">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-lg transition-all">
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-lg transition-all">
                 <RotateCw className="h-4 w-4" />
               </Button>
             </div>
@@ -72,20 +72,20 @@ const BrowserFrame = ({
               <Input
                 value={addressBar}
                 onChange={(e) => setAddressBar(e.target.value)}
-                className="w-full bg-[#1a1f29] border-white/10 pr-10 text-gray-300 placeholder:text-gray-500 focus:border-white/20"
+                className="w-full h-10 bg-[#141d2b] border-white/10 rounded-xl px-4 pr-12 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                 placeholder="Enter URL..."
               />
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-lg"
                 onClick={() => navigate("/")}
               >
                 <Home className="h-4 w-4" />
               </Button>
             </div>
 
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-lg transition-all">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
@@ -93,7 +93,7 @@ const BrowserFrame = ({
       )}
 
       {/* Content Area */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-10">
         {children}
       </div>
     </div>
