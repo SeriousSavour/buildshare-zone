@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2 } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { StyledText } from "@/components/ui/styled-text";
+import { supabase } from "@/integrations/supabase/client";
 import Games from "./Games";
 import Friends from "./Friends";
 import Chat from "./Chat";
@@ -27,6 +27,8 @@ const Browser = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: settings, isLoading } = useSiteSettings();
+  const [username, setUsername] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   
   // Load tabs from localStorage or use default
@@ -64,6 +66,34 @@ const Browser = () => {
 
   const siteName = settings?.site_name || "shadow";
   const discordInvite = settings?.discord_invite || "discord.gg/goshadow";
+
+  // Check if user is "wild" for admin access
+  useEffect(() => {
+    const checkUser = async () => {
+      const sessionToken = localStorage.getItem("session_token");
+      if (!sessionToken) return;
+
+      try {
+        const { data: userData } = await supabase.rpc('get_user_by_session', {
+          _session_token: sessionToken
+        });
+
+        if (userData && userData.length > 0) {
+          const user = userData[0].username;
+          setUsername(user);
+          
+          // Check if username is exactly "wild"
+          if (user === "wild") {
+            setIsAdmin(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking user:', error);
+      }
+    };
+
+    checkUser();
+  }, []);
 
   // Save tabs to localStorage whenever they change
   useEffect(() => {
@@ -205,30 +235,36 @@ const Browser = () => {
     switch (activeTabData.type) {
       case "home":
         return (
-          <div className="w-full max-w-4xl">
-            <div className="space-y-8 w-full">
-              <div className="text-center space-y-3">
-                <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent drop-shadow-2xl">
-                  <StyledText text={siteName} weirdLetterIndex={0} />
+          <div className="w-full max-w-5xl mx-auto px-8">
+            <div className="space-y-12 w-full">
+              {/* Site branding - Windows style */}
+              <div className="text-center space-y-4 pt-8">
+                <div className="flex justify-center mb-6">
+                  <div className="w-24 h-24 grid grid-cols-2 gap-2">
+                    <div className="bg-primary rounded-sm"></div>
+                    <div className="bg-secondary rounded-sm"></div>
+                    <div className="bg-accent rounded-sm"></div>
+                    <div className="bg-blue-500 rounded-sm"></div>
+                  </div>
+                </div>
+                <h1 className="text-7xl font-light tracking-wide text-foreground">
+                  {siteName}
                 </h1>
-                <p className="text-gray-400 text-sm">{discordInvite}</p>
+                <p className="text-muted-foreground text-base tracking-wide">{discordInvite}</p>
               </div>
               
-              <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-                {quickLinks.map((link, index) => (
+              {/* Quick links - Windows tiles style */}
+              <div className="grid grid-cols-3 gap-4 max-w-4xl mx-auto">
+                {quickLinks.map((link) => (
                   <button
                     key={link.type}
                     onClick={() => navigateToContent(link.type)}
-                    className="group relative flex flex-col items-center gap-4 p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/10"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border hover:bg-card/80 hover:border-primary/50 transition-all duration-200"
                   >
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-blue-600/30 transition-all duration-300">
-                      <link.icon className="w-7 h-7 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">
-                      <StyledText text={link.label} weirdLetterIndex={0} />
+                    <link.icon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+                    <span className="text-base font-normal text-foreground tracking-wide">
+                      {link.label}
                     </span>
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/0 to-blue-600/0 group-hover:from-blue-500/5 group-hover:to-blue-600/5 transition-all duration-300 pointer-events-none" />
                   </button>
                 ))}
               </div>
@@ -344,6 +380,20 @@ const Browser = () => {
                 <Home className="h-4 w-4" />
               </Button>
             </div>
+
+            {/* Admin Panel Button (only for "wild" user) */}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+                onClick={() => navigate("/admin")}
+                title="Admin Panel"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="text-xs">Admin</span>
+              </Button>
+            )}
 
             <Button 
               variant="ghost" 
