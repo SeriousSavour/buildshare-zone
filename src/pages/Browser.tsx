@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import BrowserTaskbar from "@/components/browser/BrowserTaskbar";
-import BlueLightStreaks from "@/components/browser/BlueLightStreaks";
 import AnimatedPhilosopherQuote from "@/components/browser/AnimatedPhilosopherQuote";
 import { 
   HomeIcon, 
@@ -571,9 +570,6 @@ const Browser = () => {
       className="min-h-screen flex flex-col relative"
       style={{ background }}
     >
-      {/* Animated Background */}
-      <BlueLightStreaks />
-      
       {/* Browser Chrome */}
       {!isFullscreen && (
         <div className="relative z-10 bg-[#0a0d12] border-b border-blue-500/20 shadow-lg shadow-blue-500/10">
