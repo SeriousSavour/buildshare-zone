@@ -10,7 +10,7 @@ interface BrowserQuickLinksProps {
 const BrowserQuickLinks = ({ onNavigate }: BrowserQuickLinksProps) => {
   const { data: settings } = useSiteSettings();
 
-  const siteName = settings?.site_name || "shadow";
+  const siteName = settings?.site_name || "philosopher";
   const tagline = settings?.site_tagline || "Your Gateway to Endless Possibilities";
   const quoteOfTheDay = getRandomQuote(settings?.quote_of_the_day);
 

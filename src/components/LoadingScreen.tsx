@@ -37,7 +37,7 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
-      {/* Shadow branded logo */}
+      {/* Philosopher branded logo */}
       <div className="mb-8">
         <div className="relative">
           {/* Windows-style square grid */}
@@ -49,7 +49,7 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
           </div>
           {/* Brand name */}
           <h1 className="text-3xl font-bold text-center text-foreground">
-            shadow
+            philosopher
           </h1>
         </div>
       </div>

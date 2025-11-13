@@ -46,7 +46,7 @@ export const StyledKeyword: React.FC<{ keyword: string; className?: string }> = 
     'Chat': 0,       // C
     'Profile': 3,    // f
     'Settings': 4,   // i
-    'shadow': 0,     // s
+    'philosopher': 0,     // p
     'Browser': 1,    // r
     'Home': 0,       // H
     'Help': 1,       // e

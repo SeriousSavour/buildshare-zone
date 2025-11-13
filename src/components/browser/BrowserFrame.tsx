@@ -14,14 +14,14 @@ interface BrowserFrameProps {
 
 const BrowserFrame = ({ 
   children, 
-  currentUrl = "shadow://home",
+  currentUrl = "philosopher://home",
   showTabs = true,
   customBackground
 }: BrowserFrameProps) => {
   const navigate = useNavigate();
   const [addressBar, setAddressBar] = useState(currentUrl);
   const [tabs] = useState([
-    { id: "1", title: "Home", url: "shadow://home" }
+    { id: "1", title: "Home", url: "philosopher://home" }
   ]);
   
   const { data: settings } = useSiteSettings();

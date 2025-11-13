@@ -136,7 +136,7 @@ const SiteSettingsPanel = () => {
           <Input
             value={settings.site_name}
             onChange={(e) => setSettings({ ...settings, site_name: e.target.value })}
-            placeholder="shadow"
+            placeholder="philosopher"
           />
           <p className="text-xs text-muted-foreground">
             Displayed on login/register pages
