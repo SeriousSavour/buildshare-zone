@@ -13,12 +13,12 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(onLoadComplete, 800);
+          setTimeout(onLoadComplete, 200);
           return 100;
         }
-        return prev + 3;
+        return prev + 8;
       });
-    }, 40);
+    }, 25);
 
     return () => clearInterval(interval);
   }, [onLoadComplete]);
@@ -33,20 +33,27 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
-      {/* Windows-style logo */}
-      <div className="mb-12 animate-fade-in">
-        <div className="w-24 h-24 grid grid-cols-2 gap-2">
-          <div className="bg-primary rounded-sm shadow-lg shadow-primary/50"></div>
-          <div className="bg-secondary rounded-sm shadow-lg shadow-secondary/50"></div>
-          <div className="bg-accent rounded-sm shadow-lg shadow-accent/50"></div>
-          <div className="bg-blue-500 rounded-sm shadow-lg shadow-blue-500/50"></div>
+      {/* Shadow branded logo */}
+      <div className="mb-8 animate-fade-in">
+        <div className="relative">
+          {/* Windows-style square grid */}
+          <div className="w-32 h-32 grid grid-cols-2 gap-2 mb-4">
+            <div className="bg-primary rounded-sm shadow-lg shadow-primary/50 animate-pulse"></div>
+            <div className="bg-secondary rounded-sm shadow-lg shadow-secondary/50 animate-pulse" style={{ animationDelay: "0.1s" }}></div>
+            <div className="bg-accent rounded-sm shadow-lg shadow-accent/50 animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+            <div className="bg-blue-500 rounded-sm shadow-lg shadow-blue-500/50 animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+          </div>
+          {/* Brand name */}
+          <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            shadow
+          </h1>
         </div>
       </div>
 
       {/* Loading spinner */}
-      <div className="relative w-10 h-10 mb-8">
-        <div className="absolute inset-0 border-4 border-foreground/20 rounded-full"></div>
-        <div className="absolute inset-0 border-4 border-t-foreground rounded-full animate-spin"></div>
+      <div className="relative w-8 h-8 mb-6">
+        <div className="absolute inset-0 border-3 border-foreground/20 rounded-full"></div>
+        <div className="absolute inset-0 border-3 border-t-foreground rounded-full animate-spin"></div>
       </div>
 
       {/* Loading text */}
