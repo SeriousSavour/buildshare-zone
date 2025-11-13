@@ -106,6 +106,11 @@ const Browser = () => {
       if (saved) {
         const savedOrder = JSON.parse(saved);
         console.log("Parsed saved order:", savedOrder);
+        // If empty array, use defaults
+        if (!savedOrder || savedOrder.length === 0) {
+          console.log("Empty saved order, using DEFAULT_QUICK_LINKS");
+          return DEFAULT_QUICK_LINKS;
+        }
         // Reconstruct the quick links array with actual icon components
         const reconstructed = savedOrder.map((id: string) => 
           DEFAULT_QUICK_LINKS.find(link => link.id === id)
