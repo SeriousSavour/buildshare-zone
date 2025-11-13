@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ interface WindowsLoginProps {
 
 const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,8 +41,13 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
   }, []);
 
   const handleAuth = async () => {
-    if (!email || !password) {
+    if (!username || !password) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (username.length < 3) {
+      toast.error("Username must be at least 3 characters");
       return;
     }
 
@@ -54,48 +59,24 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
     setLoading(true);
     try {
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast.error("Invalid email or password. Please try again or sign up.");
-          } else {
-            toast.error(error.message);
-          }
-          return;
-        }
-        if (data.user) {
-          toast.success("Welcome back!");
-          setTimeout(() => onLoginComplete(), 500);
-        }
+        await api.login(username, password);
+        toast.success("Welcome back!");
+        setTimeout(() => onLoginComplete(), 500);
       } else {
-        const redirectUrl = `${window.location.origin}/`;
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl
-          }
-        });
-        if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("This email is already registered. Please sign in instead.");
-            setIsLogin(true);
-          } else {
-            toast.error(error.message);
-          }
-          return;
-        }
-        if (data.user) {
-          toast.success("Account created! You can now sign in.");
-          setIsLogin(true);
-          setPassword("");
-        }
+        await api.register(username, password);
+        toast.success("Account created! You can now sign in.");
+        setIsLogin(true);
+        setPassword("");
       }
     } catch (error: any) {
-      toast.error(error.message || "Authentication failed");
+      if (error.message.includes("Invalid credentials")) {
+        toast.error("Invalid username or password. Please try again or sign up.");
+      } else if (error.message.includes("already exists")) {
+        toast.error("This username is already taken. Please choose another or sign in.");
+        setIsLogin(true);
+      } else {
+        toast.error(error.message || "Authentication failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -151,16 +132,17 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
           </p>
         </div>
 
-        {/* Email input */}
+        {/* Username input */}
         <div className="space-y-2">
           <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="h-12 bg-card border-border"
             disabled={loading}
             onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+            autoComplete="username"
           />
         </div>
 
