@@ -1503,6 +1503,14 @@ export type Database = {
         Args: { _increment?: number; _quest_type: string; _user_id: string }
         Returns: boolean
       }
+      update_site_setting: {
+        Args: {
+          _session_token: string
+          _setting_key: string
+          _setting_value: string
+        }
+        Returns: boolean
+      }
       update_username_with_context: {
         Args: { _new_username: string; _session_token: string }
         Returns: boolean

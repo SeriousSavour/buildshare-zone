@@ -81,26 +81,21 @@ const SiteSettingsPanel = () => {
 
       console.log("Saving settings:", settings);
 
-      // Update each setting
-      const updates = Object.entries(settings).map(([key, value]) => {
-        return supabase
-          .from("site_settings")
-          .update({ 
-            setting_value: value, 
-            updated_at: new Date().toISOString() 
-          })
-          .eq("setting_key", key);
+      // Update each setting using the RPC function
+      const updates = Object.entries(settings).map(async ([key, value]) => {
+        const { error } = await supabase.rpc('update_site_setting', {
+          _session_token: sessionToken,
+          _setting_key: key,
+          _setting_value: value
+        });
+        
+        if (error) {
+          console.error(`Error updating ${key}:`, error);
+          throw error;
+        }
       });
 
-      const results = await Promise.all(updates);
-      
-      // Check for errors
-      const errors = results.filter(r => r.error);
-      if (errors.length > 0) {
-        console.error("Errors saving settings:", errors);
-        toast.error("Some settings failed to save");
-        return;
-      }
+      await Promise.all(updates);
 
       console.log("Settings saved successfully");
       
