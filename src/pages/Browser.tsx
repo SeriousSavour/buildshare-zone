@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
+import BrowserTaskbar from "@/components/browser/BrowserTaskbar";
 import Games from "./Games";
 import Friends from "./Friends";
 import Chat from "./Chat";
@@ -232,6 +233,9 @@ const Browser = () => {
       );
     }
 
+    // Wrap content with transition
+    const content = (() => {
+
     switch (activeTabData.type) {
       case "home":
         return (
@@ -286,6 +290,13 @@ const Browser = () => {
       default:
         return null;
     }
+    })();
+
+    return (
+      <div className="animate-fade-in">
+        {content}
+      </div>
+    );
   };
 
   const openGameInTab = (gameId: string, gameTitle: string) => {
@@ -432,9 +443,28 @@ const Browser = () => {
           : activeTabData?.type === 'home' 
             ? 'flex items-center justify-center p-8' 
             : ''
-      }`}>
+      } ${!isFullscreen ? 'pb-12' : ''}`}>
         {renderContent()}
       </div>
+
+      {/* Taskbar */}
+      {!isFullscreen && (
+        <BrowserTaskbar
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabSelect={(tabId) => {
+            setActiveTab(tabId);
+            const tab = tabs.find(t => t.id === tabId);
+            if (tab) setAddressBar(tab.url);
+          }}
+          onTabClose={(tabId) => {
+            const mockEvent = { stopPropagation: () => {} } as React.MouseEvent;
+            closeTab(tabId, mockEvent);
+          }}
+          onNewTab={addNewTab}
+          isAdmin={isAdmin}
+        />
+      )}
     </div>
   );
 };

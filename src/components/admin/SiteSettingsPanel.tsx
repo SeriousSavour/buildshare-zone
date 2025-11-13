@@ -23,25 +23,43 @@ const SiteSettingsPanel = () => {
 
   const loadSettings = async () => {
     try {
+      setIsLoading(true);
+      
       const { data, error } = await supabase
         .from("site_settings")
         .select("*");
 
-      if (error) throw error;
+      console.log("Site settings data:", data);
+      console.log("Site settings error:", error);
+
+      if (error) {
+        console.error("Error loading settings:", error);
+        toast.error(`Failed to load settings: ${error.message}`);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        toast.error("No settings found in database");
+        return;
+      }
 
       const settingsObj: any = {};
-      data?.forEach((setting) => {
-        settingsObj[setting.setting_key] = setting.setting_value;
+      data.forEach((setting) => {
+        settingsObj[setting.setting_key] = setting.setting_value || "";
       });
+
+      console.log("Processed settings:", settingsObj);
 
       setSettings({
         login_background: settingsObj.login_background || "",
         site_name: settingsObj.site_name || "",
         discord_invite: settingsObj.discord_invite || ""
       });
-    } catch (error) {
+      
+      toast.success("Settings loaded successfully");
+    } catch (error: any) {
       console.error("Error loading settings:", error);
-      toast.error("Failed to load settings");
+      toast.error(`Failed to load settings: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -57,23 +75,37 @@ const SiteSettingsPanel = () => {
         return;
       }
 
-      // Set session context
-      await supabase.rpc("set_session_context", { _session_token: sessionToken });
+      console.log("Saving settings:", settings);
 
       // Update each setting
-      for (const [key, value] of Object.entries(settings)) {
-        const { error } = await supabase
+      const updates = Object.entries(settings).map(([key, value]) => {
+        return supabase
           .from("site_settings")
-          .update({ setting_value: value, updated_at: new Date().toISOString() })
+          .update({ 
+            setting_value: value, 
+            updated_at: new Date().toISOString() 
+          })
           .eq("setting_key", key);
+      });
 
-        if (error) throw error;
+      const results = await Promise.all(updates);
+      
+      // Check for errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        console.error("Errors saving settings:", errors);
+        toast.error("Some settings failed to save");
+        return;
       }
 
+      console.log("Settings saved successfully");
       toast.success("Settings saved successfully!");
-    } catch (error) {
+      
+      // Reload to confirm
+      await loadSettings();
+    } catch (error: any) {
       console.error("Error saving settings:", error);
-      toast.error("Failed to save settings");
+      toast.error(`Failed to save settings: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
