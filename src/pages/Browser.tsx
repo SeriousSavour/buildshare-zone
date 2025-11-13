@@ -102,16 +102,21 @@ const Browser = () => {
   const [quickLinks, setQuickLinks] = useState(() => {
     try {
       const saved = localStorage.getItem(QUICK_LINKS_KEY);
+      console.log("Saved quick links from localStorage:", saved);
       if (saved) {
         const savedOrder = JSON.parse(saved);
+        console.log("Parsed saved order:", savedOrder);
         // Reconstruct the quick links array with actual icon components
-        return savedOrder.map((id: string) => 
+        const reconstructed = savedOrder.map((id: string) => 
           DEFAULT_QUICK_LINKS.find(link => link.id === id)
         ).filter(Boolean);
+        console.log("Reconstructed quick links:", reconstructed.length, "items");
+        return reconstructed;
       }
     } catch (error) {
       console.error("Failed to load quick links:", error);
     }
+    console.log("Using DEFAULT_QUICK_LINKS:", DEFAULT_QUICK_LINKS.length, "items");
     return DEFAULT_QUICK_LINKS;
   });
 
@@ -374,9 +379,13 @@ const Browser = () => {
 
                 {/* First 9 links in 3x3 grid */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
-                  {quickLinks.slice(0, 9).map((link) => {
-                    const IconComponent = link.icon;
-                    return (
+                  {(() => {
+                    console.log("Rendering quick links. Total links:", quickLinks.length);
+                    console.log("First 9 links:", quickLinks.slice(0, 9));
+                    return quickLinks.slice(0, 9).map((link) => {
+                      console.log("Rendering link:", link.id, "Icon type:", typeof link.icon);
+                      const IconComponent = link.icon;
+                      return (
                       <button
                         key={link.id}
                         onClick={() => !isEditingLinks && navigateToContent(link.type)}
@@ -400,8 +409,9 @@ const Browser = () => {
                           {link.label}
                         </span>
                       </button>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
                 
                 {/* Create button centered */}
