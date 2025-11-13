@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { SnowEffect } from "@/components/winter/SnowEffect";
 import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
-import { SecurityStatus } from "@/components/security/SecurityStatus";
+
 import LoadingScreen from "@/components/LoadingScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -69,7 +69,6 @@ const App = () => {
         <TooltipProvider>
           <SnowEffect />
           <WalkingSnowman />
-          <SecurityStatus />
           <Toaster />
           <Sonner />
           <BrowserRouter>
