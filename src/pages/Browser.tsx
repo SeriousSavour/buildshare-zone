@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
 import BrowserTaskbar from "@/components/browser/BrowserTaskbar";
+import AnimatedPhilosopherQuote from "@/components/browser/AnimatedPhilosopherQuote";
 import Games from "./Games";
 import Friends from "./Friends";
 import Chat from "./Chat";
@@ -16,7 +17,6 @@ import GameDetailContent from "@/components/browser/GameDetailContent";
 import ProfileContent from "@/components/browser/ProfileContent";
 import SettingsContent from "@/components/browser/SettingsContent";
 import CreateContent from "@/components/browser/CreateContent";
-import { getRandomPhilosopherQuote } from "@/lib/greekQuotes";
 
 interface Tab {
   id: string;
@@ -101,9 +101,6 @@ const Browser = () => {
 
   const siteName = settings?.site_name || "shadow";
   const philosopherDefinition = "φιλόσοφος (philósophos) - Lover of Wisdom";
-  
-  // Get a random philosopher quote on component mount
-  const [philosopherQuote] = useState(() => getRandomPhilosopherQuote());
 
   // Save quick links to localStorage whenever they change
   useEffect(() => {
@@ -329,16 +326,8 @@ const Browser = () => {
                 </h1>
                 <p className="text-muted-foreground text-base tracking-wide italic">{philosopherDefinition}</p>
                 
-                {/* Philosopher Quote */}
-                <div className="mt-6 max-w-2xl mx-auto p-6 rounded-lg bg-card/30 border border-border/30">
-                  <p className="text-lg text-foreground/90 mb-2 italic">"{philosopherQuote.quote}"</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">— {philosopherQuote.author}</p>
-                    {philosopherQuote.greek && (
-                      <p className="text-xs text-primary/70 italic">{philosopherQuote.greek}</p>
-                    )}
-                  </div>
-                </div>
+                {/* Animated Philosopher Quote */}
+                <AnimatedPhilosopherQuote />
               </div>
               
               {/* Quick links - Windows tiles style */}

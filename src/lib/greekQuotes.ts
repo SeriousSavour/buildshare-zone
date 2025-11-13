@@ -2,7 +2,7 @@
  * Collection of philosophical quotes from ancient Greek philosophers
  */
 
-interface PhilosopherQuote {
+export interface PhilosopherQuote {
   quote: string;
   author: string;
   greek?: string;
