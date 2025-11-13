@@ -574,7 +574,7 @@ const Browser = () => {
       {!isFullscreen && (
         <div className="relative z-10 bg-[#0a0d12] border-b border-blue-500/20 shadow-lg shadow-blue-500/10">
           {/* Tab Bar */}
-          <div className="flex items-center px-4 py-3 bg-gradient-to-b from-[#0d1117] to-[#0a0d12]">
+          <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-b from-[#0d1117] to-[#0a0d12]">
             {tabs.map((tab) => (
               <div
                 key={tab.id}
