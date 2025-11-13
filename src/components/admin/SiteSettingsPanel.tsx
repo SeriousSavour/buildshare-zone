@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ChristmasThemeToggle } from "@/components/theme/ChristmasThemeToggle";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SiteSettingsPanel = () => {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState({
@@ -101,6 +103,10 @@ const SiteSettingsPanel = () => {
       }
 
       console.log("Settings saved successfully");
+      
+      // Invalidate and refetch the site settings cache
+      await queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      
       toast.success("Settings saved successfully!");
       
       // Reload to confirm
