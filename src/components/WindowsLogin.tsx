@@ -3,7 +3,7 @@ import { api } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Eye, EyeOff, User } from "lucide-react";
+import { Eye, EyeOff, User, Loader2 } from "lucide-react";
 import scenery1 from "@/assets/scenery-1.jpg";
 import scenery2 from "@/assets/scenery-2.jpg";
 import scenery3 from "@/assets/scenery-3.jpg";
@@ -113,6 +113,23 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
         </div>
       </div>
 
+      {/* Loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="w-12 h-12 text-foreground animate-spin" />
+            <div className="text-foreground text-lg font-medium">
+              {isLogin ? "Signing in..." : "Creating account..."}
+            </div>
+            <div className="flex space-x-2">
+              <div className="w-2 h-2 bg-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+              <div className="w-2 h-2 bg-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+              <div className="w-2 h-2 bg-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Login card */}
       <div className="relative w-full max-w-md p-8 space-y-6 animate-fade-in">
         {/* User icon */}
@@ -172,8 +189,9 @@ const WindowsLogin = ({ onLoginComplete }: WindowsLoginProps) => {
         <Button
           onClick={handleAuth}
           disabled={loading}
-          className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2"
         >
+          {loading && <Loader2 className="w-5 h-5 animate-spin" />}
           {loading ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
         </Button>
 
