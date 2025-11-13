@@ -36,18 +36,18 @@ const BrowserTaskbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-11 px-4 hover:bg-white/10 text-foreground hover:text-primary flex items-center gap-3 rounded-xl transition-all"
+          className="h-11 px-4 hover:bg-white/10 text-foreground hover:text-primary flex items-center gap-3 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
         >
-          <div className="w-6 h-6 grid grid-cols-2 gap-0.5">
-            <div className="bg-primary rounded-sm"></div>
-            <div className="bg-secondary rounded-sm"></div>
-            <div className="bg-accent rounded-sm"></div>
-            <div className="bg-primary/60 rounded-sm"></div>
+          <div className="w-6 h-6 grid grid-cols-2 gap-0.5 transition-transform duration-300 hover:rotate-180">
+            <div className="bg-primary rounded-sm transition-all duration-300 hover:scale-110"></div>
+            <div className="bg-secondary rounded-sm transition-all duration-300 hover:scale-110"></div>
+            <div className="bg-accent rounded-sm transition-all duration-300 hover:scale-110"></div>
+            <div className="bg-primary/60 rounded-sm transition-all duration-300 hover:scale-110"></div>
           </div>
         </Button>
 
         {/* Separator */}
-        <div className="w-px h-9 bg-white/10"></div>
+        <div className="w-px h-9 bg-white/10 transition-all duration-300"></div>
       </div>
 
       {/* Tab buttons */}
@@ -56,16 +56,16 @@ const BrowserTaskbar = ({
           <button
             key={tab.id}
             onClick={() => onTabSelect(tab.id)}
-            className={`group flex items-center gap-3 px-4 h-10 rounded-xl transition-all min-w-[160px] max-w-[220px] ${
+            className={`group flex items-center gap-3 px-4 h-10 rounded-xl transition-all duration-300 ease-out min-w-[160px] max-w-[220px] hover:scale-105 active:scale-95 ${
               activeTab === tab.id
-                ? 'bg-gradient-to-b from-[#1a2332] to-[#141d2b] text-foreground border border-white/10 shadow-lg'
+                ? 'bg-gradient-to-b from-[#1a2332] to-[#141d2b] text-foreground border border-white/10 shadow-lg animate-in fade-in-0 slide-in-from-bottom-2'
                 : 'bg-transparent text-muted-foreground hover:bg-white/5 hover:text-foreground'
             }`}
           >
-            <span className="text-sm font-medium truncate flex-1">{tab.title}</span>
+            <span className="text-sm font-medium truncate flex-1 transition-colors duration-200">{tab.title}</span>
             {tabs.length > 1 && (
               <X
-                className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:rotate-90 hover:text-destructive"
                 onClick={(e) => {
                   e.stopPropagation();
                   onTabClose(tab.id);
@@ -81,25 +81,25 @@ const BrowserTaskbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-10 w-10 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
+          className="h-10 w-10 p-0 hover:bg-white/10 text-muted-foreground hover:text-foreground rounded-xl transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-90"
           onClick={onNewTab}
           title="New tab (Ctrl+T)"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 transition-transform duration-300" />
         </Button>
 
         {isAdmin && (
           <>
-            <div className="w-px h-9 bg-white/10 mx-1"></div>
+            <div className="w-px h-9 bg-white/10 mx-1 transition-all duration-300"></div>
             <Button
               variant="ghost"
               size="sm"
-              className="h-10 px-4 hover:bg-white/10 text-muted-foreground hover:text-primary flex items-center gap-2 rounded-xl transition-all"
+              className="h-10 px-4 hover:bg-white/10 text-muted-foreground hover:text-primary flex items-center gap-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
               onClick={() => navigate("/admin")}
               title="Admin Panel"
             >
-              <Shield className="h-4 w-4" />
-              <span className="text-sm font-medium">Admin</span>
+              <Shield className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+              <span className="text-sm font-medium transition-colors duration-200">Admin</span>
             </Button>
           </>
         )}
