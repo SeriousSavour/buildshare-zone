@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Navigation from "@/components/layout/Navigation";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -147,8 +146,7 @@ const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => 
 
   return (
     <div className="min-h-screen bg-background relative">
-      <Navigation />
-      <AnnouncementBanner />
+      {!hideNavigation && <AnnouncementBanner />}
       
       <div className="container mx-auto px-4 py-8 relative z-10 max-w-2xl">
         <h1 className="text-4xl font-bold gradient-text mb-8">Help & Contact</h1>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield, Scroll, User, Settings as SettingsIcon } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield, Scroll, User, Settings as SettingsIcon, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -28,6 +28,20 @@ interface Tab {
 
 const STORAGE_KEY = 'browser_tabs_session';
 const ACTIVE_TAB_KEY = 'browser_active_tab';
+const QUICK_LINKS_KEY = 'browser_quick_links_order';
+
+const DEFAULT_QUICK_LINKS = [
+  { icon: Home, label: "Home", type: "home" as const, id: "home" },
+  { icon: Gamepad2, label: "Activity", type: "games" as const, id: "games" },
+  { icon: Users, label: "Friends", type: "friends" as const, id: "friends" },
+  { icon: MessageCircle, label: "Chat", type: "chat" as const, id: "chat" },
+  { icon: Wrench, label: "Tools", type: "tools" as const, id: "tools" },
+  { icon: HelpCircle, label: "Help", type: "help" as const, id: "help" },
+  { icon: Scroll, label: "Philosophy", type: "philosophy" as const, id: "philosophy" },
+  { icon: User, label: "Profile", type: "profile" as const, id: "profile" },
+  { icon: SettingsIcon, label: "Settings", type: "settings" as const, id: "settings" },
+  { icon: Plus, label: "Create", type: "create" as const, id: "create" },
+];
 
 const Browser = () => {
   const navigate = useNavigate();
@@ -69,12 +83,36 @@ const Browser = () => {
   });
   
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [draggedLink, setDraggedLink] = useState<string | null>(null);
+  const [isEditingLinks, setIsEditingLinks] = useState(false);
+
+  // Load quick links from localStorage or use defaults
+  const [quickLinks, setQuickLinks] = useState(() => {
+    try {
+      const saved = localStorage.getItem(QUICK_LINKS_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error("Failed to load quick links:", error);
+    }
+    return DEFAULT_QUICK_LINKS;
+  });
 
   const siteName = settings?.site_name || "shadow";
   const philosopherDefinition = "φιλόσοφος (philósophos) - Lover of Wisdom";
   
   // Get a random philosopher quote on component mount
   const [philosopherQuote] = useState(() => getRandomPhilosopherQuote());
+
+  // Save quick links to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(QUICK_LINKS_KEY, JSON.stringify(quickLinks));
+    } catch (error) {
+      console.error("Failed to save quick links:", error);
+    }
+  }, [quickLinks]);
 
   // Check if user is "wild" for admin access
   useEffect(() => {
@@ -162,18 +200,37 @@ const Browser = () => {
     setIsFullscreen(!isFullscreen);
   };
 
-  const quickLinks = [
-    { icon: Home, label: "Home", type: "home" as const },
-    { icon: Gamepad2, label: "Activity", type: "games" as const },
-    { icon: Users, label: "Friends", type: "friends" as const },
-    { icon: MessageCircle, label: "Chat", type: "chat" as const },
-    { icon: Wrench, label: "Tools", type: "tools" as const },
-    { icon: HelpCircle, label: "Help", type: "help" as const },
-    { icon: Scroll, label: "Philosophy", type: "philosophy" as const },
-    { icon: User, label: "Profile", type: "profile" as const },
-    { icon: SettingsIcon, label: "Settings", type: "settings" as const },
-    { icon: Plus, label: "Create", type: "create" as const },
-  ];
+  const handleDragStart = (e: React.DragEvent, linkId: string) => {
+    setDraggedLink(linkId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    
+    if (!draggedLink || draggedLink === targetId) return;
+
+    const draggedIndex = quickLinks.findIndex(link => link.id === draggedLink);
+    const targetIndex = quickLinks.findIndex(link => link.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const newLinks = [...quickLinks];
+    const [draggedItem] = newLinks.splice(draggedIndex, 1);
+    newLinks.splice(targetIndex, 0, draggedItem);
+
+    setQuickLinks(newLinks);
+    setDraggedLink(null);
+  };
+
+  const resetQuickLinks = () => {
+    setQuickLinks(DEFAULT_QUICK_LINKS);
+  };
 
   const addNewTab = () => {
     const newTab: Tab = {
@@ -286,14 +343,49 @@ const Browser = () => {
               
               {/* Quick links - Windows tiles style */}
               <div className="max-w-4xl mx-auto">
+                {/* Edit controls */}
+                <div className="flex justify-end gap-2 mb-4">
+                  <Button
+                    variant={isEditingLinks ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsEditingLinks(!isEditingLinks)}
+                    className="gap-2"
+                  >
+                    <GripVertical className="w-4 h-4" />
+                    {isEditingLinks ? "Done" : "Rearrange Links"}
+                  </Button>
+                  {isEditingLinks && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetQuickLinks}
+                    >
+                      Reset to Default
+                    </Button>
+                  )}
+                </div>
+
                 {/* First 9 links in 3x3 grid */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   {quickLinks.slice(0, 9).map((link) => (
                     <button
-                      key={link.type}
-                      onClick={() => navigateToContent(link.type)}
-                      className="group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border hover:bg-card/80 hover:border-primary/50 transition-all duration-200"
+                      key={link.id}
+                      onClick={() => !isEditingLinks && navigateToContent(link.type)}
+                      draggable={isEditingLinks}
+                      onDragStart={(e) => handleDragStart(e, link.id)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, link.id)}
+                      className={`group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-card border border-border transition-all duration-200 ${
+                        isEditingLinks 
+                          ? 'cursor-move hover:border-primary hover:scale-105' 
+                          : 'cursor-pointer hover:bg-card/80 hover:border-primary/50'
+                      } ${draggedLink === link.id ? 'opacity-50' : ''}`}
                     >
+                      {isEditingLinks && (
+                        <div className="absolute top-2 right-2">
+                          <GripVertical className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
                       <link.icon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
                       <span className="text-base font-normal text-foreground tracking-wide">
                         {link.label}
@@ -306,9 +398,22 @@ const Browser = () => {
                 {quickLinks[9] && (
                   <div className="flex justify-center">
                     <button
-                      onClick={() => navigateToContent(quickLinks[9].type)}
-                      className="group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-primary/10 border-2 border-primary hover:bg-primary/20 hover:border-primary transition-all duration-200 w-64"
+                      onClick={() => !isEditingLinks && navigateToContent(quickLinks[9].type)}
+                      draggable={isEditingLinks}
+                      onDragStart={(e) => handleDragStart(e, quickLinks[9].id)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, quickLinks[9].id)}
+                      className={`group relative flex flex-col items-center justify-center gap-4 p-8 rounded-sm bg-primary/10 border-2 border-primary transition-all duration-200 w-64 ${
+                        isEditingLinks 
+                          ? 'cursor-move hover:scale-105' 
+                          : 'cursor-pointer hover:bg-primary/20'
+                      } ${draggedLink === quickLinks[9].id ? 'opacity-50' : ''}`}
                     >
+                      {isEditingLinks && (
+                        <div className="absolute top-2 right-2">
+                          <GripVertical className="w-4 h-4 text-primary" />
+                        </div>
+                      )}
                       {(() => {
                         const CreateIcon = quickLinks[9].icon;
                         return <CreateIcon className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-200" />;
