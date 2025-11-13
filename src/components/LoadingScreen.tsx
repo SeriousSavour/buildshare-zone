@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface LoadingScreenProps {
   onLoadComplete: () => void;
@@ -6,45 +6,49 @@ interface LoadingScreenProps {
 
 const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
   const [progress, setProgress] = useState(0);
-  const [dots, setDots] = useState("");
+  const hasCompleted = useRef(false);
 
   useEffect(() => {
+    console.log("LoadingScreen mounted");
+    
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(onLoadComplete, 200);
+          if (!hasCompleted.current) {
+            hasCompleted.current = true;
+            console.log("Loading complete, calling callback");
+            setTimeout(() => {
+              console.log("Executing onLoadComplete");
+              onLoadComplete();
+            }, 100);
+          }
           return 100;
         }
-        return prev + 8;
+        return prev + 10;
       });
-    }, 25);
+    }, 20);
 
-    return () => clearInterval(interval);
-  }, [onLoadComplete]);
-
-  useEffect(() => {
-    const dotInterval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
-    }, 400);
-
-    return () => clearInterval(dotInterval);
+    return () => {
+      console.log("LoadingScreen unmounting");
+      clearInterval(interval);
+    };
   }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
       {/* Shadow branded logo */}
-      <div className="mb-8 animate-fade-in">
+      <div className="mb-8">
         <div className="relative">
           {/* Windows-style square grid */}
           <div className="w-32 h-32 grid grid-cols-2 gap-2 mb-4">
-            <div className="bg-primary rounded-sm shadow-lg shadow-primary/50 animate-pulse"></div>
-            <div className="bg-secondary rounded-sm shadow-lg shadow-secondary/50 animate-pulse" style={{ animationDelay: "0.1s" }}></div>
-            <div className="bg-accent rounded-sm shadow-lg shadow-accent/50 animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-            <div className="bg-blue-500 rounded-sm shadow-lg shadow-blue-500/50 animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+            <div className="bg-primary rounded-sm"></div>
+            <div className="bg-secondary rounded-sm"></div>
+            <div className="bg-accent rounded-sm"></div>
+            <div className="bg-blue-500 rounded-sm"></div>
           </div>
           {/* Brand name */}
-          <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <h1 className="text-3xl font-bold text-center text-foreground">
             shadow
           </h1>
         </div>
@@ -56,9 +60,9 @@ const LoadingScreen = ({ onLoadComplete }: LoadingScreenProps) => {
         <div className="absolute inset-0 border-3 border-t-foreground rounded-full animate-spin"></div>
       </div>
 
-      {/* Loading text */}
+      {/* Progress indicator */}
       <p className="text-foreground/70 text-sm tracking-wide">
-        Loading{dots}
+        {progress}%
       </p>
     </div>
   );

@@ -37,6 +37,8 @@ const App = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showContent, setShowContent] = useState(false);
   
+  console.log("App state:", { loading, showLogin, showContent });
+  
   // Initialize Christmas theme
   useChristmasTheme();
   
@@ -64,8 +66,13 @@ const App = () => {
 
   return (
     <div className="relative">
-      {loading && <LoadingScreen onLoadComplete={() => setShowLogin(true)} />}
+      {loading && <LoadingScreen onLoadComplete={() => {
+        console.log("onLoadComplete called");
+        setLoading(false);
+        setShowLogin(true);
+      }} />}
       {showLogin && !loading && <WindowsLogin onLoginComplete={() => {
+        console.log("onLoginComplete called");
         setShowLogin(false);
         setTimeout(() => setShowContent(true), 300);
       }} />}
