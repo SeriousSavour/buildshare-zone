@@ -572,11 +572,11 @@ const Browser = () => {
     >
       {/* Browser Chrome */}
       {!isFullscreen && (
-        <div className="bg-[#0f1419] border-b border-white/5">
+        <div className="bg-[#0a0d12] border-b border-blue-500/20 shadow-lg shadow-blue-500/5">
           {/* Tab Bar */}
-          <div className="flex items-center px-2 py-1 bg-[#0a0e13]">
+          <div className="flex items-center px-3 py-1.5 bg-gradient-to-b from-[#0d1117] to-[#0a0d12]">
             {tabs.map((tab) => (
-                <div
+              <div
                 key={tab.id}
                 onClick={() => {
                   if (activeTab !== tab.id) {
@@ -584,19 +584,20 @@ const Browser = () => {
                     setAddressBar(tab.url);
                   }
                 }}
-                className={`flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95 ${
+                className={`relative flex items-center gap-2 px-4 py-2 border-t border-x rounded-t-lg min-w-[180px] cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95 group ${
                   activeTab === tab.id 
-                    ? 'bg-[#1a1f29] border-white/10 shadow-lg' 
-                    : 'bg-[#0f1419] border-white/5 hover:bg-[#1a1f29]/50'
+                    ? 'bg-[#0d1117] border-blue-500/40 shadow-lg shadow-blue-500/10' 
+                    : 'bg-[#0a0d12] border-blue-500/10 hover:bg-[#0d1117]/50 hover:border-blue-500/30'
                 }`}
               >
-                <span className="text-sm truncate text-gray-300">{tab.title}</span>
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative text-xs font-medium truncate text-blue-100/90 group-hover:text-blue-50">{tab.title}</span>
                 {tabs.length > 1 && (
                   <button 
                     onClick={(e) => closeTab(tab.id, e)}
-                    className="ml-auto opacity-70 hover:opacity-100 transition-opacity hover:bg-white/10 rounded p-0.5"
+                    className="relative ml-auto opacity-70 hover:opacity-100 transition-all hover:bg-blue-500/10 rounded p-0.5 hover:rotate-90 duration-200"
                   >
-                    <X className="h-3 w-3 text-gray-400 hover:text-gray-200" />
+                    <X className="h-3 w-3 text-blue-300/60 hover:text-blue-100" />
                   </button>
                 )}
               </div>
@@ -604,24 +605,24 @@ const Browser = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 w-8 p-0 ml-1 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+              className="h-8 w-8 p-0 ml-2 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-90 border border-transparent hover:border-blue-500/20"
               onClick={addNewTab}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 transition-transform duration-300" />
             </Button>
           </div>
 
           {/* Navigation Bar */}
-          <div className="px-3 py-2 flex items-center gap-2 bg-[#0f1419]">
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-                <ArrowLeft className="h-4 w-4" />
+          <div className="px-4 py-2.5 flex items-center gap-3 bg-[#0a0d12]">
+            <div className="flex items-center gap-1.5">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20">
+                <ArrowLeft className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-                <ArrowRight className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20">
+                <ArrowRight className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-                <RotateCw className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20">
+                <RotateCw className="h-3.5 w-3.5" />
               </Button>
             </div>
 
@@ -630,16 +631,16 @@ const Browser = () => {
               <Input
                 value={addressBar}
                 onChange={(e) => setAddressBar(e.target.value)}
-                className="w-full bg-[#1a1f29] border-white/10 pr-10 text-gray-300 placeholder:text-gray-500 focus:border-white/20"
+                className="w-full h-9 bg-[#0d1117] border-blue-500/20 rounded-lg px-4 pr-12 text-blue-100/90 placeholder:text-blue-300/30 focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/20 focus:shadow-lg focus:shadow-blue-500/10 transition-all duration-300 font-mono text-sm"
                 placeholder="Enter URL..."
               />
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90"
                 onClick={() => navigateToContent("home")}
               >
-                <Home className="h-4 w-4" />
+                <Home className="h-3.5 w-3.5" />
               </Button>
             </div>
 
@@ -647,24 +648,24 @@ const Browser = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+              className="h-8 px-3 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 flex items-center gap-2 rounded-md transition-all duration-300 hover:scale-105 active:scale-95 border border-transparent hover:border-blue-500/20"
               onClick={() => navigateToContent("profile")}
               title="Profile"
             >
-              <User className="h-4 w-4" />
-              <span className="text-xs">Profile</span>
+              <User className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium">Profile</span>
             </Button>
 
             {/* Settings Button */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+              className="h-8 px-3 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 flex items-center gap-2 rounded-md transition-all duration-300 hover:scale-105 active:scale-95 border border-transparent hover:border-blue-500/20"
               onClick={() => navigateToContent("settings")}
               title="Settings"
             >
-              <SettingsIcon className="h-4 w-4" />
-              <span className="text-xs">Settings</span>
+              <SettingsIcon className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium">Settings</span>
             </Button>
 
             {/* Admin Panel Button (only for "wild" user) */}
@@ -672,27 +673,27 @@ const Browser = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 hover:bg-white/5 text-gray-400 hover:text-gray-200 flex items-center gap-2"
+                className="h-8 px-3 hover:bg-blue-500/10 text-blue-300/60 hover:text-primary flex items-center gap-2 rounded-md transition-all duration-300 hover:scale-105 active:scale-95 border border-transparent hover:border-blue-500/20"
                 onClick={() => navigate("/admin")}
                 title="Admin Panel"
               >
-                <Shield className="h-4 w-4" />
-                <span className="text-xs">Admin</span>
+                <Shield className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">Admin</span>
               </Button>
             )}
 
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200"
+              className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 active:scale-90 border border-transparent hover:border-blue-500/20"
               onClick={toggleFullscreen}
               title="Enter fullscreen (ESC to exit)"
             >
-              <Maximize2 className="h-4 w-4" />
+              <Maximize2 className="h-3.5 w-3.5" />
             </Button>
 
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-white/5 text-gray-400 hover:text-gray-200">
-              <MoreVertical className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-blue-500/10 text-blue-300/60 hover:text-blue-100 rounded-md transition-all duration-300 hover:scale-110 hover:rotate-90 active:scale-90 border border-transparent hover:border-blue-500/20">
+              <MoreVertical className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -703,7 +704,7 @@ const Browser = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="fixed top-4 right-4 z-50 h-10 px-4 bg-black/80 hover:bg-black/90 text-white border border-white/20 backdrop-blur-sm"
+          className="fixed top-4 right-4 z-50 h-10 px-4 bg-[#0d1117]/95 hover:bg-[#0d1117] text-blue-100 border border-blue-500/30 backdrop-blur-xl shadow-lg shadow-blue-500/20 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
           onClick={toggleFullscreen}
         >
           <Minimize2 className="h-4 w-4 mr-2" />
