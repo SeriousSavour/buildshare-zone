@@ -10,6 +10,7 @@ import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 
 import LoadingScreen from "@/components/LoadingScreen";
+import WindowsLogin from "@/components/WindowsLogin";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Browser from "./pages/Browser";
@@ -33,6 +34,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [loading, setLoading] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
   const [showContent, setShowContent] = useState(false);
   
   // Initialize Christmas theme
@@ -55,14 +57,19 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !showLogin) {
       setTimeout(() => setShowContent(true), 300);
     }
-  }, [loading]);
+  }, [loading, showLogin]);
 
   return (
-    <div className="relative">{loading && <LoadingScreen onLoadComplete={() => setLoading(false)} />}
-    <div className={`transition-opacity duration-500 ${showContent && !loading ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="relative">
+      {loading && <LoadingScreen onLoadComplete={() => setShowLogin(true)} />}
+      {showLogin && !loading && <WindowsLogin onLoginComplete={() => {
+        setShowLogin(false);
+        setTimeout(() => setShowContent(true), 300);
+      }} />}
+    <div className={`transition-opacity duration-500 ${showContent && !loading && !showLogin ? 'opacity-100' : 'opacity-0'}`}>
     <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
