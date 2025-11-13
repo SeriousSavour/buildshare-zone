@@ -12,6 +12,7 @@ import Chat from "./Chat";
 import Tools from "./Tools";
 import Help from "./Help";
 import GameDetailContent from "@/components/browser/GameDetailContent";
+import { getRandomPhilosopherQuote } from "@/lib/greekQuotes";
 
 interface Tab {
   id: string;
@@ -67,6 +68,9 @@ const Browser = () => {
 
   const siteName = settings?.site_name || "shadow";
   const philosopherDefinition = "φιλόσοφος (philósophos) - Lover of Wisdom";
+  
+  // Get a random philosopher quote on component mount
+  const [philosopherQuote] = useState(() => getRandomPhilosopherQuote());
 
   // Check if user is "wild" for admin access
   useEffect(() => {
@@ -255,6 +259,17 @@ const Browser = () => {
                   {siteName}
                 </h1>
                 <p className="text-muted-foreground text-base tracking-wide italic">{philosopherDefinition}</p>
+                
+                {/* Philosopher Quote */}
+                <div className="mt-6 max-w-2xl mx-auto p-6 rounded-lg bg-card/30 border border-border/30">
+                  <p className="text-lg text-foreground/90 mb-2 italic">"{philosopherQuote.quote}"</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">— {philosopherQuote.author}</p>
+                    {philosopherQuote.greek && (
+                      <p className="text-xs text-primary/70 italic">{philosopherQuote.greek}</p>
+                    )}
+                  </div>
+                </div>
               </div>
               
               {/* Quick links - Windows tiles style */}
