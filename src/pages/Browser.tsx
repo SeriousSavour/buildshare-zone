@@ -91,7 +91,11 @@ const Browser = () => {
     try {
       const saved = localStorage.getItem(QUICK_LINKS_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const savedOrder = JSON.parse(saved);
+        // Reconstruct the quick links array with actual icon components
+        return savedOrder.map((id: string) => 
+          DEFAULT_QUICK_LINKS.find(link => link.id === id)
+        ).filter(Boolean);
       }
     } catch (error) {
       console.error("Failed to load quick links:", error);
@@ -102,10 +106,12 @@ const Browser = () => {
   const siteName = settings?.site_name || "shadow";
   const philosopherDefinition = "φιλόσοφος (philósophos) - Lover of Wisdom";
 
-  // Save quick links to localStorage whenever they change
+  // Save quick links order to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(QUICK_LINKS_KEY, JSON.stringify(quickLinks));
+      // Only save the IDs, not the entire objects with icon components
+      const order = quickLinks.map(link => link.id);
+      localStorage.setItem(QUICK_LINKS_KEY, JSON.stringify(order));
     } catch (error) {
       console.error("Failed to save quick links:", error);
     }
