@@ -1,0 +1,79 @@
+import { ChristmasThemeToggle } from "@/components/theme/ChristmasThemeToggle";
+
+const SettingsContent = () => {
+  return (
+    <div className="w-full max-w-4xl mx-auto p-8">
+      <h1 className="text-4xl font-bold mb-8 gradient-text">Settings</h1>
+      
+      <div className="space-y-8">
+        <div className="glass-card p-6 rounded-lg border border-white/10">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">Profile Settings</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Username</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-2 bg-background/50 border border-white/10 rounded-lg text-foreground" 
+                placeholder="Your username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
+              <input 
+                type="email" 
+                className="w-full px-4 py-2 bg-background/50 border border-white/10 rounded-lg text-foreground" 
+                placeholder="your.email@example.com"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-card p-6 rounded-lg border border-white/10">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">Appearance</h2>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Theme</label>
+              <select className="w-full px-4 py-2 bg-background/50 border border-white/10 rounded-lg text-foreground">
+                <option>Dark Mode</option>
+                <option>Light Mode</option>
+                <option>System</option>
+              </select>
+            </div>
+            
+            <ChristmasThemeToggle />
+          </div>
+        </div>
+
+        <div className="glass-card p-6 rounded-lg border border-white/10">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">Privacy</h2>
+          <div className="space-y-4">
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-foreground">Show online status</span>
+              <input type="checkbox" className="w-5 h-5" defaultChecked />
+            </label>
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-foreground">Allow friend requests</span>
+              <input type="checkbox" className="w-5 h-5" defaultChecked />
+            </label>
+          </div>
+        </div>
+
+        <div className="glass-card p-6 rounded-lg border border-white/10">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">Notifications</h2>
+          <div className="space-y-4">
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-foreground">Email notifications</span>
+              <input type="checkbox" className="w-5 h-5" defaultChecked />
+            </label>
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-foreground">Push notifications</span>
+              <input type="checkbox" className="w-5 h-5" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsContent;

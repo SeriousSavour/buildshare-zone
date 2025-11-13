@@ -1,0 +1,432 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Upload } from "lucide-react";
+
+const CreateContent = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  
+  const MAX_HTML_SIZE = 500 * 1024 * 1024;
+  const MAX_IMAGE_SIZE = 500 * 1024 * 1024;
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    genre: "Action",
+    max_players: "1",
+    category: "game"
+  });
+  const [gameUrl, setGameUrl] = useState("");
+  const [gameFile, setGameFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDraggingGame, setIsDraggingGame] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [useFileUpload, setUseFileUpload] = useState(true);
+
+  const toggleUploadMode = (isFileUpload: boolean) => {
+    setUseFileUpload(isFileUpload);
+    if (isFileUpload) {
+      setGameUrl("");
+      setGameFile(null);
+    }
+    if (!isFileUpload) {
+      setGameFile(null);
+      setGameUrl("");
+    }
+  };
+
+  const handleGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!(file.type === "text/html" || file.name.endsWith(".html"))) {
+        toast.error("Please upload an HTML file");
+        return;
+      }
+      if (file.size > MAX_HTML_SIZE) {
+        toast.error(`HTML file size must be less than ${MAX_HTML_SIZE / (1024 * 1024)}MB`);
+        return;
+      }
+      setGameFile(file);
+    }
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload an image file");
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error(`Image file size must be less than ${MAX_IMAGE_SIZE / (1024 * 1024)}MB`);
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGameDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingGame(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    
+    if (!(file.type === "text/html" || file.name.endsWith(".html"))) {
+      toast.error("Please upload an HTML file");
+      return;
+    }
+    if (file.size > MAX_HTML_SIZE) {
+      toast.error(`HTML file size must be less than ${MAX_HTML_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+    setGameFile(file);
+  };
+
+  const handleImageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingImage(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error(`Image file size must be less than ${MAX_IMAGE_SIZE / (1024 * 1024)}MB`);
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const isHttpUrlUnder500 = (s: string) => /^https?:\/\/\S{1,498}$/i.test(s);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (useFileUpload) {
+      if (!gameFile) {
+        toast.error("Please upload an HTML file");
+        return;
+      }
+    } else {
+      if (!gameUrl || !isHttpUrlUnder500(gameUrl.trim())) {
+        toast.error("Invalid game URL: must be HTTP/HTTPS and under 500 characters");
+        return;
+      }
+    }
+
+    try {
+      setLoading(true);
+      const sessionToken = localStorage.getItem("session_token");
+      
+      if (!sessionToken) {
+        toast.error("Please log in to create a game");
+        return;
+      }
+
+      let finalGameUrl = "";
+      if (useFileUpload && gameFile) {
+        finalGameUrl = await gameFile.text();
+      } else {
+        finalGameUrl = gameUrl;
+      }
+      
+      let imageUrl = null;
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { data: imageData, error: imageError } = await supabase.storage
+          .from("game-images")
+          .upload(fileName, imageFile);
+
+        if (imageError) throw imageError;
+        imageUrl = supabase.storage.from("game-images").getPublicUrl(imageData.path).data.publicUrl;
+      }
+
+      const { data, error } = await supabase.rpc("create_game_with_context", {
+        _session_token: sessionToken,
+        _title: formData.title,
+        _description: formData.description,
+        _game_url: finalGameUrl,
+        _genre: formData.genre,
+        _max_players: formData.max_players,
+        _category: formData.category,
+        _image_url: imageUrl
+      });
+
+      if (error) throw error;
+
+      localStorage.removeItem('games_cache_v2');
+      localStorage.removeItem('games_cache_v2_timestamp');
+      sessionStorage.setItem('force_games_refresh', 'true');
+      
+      toast.success("Activity created successfully!");
+      navigate("/browser");
+    } catch (error: any) {
+      console.error("Error creating game:", error);
+      toast.error(error.message || "Failed to create game");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto p-8">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold tracking-tight mb-2">Create New Activity</h1>
+        <p className="text-muted-foreground">Upload your HTML5 activity and share it with the community</p>
+      </div>
+
+      <Card className="border-border/50 shadow-lg">
+        <CardContent className="pt-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-base font-semibold">Activity Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Enter your activity title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-base font-semibold">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe your activity, its features, and how to use it"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={5}
+                  required
+                  className="resize-none"
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="genre" className="text-base font-semibold">Genre</Label>
+                  <Select
+                    value={formData.genre}
+                    onValueChange={(value) => setFormData({ ...formData, genre: value })}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Action">Action</SelectItem>
+                      <SelectItem value="Adventure">Adventure</SelectItem>
+                      <SelectItem value="Puzzle">Puzzle</SelectItem>
+                      <SelectItem value="RPG">RPG</SelectItem>
+                      <SelectItem value="Strategy">Strategy</SelectItem>
+                      <SelectItem value="Sports">Sports</SelectItem>
+                      <SelectItem value="Racing">Racing</SelectItem>
+                      <SelectItem value="Fighting">Fighting</SelectItem>
+                      <SelectItem value="Shooter">Shooter</SelectItem>
+                      <SelectItem value="Platformer">Platformer</SelectItem>
+                      <SelectItem value="Simulation">Simulation</SelectItem>
+                      <SelectItem value="Horror">Horror</SelectItem>
+                      <SelectItem value="Arcade">Arcade</SelectItem>
+                      <SelectItem value="Card">Card</SelectItem>
+                      <SelectItem value="Board">Board</SelectItem>
+                      <SelectItem value="Educational">Educational</SelectItem>
+                      <SelectItem value="Music">Music</SelectItem>
+                      <SelectItem value="Casual">Casual</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="max_players" className="text-base font-semibold">Max Players</Label>
+                  <Select
+                    value={formData.max_players}
+                    onValueChange={(value) => setFormData({ ...formData, max_players: value })}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select max players" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Player (Single Player)</SelectItem>
+                      <SelectItem value="2">2 Players</SelectItem>
+                      <SelectItem value="4">4 Players</SelectItem>
+                      <SelectItem value="8">8 Players</SelectItem>
+                      <SelectItem value="16">16 Players</SelectItem>
+                      <SelectItem value="100+">100+ Players (MMO)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Activity Source</Label>
+                <div className="flex gap-4 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => toggleUploadMode(true)}
+                    className={`flex-1 px-4 py-2 rounded-md border transition-colors ${
+                      useFileUpload
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    Upload HTML File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleUploadMode(false)}
+                    className={`flex-1 px-4 py-2 rounded-md border transition-colors ${
+                      !useFileUpload
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    Enter Activity URL
+                  </button>
+                </div>
+
+                {useFileUpload ? (
+                  <>
+                    <div
+                      onDrop={handleGameDrop}
+                      onDragOver={handleDragOver}
+                      onDragEnter={() => setIsDraggingGame(true)}
+                      onDragLeave={() => setIsDraggingGame(false)}
+                      className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+                        isDraggingGame
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <Input
+                        id="gameFile"
+                        type="file"
+                        accept=".html,text/html"
+                        onChange={handleGameFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
+                        <Upload className="w-8 h-8 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Drop your HTML file here or click to browse</p>
+                          <p className="text-xs text-muted-foreground mt-1">Supports .html files (max 500MB)</p>
+                        </div>
+                      </div>
+                    </div>
+                    {gameFile && (
+                      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Upload className="w-4 h-4" />
+                          <span>{gameFile.name}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setGameFile(null)}
+                          className="text-destructive hover:text-destructive/80 transition-colors"
+                          aria-label="Remove file"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </>
+                 ) : (
+                  <div className="space-y-2">
+                    <Input
+                      id="game_url"
+                      type="text"
+                      placeholder="https://example.com/game.html"
+                      value={gameUrl}
+                      onChange={(e) => setGameUrl(e.target.value)}
+                      className="h-12"
+                    />
+                    <p className="text-xs text-muted-foreground">Enter the full URL where your game is hosted</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="imageFile" className="text-base font-semibold">
+                  Cover Image <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                </Label>
+                <div
+                  onDrop={handleImageDrop}
+                  onDragOver={handleDragOver}
+                  onDragEnter={() => setIsDraggingImage(true)}
+                  onDragLeave={() => setIsDraggingImage(false)}
+                  className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+                    isDraggingImage
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <Input
+                    id="imageFile"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
+                    <Upload className="w-8 h-8 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Drop cover image here or click to browse</p>
+                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF (max 500MB)</p>
+                    </div>
+                  </div>
+                </div>
+                {imagePreview && (
+                  <div className="mt-4 relative">
+                    <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-2 hover:bg-destructive/80"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
+              {loading ? "Creating..." : "Create Activity"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default CreateContent;

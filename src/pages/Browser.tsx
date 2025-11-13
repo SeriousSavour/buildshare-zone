@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield, Scroll } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield, Scroll, User, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -13,13 +13,16 @@ import Tools from "./Tools";
 import Help from "./Help";
 import Philosophy from "./Philosophy";
 import GameDetailContent from "@/components/browser/GameDetailContent";
+import ProfileContent from "@/components/browser/ProfileContent";
+import SettingsContent from "@/components/browser/SettingsContent";
+import CreateContent from "@/components/browser/CreateContent";
 import { getRandomPhilosopherQuote } from "@/lib/greekQuotes";
 
 interface Tab {
   id: string;
   title: string;
   url: string;
-  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "philosophy" | "game";
+  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "philosophy" | "game" | "profile" | "settings" | "create";
   gameId?: string;
 }
 
@@ -167,6 +170,9 @@ const Browser = () => {
     { icon: Wrench, label: "Tools", type: "tools" as const },
     { icon: HelpCircle, label: "Help", type: "help" as const },
     { icon: Scroll, label: "Philosophy", type: "philosophy" as const },
+    { icon: User, label: "Profile", type: "profile" as const },
+    { icon: SettingsIcon, label: "Settings", type: "settings" as const },
+    { icon: Plus, label: "Create", type: "create" as const },
   ];
 
   const addNewTab = () => {
@@ -212,7 +218,10 @@ const Browser = () => {
       tools: "Tools",
       help: "Help",
       philosophy: "Philosophy",
-      game: "Game"
+      game: "Game",
+      profile: "Profile",
+      settings: "Settings",
+      create: "Create"
     };
 
     const activeTabData = tabs.find(t => t.id === activeTab);
@@ -367,6 +376,12 @@ const Browser = () => {
         return <Help hideNavigation={true} />;
       case "philosophy":
         return <Philosophy />;
+      case "profile":
+        return <ProfileContent />;
+      case "settings":
+        return <SettingsContent />;
+      case "create":
+        return <CreateContent />;
       default:
         return null;
     }
