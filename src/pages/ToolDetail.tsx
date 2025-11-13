@@ -126,31 +126,6 @@ const ToolDetail = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Falling Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
-            className="absolute"
-            style={{
-              left: `${particle.left}%`,
-              top: '-100px',
-              fontSize: `${particle.size}rem`,
-              animation: `fall ${particle.animationDuration}s linear forwards`,
-            }}
-          >
-            {particle.emoji}
-          </div>
-        ))}
-      </div>
-
-      {/* Halloween decorative elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
-        <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
-        <div className="absolute bottom-[20%] left-[10%] text-4xl animate-float opacity-15">🦇</div>
-      </div>
-
       <Navigation />
       <AnnouncementBanner />
       

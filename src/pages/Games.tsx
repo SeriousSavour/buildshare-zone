@@ -367,7 +367,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center space-y-6 w-full max-w-md">
               <div className="space-y-3">
-                <p className="text-3xl font-bold gradient-text-animated">Loading spooky games...</p>
+                <p className="text-3xl font-bold gradient-text-animated">Loading games...</p>
                 <p className="text-xl text-muted-foreground font-semibold">
                   Loading {totalGamesCount || '...'} assets
                 </p>
@@ -407,7 +407,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
               </div>
               
               <p className="text-sm text-muted-foreground">
-                🎃 Gathering haunted games... 👻
+                Gathering games...
               </p>
             </div>
           </div>
@@ -415,18 +415,6 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
       </div>;
   }
   return <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Falling Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
-        {particles.map(particle => <div key={particle.id} className="absolute" style={{
-        left: `${particle.left}%`,
-        top: '-100px',
-        fontSize: `${particle.size}rem`,
-        animation: `fall ${particle.animationDuration}s linear forwards`
-      }}>
-            {particle.emoji}
-          </div>)}
-      </div>
-
       {/* Animated background effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-gradient-bg" />
@@ -434,34 +422,6 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-secondary/8 rounded-full blur-3xl animate-float animate-gradient-bg" />
         <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-primary/8 rounded-full blur-3xl animate-spin-slow" />
         <div className="absolute bottom-40 right-10 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-pulse-glow" />
-      </div>
-      
-      {/* Bouncing Halloween decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[10%] left-[8%] text-5xl animate-bounce-slow opacity-30">🎃</div>
-        <div className="absolute top-[25%] right-[12%] text-4xl animate-bounce-delayed opacity-25">👻</div>
-        <div className="absolute top-[15%] left-[85%] text-3xl animate-sway opacity-20">🦇</div>
-        <div className="absolute top-[45%] left-[5%] text-4xl animate-sway-delayed opacity-25">💀</div>
-        <div className="absolute top-[60%] right-[10%] text-5xl animate-bounce-slow opacity-30">🎃</div>
-        <div className="absolute top-[35%] right-[88%] text-3xl animate-bounce-delayed opacity-20">🕷️</div>
-        <div className="absolute top-[75%] left-[15%] text-4xl animate-sway opacity-25">🍂</div>
-        <div className="absolute top-[50%] right-[45%] text-3xl animate-bounce-slow opacity-15">👻</div>
-      </div>
-      
-      {/* Halloween decorative elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
-        <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
-        <div className="absolute top-[20%] left-[15%] text-4xl animate-float opacity-15">🦇</div>
-        <div className="absolute top-[40%] right-[12%] text-5xl animate-float-delayed opacity-20">🎃</div>
-        <div className="absolute top-[60%] left-[8%] text-4xl animate-float opacity-15">💀</div>
-        <div className="absolute bottom-[20%] right-[15%] text-6xl animate-float-delayed opacity-20">👻</div>
-        <div className="absolute bottom-[40%] left-[20%] text-3xl animate-float opacity-10">🕷️</div>
-        <div className="absolute top-[25%] right-[25%] text-4xl animate-float opacity-15">🍂</div>
-        <div className="absolute bottom-[30%] right-[5%] text-5xl animate-float-delayed opacity-20">🎃</div>
-        <div className="absolute top-[50%] left-[3%] text-4xl animate-float opacity-15">🦇</div>
-        <div className="absolute bottom-10 left-[12%] text-3xl animate-float-delayed opacity-10">🕸️</div>
-        <div className="absolute top-[15%] right-[35%] text-3xl animate-float opacity-12">💀</div>
       </div>
       
       {!hideNavigation && <Navigation />}
@@ -474,16 +434,16 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         <div className="mb-12 space-y-6 animate-fade-in text-center">
           <div className="space-y-4">
             <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text-animated text-glow leading-tight animate-pulse-ring">
-              Spooky Gǟmes 🎃 👻
+              Games
             </h1>
             <p className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-foreground via-primary to-muted-foreground bg-clip-text text-transparent animate-fade-in-delay-1">
-              Discover spine-chilling games this October! 🎃✨
+              Discover amazing games!
             </p>
           </div>
           <div className="flex justify-center gap-3 flex-wrap">
             <div className="px-5 py-2 bg-card/60 border border-primary/30 rounded-full backdrop-blur-sm">
               <p className="text-base font-medium">
-                🦇 {games.length} haunted games waiting 🦇
+                {games.length} games available
               </p>
             </div>
           </div>

@@ -94,41 +94,6 @@ const Tools = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) =>
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Falling Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
-            className="absolute"
-            style={{
-              left: `${particle.left}%`,
-              top: '-100px',
-              fontSize: `${particle.size}rem`,
-              animation: `fall ${particle.animationDuration}s linear forwards`,
-            }}
-          >
-            {particle.emoji}
-          </div>
-        ))}
-      </div>
-
-      {/* Bouncing decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[12%] left-[8%] text-5xl animate-bounce-slow opacity-30">🎃</div>
-        <div className="absolute top-[28%] right-[10%] text-4xl animate-bounce-delayed opacity-25">👻</div>
-        <div className="absolute top-[18%] right-[85%] text-3xl animate-sway opacity-20">🦇</div>
-        <div className="absolute top-[48%] left-[6%] text-4xl animate-sway-delayed opacity-25">💀</div>
-        <div className="absolute top-[68%] right-[14%] text-5xl animate-bounce-slow opacity-30">🎃</div>
-      </div>
-      
-      {/* Halloween decorative elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
-        <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
-        <div className="absolute top-[20%] left-[15%] text-4xl animate-float opacity-15">🦇</div>
-        <div className="absolute bottom-[30%] right-[5%] text-5xl animate-float-delayed opacity-20">🎃</div>
-      </div>
-
       {!hideNavigation && <Navigation />}
       {!hideNavigation && <AnnouncementBanner />}
       

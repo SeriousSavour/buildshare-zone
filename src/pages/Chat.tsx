@@ -112,12 +112,6 @@ const Chat = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => 
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Halloween decorative elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-10 left-[5%] text-6xl animate-float opacity-20">🎃</div>
-        <div className="absolute top-32 right-[8%] text-5xl animate-float-delayed opacity-25">👻</div>
-      </div>
-
       {!hideNavigation && <Navigation />}
       {!hideNavigation && <AnnouncementBanner />}
       

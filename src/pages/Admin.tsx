@@ -828,24 +828,6 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Falling Particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-50">
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
-            className="absolute"
-            style={{
-              left: `${particle.left}%`,
-              top: '-100px',
-              fontSize: `${particle.size}rem`,
-              animation: `fall ${particle.animationDuration}s linear forwards`,
-            }}
-          >
-            {particle.emoji}
-          </div>
-        ))}
-      </div>
-
       <Navigation />
       <AnnouncementBanner />
       <div className="container mx-auto px-4 py-12 relative z-10">
