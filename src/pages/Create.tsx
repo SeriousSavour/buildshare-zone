@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload } from "lucide-react";
 import Navigation from "@/components/layout/Navigation";
+import ContentGuidelines from "@/components/games/ContentGuidelines";
 
 const Create = () => {
   const navigate = useNavigate();
@@ -237,6 +238,8 @@ const Create = () => {
           <h1 className="text-4xl font-bold tracking-tight mb-2">Create New Activity</h1>
           <p className="text-muted-foreground">Upload your HTML5 activity and share it with the community</p>
         </div>
+
+        <ContentGuidelines />
 
         <Card className="border-border/50 shadow-lg">
           <CardContent className="pt-6">

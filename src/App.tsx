@@ -29,6 +29,8 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Help from "./pages/Help";
 import Philosophy from "./pages/Philosophy";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminAuth from "./components/admin/AdminAuth";
 
@@ -129,6 +131,8 @@ const App = () => {
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/help" element={<Help />} />
               <Route path="/philosophy" element={<Philosophy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="*" element={<Navigate to="/browser" replace />} />
             </Routes>
           </BrowserRouter>
