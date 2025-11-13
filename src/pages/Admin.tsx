@@ -1756,6 +1756,11 @@ const Admin = () => {
               </div>
             </Card>
           </TabsContent>
+
+          {/* Site Settings Tab */}
+          <TabsContent value="site-settings" className="space-y-6">
+            <SiteSettingsPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
