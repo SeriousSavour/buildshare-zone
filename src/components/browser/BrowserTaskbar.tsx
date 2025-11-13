@@ -6,7 +6,7 @@ interface Tab {
   id: string;
   title: string;
   url: string;
-  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "game";
+  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "philosophy" | "game";
   gameId?: string;
 }
 

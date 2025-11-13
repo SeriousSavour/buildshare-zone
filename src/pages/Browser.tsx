@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield } from "lucide-react";
+import { Home, Gamepad2, Users, MessageCircle, Wrench, HelpCircle, ArrowLeft, ArrowRight, RotateCw, X, Plus, MoreVertical, Maximize2, Minimize2, Shield, Scroll } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -11,6 +11,7 @@ import Friends from "./Friends";
 import Chat from "./Chat";
 import Tools from "./Tools";
 import Help from "./Help";
+import Philosophy from "./Philosophy";
 import GameDetailContent from "@/components/browser/GameDetailContent";
 import { getRandomPhilosopherQuote } from "@/lib/greekQuotes";
 
@@ -18,7 +19,7 @@ interface Tab {
   id: string;
   title: string;
   url: string;
-  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "game";
+  type: "home" | "games" | "friends" | "chat" | "tools" | "help" | "philosophy" | "game";
   gameId?: string;
 }
 
@@ -165,6 +166,7 @@ const Browser = () => {
     { icon: MessageCircle, label: "Chat", type: "chat" as const },
     { icon: Wrench, label: "Tools", type: "tools" as const },
     { icon: HelpCircle, label: "Help", type: "help" as const },
+    { icon: Scroll, label: "Philosophy", type: "philosophy" as const },
   ];
 
   const addNewTab = () => {
@@ -209,6 +211,7 @@ const Browser = () => {
       chat: "Chat",
       tools: "Tools",
       help: "Help",
+      philosophy: "Philosophy",
       game: "Game"
     };
 
@@ -287,6 +290,66 @@ const Browser = () => {
                   </button>
                 ))}
               </div>
+
+              {/* DMCA Takedown Section with Painted Arrow */}
+              <div className="relative mt-16 max-w-4xl mx-auto">
+                {/* Hand-drawn painted arrow pointing to DMCA button */}
+                <svg 
+                  className="absolute -top-24 right-20 w-32 h-32 text-primary animate-pulse" 
+                  viewBox="0 0 100 100" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ filter: 'drop-shadow(0 0 8px rgba(var(--primary), 0.5))' }}
+                >
+                  {/* Painted brush stroke arrow */}
+                  <path 
+                    d="M 20 10 Q 30 15, 35 25 Q 40 35, 42 45 Q 43 55, 45 65 Q 48 75, 55 82 L 60 87 L 55 85 L 50 80 M 60 87 L 58 80 L 63 83" 
+                    stroke="currentColor" 
+                    strokeWidth="4" 
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ 
+                      paintOrder: 'stroke',
+                      filter: 'url(#roughen)'
+                    }}
+                  />
+                  {/* Add texture filter for painted look */}
+                  <defs>
+                    <filter id="roughen">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise"/>
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+                    </filter>
+                  </defs>
+                </svg>
+
+                <div className="p-8 rounded-lg bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent border-2 border-destructive/30 animate-fade-in hover:border-destructive/50 transition-all duration-300">
+                  <div className="flex items-center justify-between gap-6">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-destructive mb-2">
+                        📋 DMCA Takedown Notice
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Report copyright infringement or submit a DMCA takedown request. 
+                        We take intellectual property rights seriously and will respond promptly.
+                      </p>
+                    </div>
+                    <Button 
+                      size="lg"
+                      variant="destructive"
+                      className="px-8 py-6 text-lg font-semibold hover:scale-105 transition-transform duration-200 shadow-lg animate-pulse"
+                      onClick={() => {
+                        navigateToContent("help");
+                        setTimeout(() => {
+                          const dmcaSection = document.getElementById('dmca-section');
+                          dmcaSection?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
+                    >
+                      Submit DMCA Request
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -302,6 +365,8 @@ const Browser = () => {
         return <Tools hideNavigation={true} />;
       case "help":
         return <Help hideNavigation={true} />;
+      case "philosophy":
+        return <Philosophy />;
       default:
         return null;
     }
