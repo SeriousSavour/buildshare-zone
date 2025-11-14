@@ -10,6 +10,7 @@ import BrowserFrame from "@/components/browser/BrowserFrame";
 import QuickLinks from "@/components/browser/QuickLinks";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { getRandomQuote } from "@/lib/quotes";
+import { Label } from "@/components/ui/label";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -18,10 +19,16 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const { data: settings } = useSiteSettings();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!ageConfirmed) {
+      toast.error("You must confirm you are 13 years or older");
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
@@ -169,6 +176,19 @@ const Register = () => {
                     autoComplete="new-password"
                     required
                   />
+                </div>
+                <div className="flex items-start space-x-2 mt-4">
+                  <input
+                    type="checkbox"
+                    id="ageConfirm"
+                    checked={ageConfirmed}
+                    onChange={(e) => setAgeConfirmed(e.target.checked)}
+                    className="mt-1"
+                    required
+                  />
+                  <Label htmlFor="ageConfirm" className="text-sm text-muted-foreground cursor-pointer">
+                    I confirm that I am 13 years of age or older. Users under 13 are not permitted to use this platform (COPPA compliance).
+                  </Label>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Register"}

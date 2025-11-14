@@ -152,11 +152,43 @@ const PrivacyPolicy = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold mb-4 text-primary">9. Contact Us</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">9. Cookie Policy</h2>
+              <div className="space-y-4 text-muted-foreground leading-relaxed">
+                <p>
+                  We use cookies and similar tracking technologies to enhance your experience on our platform. 
+                  Cookies are small data files stored on your device that help us:
+                </p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Remember your preferences and settings</li>
+                  <li>Keep you logged in to your account</li>
+                  <li>Analyze site traffic and usage patterns</li>
+                  <li>Improve site functionality and performance</li>
+                </ul>
+                <p>
+                  You can control cookie settings through your browser preferences. Note that disabling 
+                  cookies may affect the functionality of certain features.
+                </p>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">10. GDPR Compliance</h2>
               <p className="text-muted-foreground leading-relaxed">
-                If you have questions about this privacy policy or how we handle your data, 
-                please contact us through the Help page.
+                For users in the European Union, we comply with the General Data Protection Regulation (GDPR). 
+                You have the right to access, rectify, erase, restrict processing, and port your personal data. 
+                To exercise these rights, please contact us at privacy@philosopher.com.
               </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">11. Contact Us</h2>
+              <div className="space-y-4 text-muted-foreground leading-relaxed">
+                <p>If you have questions about this privacy policy, contact us:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Email: privacy@philosopher.com</li>
+                  <li>Support page: <a href="/help" className="text-primary hover:underline">/help</a></li>
+                </ul>
+              </div>
             </section>
 
             <section className="pt-6 border-t border-border">

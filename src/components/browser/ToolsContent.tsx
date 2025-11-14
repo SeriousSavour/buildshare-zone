@@ -53,18 +53,21 @@ const ToolsContent = () => {
   );
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Wrench className="w-12 h-12 text-primary" />
-          <h1 className="text-5xl font-bold tracking-tight">
-            <StyledKeyword keyword="Gaming" /> <StyledKeyword keyword="Tools" className="text-primary" />
-          </h1>
-        </div>
-        <p className="text-xl text-muted-foreground max-w-2xl">
-          Discover helpful gaming websites and resources
+    <div className="space-y-6">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          Gaming Tools
+        </h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Essential utilities and resources for gamers
         </p>
+        <div className="bg-muted/50 border border-border rounded-lg p-4 max-w-2xl mx-auto">
+          <p className="text-xs text-muted-foreground">
+            <strong>Disclaimer:</strong> These are links to third-party websites and services. 
+            philosopher is not responsible for the content, privacy practices, or terms of service 
+            of external sites. Use at your own discretion.
+          </p>
+        </div>
       </div>
 
       {/* Search */}

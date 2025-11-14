@@ -9,6 +9,7 @@ import { SnowEffect } from "@/components/winter/SnowEffect";
 import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 import { api } from "@/lib/api";
+import CookieConsent from "@/components/layout/CookieConsent";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import WindowsLogin from "@/components/WindowsLogin";
@@ -111,6 +112,7 @@ const App = () => {
         <TooltipProvider>
           <SnowEffect />
           <WalkingSnowman />
+          <CookieConsent />
           <Toaster />
           <Sonner />
           <BrowserRouter>
