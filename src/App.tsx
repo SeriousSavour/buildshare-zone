@@ -10,6 +10,7 @@ import { WalkingSnowman } from "@/components/winter/WalkingSnowman";
 import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 import { api } from "@/lib/api";
 import CookieConsent from "@/components/layout/CookieConsent";
+import TermsAcceptanceGate from "@/components/legal/TermsAcceptanceGate";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import WindowsLogin from "@/components/WindowsLogin";
@@ -42,11 +43,20 @@ const App = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [checkingTerms, setCheckingTerms] = useState(true);
   
-  console.log("App state:", { loading, showLogin, showContent, checkingSession });
+  console.log("App state:", { loading, showLogin, showContent, checkingSession, termsAccepted });
   
   // Initialize Christmas theme
   useChristmasTheme();
+  
+  // Check for terms acceptance on mount
+  useEffect(() => {
+    const hasAcceptedTerms = localStorage.getItem("legal_terms_accepted") === "true";
+    setTermsAccepted(hasAcceptedTerms);
+    setCheckingTerms(false);
+  }, []);
   
   // Check for existing session on mount
   useEffect(() => {
@@ -95,6 +105,11 @@ const App = () => {
 
   return (
     <div className="relative">
+      {/* Terms Acceptance Gate - Shows first before anything else */}
+      {!checkingTerms && !termsAccepted && (
+        <TermsAcceptanceGate onAccept={() => setTermsAccepted(true)} />
+      )}
+      
       {loading && !checkingSession && <LoadingScreen onLoadComplete={() => {
         console.log("onLoadComplete called");
         setLoading(false);

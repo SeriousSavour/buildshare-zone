@@ -9,7 +9,10 @@ const CookieConsent = () => {
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie_consent");
-    if (!consent) {
+    const termsAccepted = localStorage.getItem("legal_terms_accepted");
+    
+    // Don't show cookie banner if they already accepted via terms gate
+    if (!consent && !termsAccepted) {
       setShowConsent(true);
     }
   }, []);
