@@ -97,6 +97,17 @@ const Register = () => {
 
       console.log("Profile creation response:", { profileError });
 
+      // Log age verification consent
+      try {
+        await supabase.from("user_consents").insert({
+          user_id: userId.id,
+          consent_type: "age_verification",
+          user_agent: navigator.userAgent,
+        });
+      } catch (error) {
+        console.error("Error logging age verification:", error);
+      }
+
       toast.success("Account created successfully!");
       console.log("Registration successful! Redirecting to login...");
       navigate("/login");

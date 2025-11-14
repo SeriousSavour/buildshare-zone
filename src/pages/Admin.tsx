@@ -9,8 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2, Settings } from "lucide-react";
+import { Users, Flag, ScrollText, Shield, Trash2, UserPlus, UserMinus, Search, Megaphone, Ban, BarChart3, Plus, X, Gamepad2, Settings, Scale } from "lucide-react";
 import SiteSettingsPanel from "@/components/admin/SiteSettingsPanel";
+import LegalCompliancePanel from "@/components/admin/LegalCompliancePanel";
 import { ChristmasThemeToggle } from "@/components/theme/ChristmasThemeToggle";
 
 interface Particle {
@@ -883,7 +884,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="w-full animate-fade-in-delay-2">
-          <TabsList className="grid w-full grid-cols-10 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
+          <TabsList className="grid w-full grid-cols-11 mb-8 h-14 bg-card/60 backdrop-blur-sm p-1.5 rounded-xl border-2 border-border/50">
             <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Users className="w-4 h-4" />
               Users
@@ -895,6 +896,10 @@ const Admin = () => {
             <TabsTrigger value="flags" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Flag className="w-4 h-4" />
               Flags
+            </TabsTrigger>
+            <TabsTrigger value="legal" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
+              <Scale className="w-4 h-4" />
+              Legal
             </TabsTrigger>
             <TabsTrigger value="bugs" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg font-semibold">
               <Flag className="w-4 h-4" />
@@ -1204,6 +1209,11 @@ const Admin = () => {
                 )}
               </div>
             </Card>
+          </TabsContent>
+
+          {/* Legal Compliance Tab */}
+          <TabsContent value="legal" className="space-y-6">
+            <LegalCompliancePanel />
           </TabsContent>
 
           {/* Announcements Tab */}

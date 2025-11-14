@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const CookieConsent = () => {
   const [showConsent, setShowConsent] = useState(false);
@@ -13,9 +14,19 @@ const CookieConsent = () => {
     }
   }, []);
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     localStorage.setItem("cookie_consent", "accepted");
     setShowConsent(false);
+    
+    // Log consent to database
+    try {
+      await supabase.from("user_consents").insert({
+        consent_type: "cookie",
+        user_agent: navigator.userAgent,
+      });
+    } catch (error) {
+      console.error("Error logging cookie consent:", error);
+    }
   };
 
   const handleDecline = () => {
