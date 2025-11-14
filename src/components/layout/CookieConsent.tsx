@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const CookieConsent = () => {
@@ -47,9 +46,14 @@ const CookieConsent = () => {
             <p>
               We use cookies to improve your experience on our site. By continuing to use our website, 
               you accept our use of cookies as described in our{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
+              <a 
+                href="/privacy" 
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Privacy Policy
-              </Link>
+              </a>
               .
             </p>
           </div>
