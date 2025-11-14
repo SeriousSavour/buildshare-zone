@@ -139,11 +139,51 @@ const TermsOfService = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold mb-4 text-primary">9. Contact Information</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">8. Warranty Disclaimer</h2>
               <p className="text-muted-foreground leading-relaxed">
-                For questions about these terms or to report copyright infringement, please use the contact form 
-                available on our Help page.
+                THE PLATFORM AND ALL CONTENT ARE PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, 
+                EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED, 
+                ERROR-FREE, OR FREE FROM VIRUSES OR OTHER HARMFUL COMPONENTS.
               </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">9. Governing Law and Jurisdiction</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                These Terms shall be governed by and construed in accordance with the laws of the 
+                United States. Any disputes arising out of or related to these Terms or the Platform 
+                shall be resolved in the courts located in the United States.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">10. Dispute Resolution</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Any disputes arising from these Terms or your use of the Platform shall first be 
+                attempted to be resolved through good faith negotiations. If negotiations fail, 
+                disputes may be submitted to binding arbitration in accordance with the rules of 
+                the American Arbitration Association.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">11. Severability</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                If any provision of these Terms is found to be unenforceable or invalid, that 
+                provision shall be limited or eliminated to the minimum extent necessary, and the 
+                remaining provisions shall remain in full force and effect.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">12. Contact Information</h2>
+              <div className="space-y-4 text-muted-foreground leading-relaxed">
+                <p>For questions about these terms, DMCA notices, or legal inquiries, contact us:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Email: legal@philosopher.com</li>
+                  <li>Support page: <a href="/help" className="text-primary hover:underline">/help</a></li>
+                </ul>
+              </div>
             </section>
 
             <section className="pt-6 border-t border-border">

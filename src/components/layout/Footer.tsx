@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           {/* Copyright */}
           <div className="text-sm text-muted-foreground">
-            © {currentYear} All rights reserved.
+            © {currentYear} philosopher. All rights reserved.
           </div>
 
           {/* Legal Links */}
