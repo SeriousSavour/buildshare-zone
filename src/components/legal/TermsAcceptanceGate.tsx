@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, FileText, Cookie, Scale } from "lucide-react";
-import { Link } from "react-router-dom";
 
 interface TermsAcceptanceGateProps {
   onAccept: () => void;
@@ -87,13 +86,14 @@ const TermsAcceptanceGate = ({ onAccept }: TermsAcceptanceGateProps) => {
                   I have read and agree to the Terms of Service, including rules for user conduct, 
                   content guidelines, and platform usage.
                 </p>
-                <Link 
-                  to="/terms" 
+                <a 
+                  href="/terms" 
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-primary hover:underline inline-flex items-center gap-1"
                 >
                   Read Terms of Service →
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -116,13 +116,14 @@ const TermsAcceptanceGate = ({ onAccept }: TermsAcceptanceGateProps) => {
                   I understand how my personal data will be collected, used, stored, and protected 
                   in accordance with GDPR and COPPA regulations.
                 </p>
-                <Link 
-                  to="/privacy" 
+                <a 
+                  href="/privacy" 
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-primary hover:underline inline-flex items-center gap-1"
                 >
                   Read Privacy Policy →
-                </Link>
+                </a>
               </div>
             </div>
           </div>
