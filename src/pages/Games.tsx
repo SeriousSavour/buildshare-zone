@@ -430,14 +430,12 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-card/30 to-background relative overflow-hidden">
       {/* Animated background effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-gradient-bg" />
-        <div className="absolute top-40 right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float-delayed animate-gradient-bg" />
-        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-secondary/8 rounded-full blur-3xl animate-float animate-gradient-bg" />
-        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-primary/8 rounded-full blur-3xl animate-spin-slow" />
-        <div className="absolute bottom-40 right-10 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-pulse-glow" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-accent/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-secondary/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
       
       {!hideNavigation && <Navigation />}
@@ -446,59 +444,59 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Main Content - Full Width */}
         <div className="w-full">
-        {/* Header with enhanced design */}
-        <div className="mb-12 space-y-6 animate-fade-in text-center backdrop-blur-sm bg-card/30 rounded-lg p-8 border border-border/50">
-          <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text-animated text-glow leading-tight animate-pulse-ring">
+        {/* Header with modern design */}
+        <div className="mb-12 space-y-6 animate-fade-in">
+          <div className="space-y-4 text-center">
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight gradient-text-animated">
               Activity
             </h1>
-            <p className="text-2xl md:text-3xl font-semibold bg-gradient-to-r from-foreground via-primary to-muted-foreground bg-clip-text text-transparent animate-fade-in-delay-1">
-              Discover exciting activities!
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover and play amazing activities created by our community
             </p>
           </div>
           <div className="flex justify-center gap-3 flex-wrap">
-            <div className="px-5 py-2 bg-card/60 border border-primary/30 rounded-full backdrop-blur-sm">
-              <p className="text-base font-medium">
-                {games.length} activities available
+            <div className="px-4 py-2 bg-card/80 border border-border rounded-full backdrop-blur-sm">
+              <p className="text-sm font-medium text-muted-foreground">
+                <span className="text-primary font-bold">{games.length}</span> activities available
               </p>
             </div>
           </div>
         </div>
 
-        {/* Featured Game Banner with enhanced design */}
-        {featuredGame && <div className="mb-16 animate-fade-in-delay-1">
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-accent/15 to-background border-2 border-primary/50 hover:border-primary/70 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/40 group">
+        {/* Featured Game Banner */}
+        {featuredGame && <div className="mb-12 animate-fade-in-delay-1">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group">
               <div className="absolute inset-0">
-                {featuredGame.image_url && <img src={featuredGame.image_url} alt={featuredGame.title} className="w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500" />}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/60 to-background/30" />
+                {featuredGame.image_url && <img src={featuredGame.image_url} alt={featuredGame.title} className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-300" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/70 to-transparent" />
               </div>
-              <div className="relative p-10 md:p-14">
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="px-4 py-2 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground rounded-full text-sm font-bold shadow-lg glow-festive">
-                    👑 Featured Game (2/5)
+              <div className="relative p-8 md:p-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold border border-primary/30">
+                    ⭐ Featured
                   </span>
                 </div>
-                <h2 className="text-5xl md:text-6xl font-bold mb-6 gradient-text">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">
                   {featuredGame.title}
                 </h2>
-                <p className="text-xl md:text-2xl text-muted-foreground/90 mb-8 max-w-3xl line-clamp-2 leading-relaxed">
+                <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-2xl line-clamp-2">
                   {featuredGame.description || "No description available"}
                 </p>
-                <div className="flex items-center gap-8 mb-8 text-lg">
-                  <span className="flex items-center gap-3 px-4 py-2 bg-card/50 rounded-full border border-border/50">
-                    <Play className="w-5 h-5 text-primary" />
+                <div className="flex items-center gap-6 mb-6">
+                  <span className="flex items-center gap-2 text-sm">
+                    <Play className="w-4 h-4 text-primary" />
                     <span className="font-semibold">{featuredGame.plays}</span>
                     <span className="text-muted-foreground">plays</span>
                   </span>
-                  <span className="flex items-center gap-3 px-4 py-2 bg-card/50 rounded-full border border-border/50">
-                    <Heart className="w-5 h-5 text-primary" />
+                  <span className="flex items-center gap-2 text-sm">
+                    <Heart className="w-4 h-4 text-primary" />
                     <span className="font-semibold">{featuredGame.likes}</span>
                     <span className="text-muted-foreground">likes</span>
                   </span>
                 </div>
                 <Button 
                   size="lg" 
-                  className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 glow-festive hover-lift shadow-xl font-semibold" 
+                  className="gap-2" 
                   onClick={() => {
                     if (onGameClick) {
                       onGameClick(featuredGame.id, featuredGame.title);
@@ -507,58 +505,58 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
                     }
                   }}
                 >
-                  <Play className="w-5 h-5" />
-                  Play Now! 🎮
+                  <Play className="w-4 h-4" />
+                  Play Now
                 </Button>
               </div>
             </div>
           </div>}
 
-        {/* Search and Filters with better styling */}
-        <div className="mb-10 space-y-5 animate-fade-in-delay-2">
-          <div className="flex flex-col md:flex-row gap-5">
-            {/* Search with enhanced design */}
+        {/* Search and Filters */}
+        <div className="mb-8 space-y-4 animate-fade-in-delay-2">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input type="text" placeholder="Find your next favorite game... 🎮" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-12 h-14 text-lg bg-card/60 border-2 border-border/50 hover:border-primary/40 focus:border-primary/60 rounded-xl backdrop-blur-sm transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input type="text" placeholder="Search activities..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card border-border" />
             </div>
 
-            {/* Sort Dropdown with better styling */}
+            {/* Sort Dropdown */}
             <div className="relative">
-              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="w-full md:w-56 h-14 px-5 bg-card/60 border-2 border-border/50 hover:border-primary/40 rounded-xl text-foreground appearance-none cursor-pointer pr-12 font-medium backdrop-blur-sm transition-colors">
-                <option value="newest">📅 Sort: Newest</option>
-                <option value="popular">🔥 Sort: Most Popular</option>
-                <option value="likes">❤️ Sort: Most Liked</option>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="w-full md:w-48 h-10 px-3 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer pr-10 text-sm">
+                <option value="newest">Newest</option>
+                <option value="popular">Most Popular</option>
+                <option value="likes">Most Liked</option>
               </select>
-              <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
 
-            {/* View Dropdown with better styling */}
+            {/* View Dropdown */}
             <div className="relative">
-              <select value={cardSize} onChange={e => setCardSize(e.target.value as any)} className="w-full md:w-48 h-14 px-5 bg-card/60 border-2 border-border/50 hover:border-primary/40 rounded-xl text-foreground appearance-none cursor-pointer pr-12 font-medium backdrop-blur-sm transition-colors">
-                <option value="small">⬜ View: Compact</option>
-                <option value="medium">🟧 View: Comfy</option>
-                <option value="large">🟥 View: Spacious</option>
+              <select value={cardSize} onChange={e => setCardSize(e.target.value as any)} className="w-full md:w-40 h-10 px-3 bg-card border border-border rounded-md text-foreground appearance-none cursor-pointer pr-10 text-sm">
+                <option value="small">Compact</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
               </select>
-              <Grid3x3 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <Grid3x3 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
           {/* Category Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            <Button variant={categoryFilter === "all" ? "default" : "outline"} onClick={() => setCategoryFilter("all")} className="gap-2 whitespace-nowrap">
-              🎮 All Games
+            <Button size="sm" variant={categoryFilter === "all" ? "default" : "outline"} onClick={() => setCategoryFilter("all")} className="whitespace-nowrap">
+              All
             </Button>
-            <Button variant={categoryFilter === "favorites" ? "default" : "outline"} onClick={() => setCategoryFilter("favorites")} className="gap-2 whitespace-nowrap">
-              ❤️ Favorites
+            <Button size="sm" variant={categoryFilter === "favorites" ? "default" : "outline"} onClick={() => setCategoryFilter("favorites")} className="whitespace-nowrap">
+              Favorites
             </Button>
-            <Button variant={categoryFilter === "popular" ? "default" : "outline"} onClick={() => setCategoryFilter("popular")} className="gap-2 whitespace-nowrap">
-              🔥 Popular
+            <Button size="sm" variant={categoryFilter === "popular" ? "default" : "outline"} onClick={() => setCategoryFilter("popular")} className="whitespace-nowrap">
+              Popular
             </Button>
-            <Button variant={categoryFilter === "new" ? "default" : "outline"} onClick={() => setCategoryFilter("new")} className="gap-2 whitespace-nowrap">
-              ✨ New
+            <Button size="sm" variant={categoryFilter === "new" ? "default" : "outline"} onClick={() => setCategoryFilter("new")} className="whitespace-nowrap">
+              New
             </Button>
-            {genres.map(genre => <Button key={genre} variant={selectedGenre === genre ? "default" : "outline"} onClick={() => {
+            {genres.map(genre => <Button size="sm" key={genre} variant={selectedGenre === genre ? "default" : "outline"} onClick={() => {
             setSelectedGenre(genre);
             setCategoryFilter("all");
           }} className="whitespace-nowrap">
@@ -567,30 +565,30 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
           </div>
 
           {/* Results count */}
-          <p className="text-sm text-muted-foreground">
-            Showing {filteredGames.length} of {games.length} games
-            {categoryFilter !== "all" && ` in ${categoryFilter}`}
+          <p className="text-xs text-muted-foreground">
+            Showing {filteredGames.length} of {games.length} activities
           </p>
         </div>
 
         {/* Games Grid */}
-        {filteredGames.length === 0 ? <div className="text-center py-20 space-y-6 max-w-2xl mx-auto">
-            <div className="text-6xl mb-4">🎮</div>
-            <p className="text-3xl font-bold">No Activities Available</p>
-            <p className="text-lg text-muted-foreground">
+        {filteredGames.length === 0 ? <div className="text-center py-16 space-y-4 max-w-xl mx-auto">
+            <div className="text-4xl mb-2">🎮</div>
+            <h3 className="text-2xl font-bold gradient-text">No Activities Found</h3>
+            <p className="text-muted-foreground">
               {games.length === 0 
-                ? "Be the first to add a properly licensed activity! Check our content guidelines before uploading."
+                ? "Be the first to add an activity!"
                 : "Try adjusting your search or filters"}
             </p>
             {games.length === 0 && (
               <Button 
                 onClick={() => navigate("/create")} 
-                className="mt-4 text-lg px-8 py-6"
+                className="mt-4"
+                size="lg"
               >
                 Create New Activity
               </Button>
             )}
-          </div> : <div className={`grid gap-8 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
+          </div> : <div className={`grid gap-6 animate-fade-in-delay-3 ${viewMode === "grid" ? getGridCols() : "grid-cols-1"}`}>
             {filteredGames.map(game => <GameCard key={game.id} title={game.title} description={game.description} imageUrl={game.image_url} genre={game.genre} maxPlayers={game.max_players} creatorName={game.creator_name} creatorAvatar={game.creator_avatar} likes={game.likes} plays={game.plays} gameUrl={game.game_url} isLiked={likedGames.has(game.id)} onLikeToggle={fetchLikedGames} id={game.id} isAdmin={isAdmin} creatorId={game.creator_id} onDelete={fetchGames} onGameClick={onGameClick} />)}
           </div>}
         </div>
