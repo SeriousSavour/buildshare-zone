@@ -294,6 +294,74 @@ export type Database = {
           },
         ]
       }
+      dmca_notices: {
+        Row: {
+          accuracy_statement: string
+          admin_notes: string | null
+          complainant_address: string | null
+          complainant_email: string
+          complainant_name: string
+          copyright_work_description: string
+          created_at: string
+          good_faith_statement: string
+          id: string
+          infringing_content_id: string | null
+          infringing_content_type: string | null
+          infringing_url: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          signature: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accuracy_statement: string
+          admin_notes?: string | null
+          complainant_address?: string | null
+          complainant_email: string
+          complainant_name: string
+          copyright_work_description: string
+          created_at?: string
+          good_faith_statement: string
+          id?: string
+          infringing_content_id?: string | null
+          infringing_content_type?: string | null
+          infringing_url: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          signature: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accuracy_statement?: string
+          admin_notes?: string | null
+          complainant_address?: string | null
+          complainant_email?: string
+          complainant_name?: string
+          copyright_work_description?: string
+          created_at?: string
+          good_faith_statement?: string
+          id?: string
+          infringing_content_id?: string | null
+          infringing_content_type?: string | null
+          infringing_url?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          signature?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dmca_notices_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "user_auth"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       featured_game: {
         Row: {
           created_at: string
@@ -847,6 +915,44 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      user_consents: {
+        Row: {
+          consent_type: string
+          consented_at: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          consent_type: string
+          consented_at?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          consent_type?: string
+          consented_at?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_consents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_auth"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_favorites: {
         Row: {

@@ -231,11 +231,11 @@ const Create = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
       <Navigation />
       <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight mb-2">Create New Activity</h1>
+        <div className="mb-8 backdrop-blur-sm bg-card/30 rounded-lg p-6 border border-border/50 animate-fade-in">
+          <h1 className="text-4xl font-bold tracking-tight mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Create New Activity</h1>
           <p className="text-muted-foreground">Upload your HTML5 activity and share it with the community</p>
         </div>
 
