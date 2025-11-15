@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/layout/Navigation";
 import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
@@ -49,6 +49,8 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
   const [featuredGame, setFeaturedGame] = useState<Game | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const gamesGridRef = useRef<HTMLDivElement>(null);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem('games_cache_v2');
@@ -263,8 +265,22 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
       filtered.sort((a, b) => b.likes - a.likes);
     }
 
+    setIsFiltering(true);
     setFilteredGames(filtered);
-  }, [searchQuery, selectedGenre, games, sortBy, categoryFilter, likedGames, popularGames]);
+    
+    // Smooth scroll to games grid when filters change
+    if (gamesGridRef.current && !loading) {
+      setTimeout(() => {
+        gamesGridRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest' 
+        });
+      }, 100);
+    }
+    
+    // Reset filtering state after animation
+    setTimeout(() => setIsFiltering(false), 600);
+  }, [searchQuery, selectedGenre, games, sortBy, categoryFilter, likedGames, popularGames, loading]);
 
   const genres = Array.from(new Set(games.map(game => game.genre))).filter(Boolean);
 
@@ -454,26 +470,34 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
 
         {/* Games Grid */}
         {!loading && filteredGames.length > 0 && (
-          <div className={getGridClass()}>
-            {filteredGames.map((game) => (
-              <GameCard
+          <div 
+            ref={gamesGridRef}
+            className={`${getGridClass()} transition-opacity duration-300 ${isFiltering ? 'opacity-50' : 'opacity-100'}`}
+          >
+            {filteredGames.map((game, index) => (
+              <div
                 key={game.id}
-                id={game.id}
-                title={game.title}
-                description={game.description}
-                imageUrl={game.image_url}
-                genre={game.genre}
-                maxPlayers={game.max_players}
-                creatorName={game.creator_name}
-                creatorAvatar={game.creator_avatar}
-                creatorId={game.creator_id}
-                likes={game.likes}
-                plays={game.plays}
-                gameUrl={game.game_url}
-                isLiked={likedGames.has(game.id)}
-                isAdmin={isAdmin}
-                onGameClick={() => handleGameClick(game.id, game.title)}
-              />
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <GameCard
+                  id={game.id}
+                  title={game.title}
+                  description={game.description}
+                  imageUrl={game.image_url}
+                  genre={game.genre}
+                  maxPlayers={game.max_players}
+                  creatorName={game.creator_name}
+                  creatorAvatar={game.creator_avatar}
+                  creatorId={game.creator_id}
+                  likes={game.likes}
+                  plays={game.plays}
+                  gameUrl={game.game_url}
+                  isLiked={likedGames.has(game.id)}
+                  isAdmin={isAdmin}
+                  onGameClick={() => handleGameClick(game.id, game.title)}
+                />
+              </div>
             ))}
           </div>
         )}
