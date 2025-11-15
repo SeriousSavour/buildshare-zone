@@ -430,7 +430,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-background relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
       {/* Animated background effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-gradient-bg" />
@@ -447,7 +447,7 @@ const Games = ({ onGameClick, hideNavigation = false }: GamesProps = {}) => {
         {/* Main Content - Full Width */}
         <div className="w-full">
         {/* Header with enhanced design */}
-        <div className="mb-12 space-y-6 animate-fade-in text-center">
+        <div className="mb-12 space-y-6 animate-fade-in text-center backdrop-blur-sm bg-card/30 rounded-lg p-8 border border-border/50">
           <div className="space-y-4">
             <h1 className="text-6xl md:text-7xl font-bold tracking-tight gradient-text-animated text-glow leading-tight animate-pulse-ring">
               Activity

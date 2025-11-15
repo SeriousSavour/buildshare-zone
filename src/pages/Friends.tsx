@@ -150,16 +150,16 @@ const Friends = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) 
   const pendingRequests = friends.filter(f => f.status === 'pending');
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
       {!hideNavigation && <Navigation />}
       {!hideNavigation && <AnnouncementBanner />}
       
       <div className="container mx-auto px-4 py-12 relative z-10 max-w-4xl">
         {/* Header */}
-        <div className="mb-12 space-y-4 animate-fade-in">
+        <div className="mb-12 space-y-4 animate-fade-in backdrop-blur-sm bg-card/30 rounded-lg p-6 border border-border/50">
           <div className="flex items-center gap-3">
             <Users className="w-12 h-12 text-primary" />
-            <h1 className="text-5xl font-bold tracking-tight">
+            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Your <span className="text-primary">Friends</span>
             </h1>
           </div>
