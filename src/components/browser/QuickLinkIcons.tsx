@@ -86,7 +86,7 @@ export const ToolsIcon = (props: LucideProps) => (
     className="transition-all duration-500 hover:rotate-[15deg]"
     {...props}
   >
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" className="fill-orange-500/20 stroke-orange-500 transition-all duration-500 hover:fill-orange-500/40" />
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" className="fill-accent/20 stroke-accent transition-all duration-500 hover:fill-accent/40" />
   </svg>
 );
 
