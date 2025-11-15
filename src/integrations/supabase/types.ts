@@ -1284,6 +1284,7 @@ export type Database = {
         Args: { _game_id: string; _session_token: string }
         Returns: boolean
       }
+      delete_user_account: { Args: { _session_token: string }; Returns: Json }
       demote_admin_to_user: {
         Args: { _admin_session_token: string; _target_username: string }
         Returns: boolean
