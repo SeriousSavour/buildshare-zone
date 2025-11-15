@@ -163,7 +163,7 @@ const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => 
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Mail className="w-5 h-5 text-primary" />
-                  <CardTitle>Get in Touch</CardTitle>
+                  <CardTitle className="gradient-text">Get in Touch</CardTitle>
                 </div>
                 <CardDescription>
                   Have a question or feedback? We'd love to hear from you!
@@ -238,7 +238,7 @@ const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => 
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Bug className="w-5 h-5 text-primary" />
-                  <CardTitle>Report a Bug</CardTitle>
+                  <CardTitle className="gradient-text-secondary">Report a Bug</CardTitle>
                 </div>
                 <CardDescription>
                   Found a bug? Let us know so we can fix it!
@@ -299,7 +299,7 @@ const Help = ({ hideNavigation = false }: { hideNavigation?: boolean } = {}) => 
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-destructive" />
-                  <CardTitle className="text-destructive">DMCA Takedown Request</CardTitle>
+                  <CardTitle className="gradient-text-accent">DMCA Takedown Request</CardTitle>
                 </div>
                 <CardDescription>
                   Submit a Digital Millennium Copyright Act (DMCA) takedown notice for copyright infringement.
