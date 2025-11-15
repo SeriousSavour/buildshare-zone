@@ -188,9 +188,9 @@ const LegalCompliancePanel = () => {
       case "severe":
         return "text-destructive";
       case "moderate":
-        return "text-orange-500";
+        return "text-accent";
       default:
-        return "text-yellow-500";
+        return "text-primary";
     }
   };
 
@@ -248,9 +248,9 @@ const LegalCompliancePanel = () => {
           </div>
         </Card>
 
-        <Card className="p-4 bg-gradient-to-br from-orange-500/5 to-orange-500/10 border-orange-500/20">
+        <Card className="p-4 bg-gradient-to-br from-accent/5 to-accent/10 border-accent/20">
           <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-orange-500" />
+            <FileText className="w-8 h-8 text-accent" />
             <div>
               <p className="text-2xl font-bold text-foreground">{stats.pendingDMCA}</p>
               <p className="text-xs text-muted-foreground">Pending DMCA</p>
@@ -429,8 +429,8 @@ const LegalCompliancePanel = () => {
                     flag.severity === "severe"
                       ? "bg-destructive/5 border-destructive/30"
                       : flag.severity === "moderate"
-                      ? "bg-orange-500/5 border-orange-500/30"
-                      : "bg-yellow-500/5 border-yellow-500/30"
+                      ? "bg-accent/5 border-accent/30"
+                      : "bg-primary/5 border-primary/30"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">

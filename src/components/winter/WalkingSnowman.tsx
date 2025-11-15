@@ -60,7 +60,7 @@ export const WalkingSnowman = () => {
         <circle cx="44" cy="18" r="2" fill="#1a1a1a" />
         
         {/* Carrot nose */}
-        <path d="M40 20 L48 22 L40 24 Z" fill="#ff6b35" />
+        <path d="M40 20 L48 22 L40 24 Z" fill="hsl(var(--accent))" />
         
         {/* Smile */}
         <path
