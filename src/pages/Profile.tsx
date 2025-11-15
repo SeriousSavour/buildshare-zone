@@ -233,8 +233,8 @@ const Profile = () => {
             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
               <User className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-5xl font-bold tracking-tight">
-              Your <span className="text-primary">Profile</span>
+            <h1 className="text-5xl font-bold tracking-tight gradient-text-animated">
+              Your Profile
             </h1>
           </div>
           <p className="text-xl text-muted-foreground">
@@ -247,7 +247,7 @@ const Profile = () => {
           <div className="md:col-span-2 space-y-8">
             <Card className="animate-fade-in-delay-1 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
               <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
+                <CardTitle className="gradient-text">Profile Settings</CardTitle>
                 <CardDescription>Update your profile information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -331,7 +331,7 @@ const Profile = () => {
           <div className="space-y-4">
             <Card className="animate-fade-in-delay-2 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-lg">Your Stats</CardTitle>
+                <CardTitle className="text-lg gradient-text-secondary">Your Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">

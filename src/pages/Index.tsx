@@ -29,10 +29,10 @@ const Index = () => {
       <div className="w-full max-w-4xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-3">
-          <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent drop-shadow-2xl">
+          <h1 className="text-6xl font-bold gradient-text-animated drop-shadow-2xl">
             <StyledText text={siteName} weirdLetterIndex={0} />
           </h1>
-          <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
+          <p className="text-lg font-medium gradient-text-secondary">
             {tagline}
           </p>
         </div>
@@ -48,7 +48,7 @@ const Index = () => {
               <Monitor className="w-10 h-10 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />
             </div>
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-gray-200 group-hover:text-white transition-colors">
+              <h2 className="text-2xl font-bold gradient-text group-hover:scale-105 transition-transform">
                 Browser Mode
               </h2>
               <p className="text-sm text-gray-400">
@@ -64,7 +64,7 @@ const Index = () => {
               <Home className="w-10 h-10 text-gray-400" />
             </div>
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-gray-200">
+              <h2 className="text-2xl font-bold gradient-text-accent">
                 Classic Mode
               </h2>
               <p className="text-sm text-gray-400">

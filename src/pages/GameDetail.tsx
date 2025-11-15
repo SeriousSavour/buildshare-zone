@@ -464,7 +464,7 @@ const GameDetail = () => {
       {isFullscreen && game?.game_url && (
         <>
           <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-primary/90 to-purple-600/90 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-lg">
-            <h1 className="text-2xl font-bold text-white">🎮 {game.title}</h1>
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">🎮 {game.title}</h1>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleExitFullscreen} className="text-white hover:bg-white/20">
                 <Minimize2 className="w-4 h-4 mr-2" />
@@ -513,7 +513,7 @@ const GameDetail = () => {
 
             {/* Header with Sidebar Toggle */}
             <div className="w-full max-w-7xl mb-4 flex items-center justify-between">
-              <h1 className="text-3xl font-bold">{game.title}</h1>
+              <h1 className="text-3xl font-bold gradient-text-animated">{game.title}</h1>
               <Button
                 onClick={() => setShowSidebar(!showSidebar)}
                 size="lg"
@@ -654,7 +654,7 @@ const GameDetail = () => {
                     {/* Comments Section */}
                     <Card className="w-full max-w-4xl">
                       <CardContent className="pt-6">
-                        <h3 className="font-semibold mb-4 text-xl">Comments ({comments.length})</h3>
+                        <h3 className="font-semibold mb-4 text-xl gradient-text-accent">Comments ({comments.length})</h3>
 
                         {/* Comment Input */}
                         <div className="mb-6 space-y-2">
@@ -763,7 +763,7 @@ const GameDetail = () => {
 
                     {/* Description */}
                     <div>
-                      <h3 className="font-semibold mb-2">Description</h3>
+                      <h3 className="font-semibold mb-2 gradient-text-secondary">Description</h3>
                       <p className="text-sm text-muted-foreground">{game.description || "No description available"}</p>
                     </div>
 
