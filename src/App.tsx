@@ -11,6 +11,7 @@ import { useChristmasTheme } from "@/hooks/useChristmasTheme";
 import { api } from "@/lib/api";
 import CookieConsent from "@/components/layout/CookieConsent";
 import TermsAcceptanceGate from "@/components/legal/TermsAcceptanceGate";
+import AccessGate from "@/components/auth/AccessGate";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import WindowsLogin from "@/components/WindowsLogin";
@@ -104,61 +105,63 @@ const App = () => {
   }, [loading, showLogin]);
 
   return (
-    <div className="relative">
-      {/* Terms Acceptance Gate - Shows first before anything else */}
-      {!checkingTerms && !termsAccepted && (
-        <TermsAcceptanceGate onAccept={() => setTermsAccepted(true)} />
-      )}
-      
-      {loading && !checkingSession && <LoadingScreen onLoadComplete={() => {
-        console.log("onLoadComplete called");
-        setLoading(false);
-        setShowLogin(true);
-      }} />}
-      {showLogin && !loading && !checkingSession && <WindowsLogin onLoginComplete={() => {
-        console.log("onLoginComplete called");
-        setShowLogin(false);
-        setTimeout(() => setShowContent(true), 300);
-      }} />}
-    <div className={`transition-opacity duration-500 ${showContent && !loading && !showLogin && !checkingSession ? 'opacity-100' : 'opacity-0'}`}>
-    <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <TooltipProvider>
-          <SnowEffect />
-          <WalkingSnowman />
-          <CookieConsent />
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Navigate to="/browser" replace />} />
-              <Route path="/browser" element={<Browser />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
-              <Route path="/games/:id" element={<ProtectedRoute><GameDetail /></ProtectedRoute>} />
-              <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
-              <Route path="/tools/:id" element={<ProtectedRoute><ToolDetail /></ProtectedRoute>} />
-              <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
-              <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-              <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/admin" element={<AdminAuth><Admin /></AdminAuth>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/help" element={<Help />} />
-              <Route path="/philosophy" element={<Philosophy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="*" element={<Navigate to="/browser" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-    </ErrorBoundary>
-    </div>
-    </div>
+    <AccessGate>
+      <div className="relative">
+        {/* Terms Acceptance Gate - Shows first before anything else */}
+        {!checkingTerms && !termsAccepted && (
+          <TermsAcceptanceGate onAccept={() => setTermsAccepted(true)} />
+        )}
+        
+        {loading && !checkingSession && <LoadingScreen onLoadComplete={() => {
+          console.log("onLoadComplete called");
+          setLoading(false);
+          setShowLogin(true);
+        }} />}
+        {showLogin && !loading && !checkingSession && <WindowsLogin onLoginComplete={() => {
+          console.log("onLoginComplete called");
+          setShowLogin(false);
+          setTimeout(() => setShowContent(true), 300);
+        }} />}
+      <div className={`transition-opacity duration-500 ${showContent && !loading && !showLogin && !checkingSession ? 'opacity-100' : 'opacity-0'}`}>
+      <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <TooltipProvider>
+            <SnowEffect />
+            <WalkingSnowman />
+            <CookieConsent />
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Navigate to="/browser" replace />} />
+                <Route path="/browser" element={<Browser />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
+                <Route path="/games/:id" element={<ProtectedRoute><GameDetail /></ProtectedRoute>} />
+                <Route path="/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
+                <Route path="/tools/:id" element={<ProtectedRoute><ToolDetail /></ProtectedRoute>} />
+                <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
+                <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+                <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/admin" element={<AdminAuth><Admin /></AdminAuth>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/help" element={<Help />} />
+                <Route path="/philosophy" element={<Philosophy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="*" element={<Navigate to="/browser" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+      </ErrorBoundary>
+      </div>
+      </div>
+    </AccessGate>
   );
 };
 
